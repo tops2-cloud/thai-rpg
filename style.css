@@ -15,6 +15,8 @@
   --epic: #c06bff;
   --legend: #ffad33;
   --unique: #ff5b8a;
+  --mythic: #2ee6c8;
+  --divine: #fff27a;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; background: var(--bg); color: var(--text); }
@@ -166,3 +168,49 @@ h2 { margin: 6px 0; }
 .hero-battle.lunge { animation: lunge .4s; }
 @keyframes lunge { 0%,100% { transform: translateY(0) } 40% { transform: translateY(-18px) scale(1.05) } }
 .grid1 { display: grid; gap: 4px; }
+
+/* ความหายากใหม่ */
+.r-mythic { color: var(--mythic); } .b-mythic { border-left: 4px solid var(--mythic); }
+.r-divine { color: var(--divine); text-shadow: 0 0 8px #ffe86b88; } .b-divine { border-left: 4px solid var(--divine); box-shadow: inset 0 0 18px #fff27a22; }
+.plus { color: var(--gold); }
+
+/* แสงอาวุธตีบวก */
+.enh { animation: enhglow 1.6s ease-in-out infinite; }
+.enh2 { animation-duration: .9s; }
+@keyframes enhglow {
+  0%,100% { filter: drop-shadow(0 0 var(--gr) var(--gc)); }
+  50% { filter: drop-shadow(0 0 calc(var(--gr) * 2.4) var(--gc)) brightness(1.25); }
+}
+.spark { animation: spark 1.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes spark { 0%,100% { opacity: 0; transform: scale(.3); } 50% { opacity: 1; transform: scale(1); } }
+
+/* ความยาก */
+.diff-badge { font-family: 'Kanit'; font-size: 12px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); background: #0d0b16; vertical-align: middle; }
+.d-normal.diff-badge { border-color: #4bd16a; } .d-hard.diff-badge { border-color: #ff9a3d; color: #ffc48a; } .d-advanced.diff-badge { border-color: #ff3b5c; color: #ff8fa1; }
+.diff-card { border-left: 4px solid var(--line); }
+.diff-card.d-normal { border-left-color: #4bd16a; } .diff-card.d-hard { border-left-color: #ff9a3d; } .diff-card.d-advanced { border-left-color: #ff3b5c; }
+.diff-card.cur { box-shadow: 0 0 0 2px #b884ff66; }
+.diff-card.locked { opacity: .5; }
+.diff-pick { display: grid; gap: 8px; margin-top: 12px; }
+.diff-pick .d-hard { background: linear-gradient(180deg,#d97a24,#a8541a); border-color: #ff9a3d; }
+.diff-pick .d-advanced { background: linear-gradient(180deg,#e0485e,#9e2238); border-color: #ff6a7e; }
+.diff-pick .d-normal { background: linear-gradient(180deg,#3fa85a,#2a7a40); border-color: #4bd16a; }
+.ending { border-color: var(--gold); box-shadow: 0 0 24px #ffcc4d33; }
+.glow-btn { border-color: var(--accent); }
+
+/* ช่างตีเหล็ก */
+.forge-card { background: linear-gradient(180deg,#2a2040,#1f1a30); }
+.forge-top { display: flex; gap: 12px; align-items: center; }
+.forge-ico { font-size: 44px; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: #0d0b16; }
+.forge-ico.ok { animation: forgeok .6s; } .forge-ico.fail { animation: shake .4s; }
+@keyframes forgeok { 0% { transform: scale(1); } 40% { transform: scale(1.25); box-shadow: 0 0 30px var(--gold); } 100% { transform: scale(1); } }
+.plusbar { display: flex; gap: 3px; margin-top: 6px; }
+.plusbar i { flex: 1; height: 6px; border-radius: 3px; background: #0d0b16; border: 1px solid var(--line); }
+.plusbar i.risk { border-color: #6a3040; }
+.plusbar i.on { background: linear-gradient(90deg,#ffcc4d,#ff9a3d); border-color: #ffcc4d; }
+.forge-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin-top: 10px; font-size: 14px; }
+.forge-msg { margin-top: 10px; text-align: center; font-family: 'Kanit'; }
+.charm-toggle { display: flex; gap: 8px; align-items: center; margin-top: 8px; font-size: 14px; }
+.charm-toggle input { width: 18px; height: 18px; }
+.item.sel { outline: 2px solid var(--accent); }
+.item[data-a="forgesel"] { cursor: pointer; }
