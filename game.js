@@ -140,6 +140,9 @@ function newGame(name, cls) {
     zoneKills: {}, bossWins: {}, collection: {}, bestiary: {},
     uid: 1, wins: 0, cleared: false,
   };
+  const starter = { warrior: ['sword', 'ดาบฝึกหัด', '🗡️'], mage: ['staff', 'คทาฝึกหัด', '🪄'], archer: ['bow', 'ธนูฝึกหัด', '🏹'] }[cls];
+  S.equip.weapon = finalizeItem({ slot: 'weapon', key: `${starter[0]}:common`, name: starter[1], icon: starter[2], rarity: 'common', stats: { atk: 3 } });
+  S.collection[S.equip.weapon.key] = true;
   const st = stats();
   S.hp = st.hp; S.mp = st.mp;
   save();
@@ -525,6 +528,7 @@ function renderCreate() {
       <div class="muted" style="margin-bottom:6px">ชื่อผู้กล้า</div>
       <input type="text" id="pname" maxlength="16" placeholder="เช่น ไอ้เข้ม" value="${esc(cs.name)}" />
     </div>
+    <div class="hero-stage">${heroSVG(cs.cls, { weapon: { key: { warrior: 'sword', mage: 'staff', archer: 'bow' }[cs.cls] + ':common', rarity: 'common' } }, 130)}</div>
     <div class="muted">เลือกอาชีพ</div>
     <div class="class-pick">
       ${Object.entries(CLASSES).map(([k, c]) => `
@@ -554,11 +558,13 @@ function renderTown() {
   </div>
   <div class="card" style="margin-top:12px">
     <h3 style="margin-top:0">สถานะ</h3>
-    <div class="grid2 muted">
+    <div class="row" style="align-items:flex-start">
+    <div class="hero-stage small" data-a="go" data-v="bag">${heroSVG(S.cls, S.equip, 110)}</div>
+    <div class="grid1 muted" style="flex:1">
       <div>⚔️ โจมตี: <b>${st.atk}</b></div><div>🛡️ ป้องกัน: <b>${st.def}</b></div>
       <div>❤️ HP สูงสุด: <b>${st.hp}</b></div><div>🎯 คริติคอล: <b>${st.crit}%</b></div>
       <div>🏆 ชนะทั้งหมด: <b>${S.wins}</b></div><div>👑 บอสที่ล้ม: <b>${Object.keys(S.bossWins).length}/4</b></div>
-    </div>
+    </div></div>
   </div>
   <button class="ghost small" style="width:100%;margin-top:6px" data-a="reset">🗑️ ลบเซฟ เริ่มใหม่</button>`;
 }
@@ -629,7 +635,7 @@ function renderBattle() {
     </div>
     <div class="fighter" style="margin-top:18px">
       ${fx('player')}
-      <div class="sprite ${hitCls('player')}" style="font-size:54px">${CLASSES[S.cls].icon}</div>
+      <div class="hero-battle ${hitCls('player')} ${B.fx && B.fx.target === 'enemy' ? 'lunge' : ''}">${heroSVG(S.cls, S.equip, 96)}</div>
       <div>${ptags.join('')}</div>
     </div>
   </div>
@@ -691,7 +697,15 @@ function battleResult() {
 
 function renderBag() {
   const tab = (id, n) => `<button class="${bagTab === id ? 'on' : ''}" data-a="bagtab" data-v="${id}">${n}</button>`;
-  let html = `<h2>🎒 กระเป๋า</h2><div class="tabs">${tab('gear', 'อุปกรณ์')}${tab('equip', 'สวมใส่')}${tab('pots', 'ยา')}</div>`;
+  const eq = (slot) => S.equip[slot] ? `<span class="r-${S.equip[slot].rarity}">${S.equip[slot].icon} ${S.equip[slot].name}</span>` : '<span class="muted">ว่าง</span>';
+  let html = `<h2>🎒 กระเป๋า</h2>
+  <div class="card row" style="align-items:center">
+    <div class="hero-stage small">${heroSVG(S.cls, S.equip, 110)}</div>
+    <div style="flex:1;font-size:14px;line-height:1.8">
+      <div>⚔️ ${eq('weapon')}</div><div>🛡️ ${eq('armor')}</div><div>💍 ${eq('accessory')}</div>
+    </div>
+  </div>
+  <div class="tabs">${tab('gear', 'อุปกรณ์')}${tab('equip', 'สวมใส่')}${tab('pots', 'ยา')}</div>`;
   if (bagTab === 'equip') {
     html += Object.keys(S.equip).map((slot) => {
       const it = S.equip[slot];

@@ -155,3 +155,14 @@ input[type=text] {
 .overlay .card { max-width: 420px; width: 100%; text-align: center; }
 .big { font-size: 64px; }
 h2 { margin: 6px 0; }
+
+/* Paper-doll hero */
+.hero-stage { display: flex; justify-content: center; padding: 6px 0; }
+.hero-stage.small { padding: 0 6px 0 0; }
+.hero-svg { overflow: visible; animation: idle 2.4s ease-in-out infinite; }
+@keyframes idle { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-2px) } }
+.hero-battle { display: inline-block; }
+.hero-battle.hit { animation: shake .35s; }
+.hero-battle.lunge { animation: lunge .4s; }
+@keyframes lunge { 0%,100% { transform: translateY(0) } 40% { transform: translateY(-18px) scale(1.05) } }
+.grid1 { display: grid; gap: 4px; }
