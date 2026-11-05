@@ -131,13 +131,23 @@ function stageUpdate(B) {
   if (B.charging) ft.push('<span class="tag warn">⚠️ ชาร์จ</span>');
   if (B.poison) ft.push(`<span class="tag">☠️${B.poison}</span>`);
   $('ftags').innerHTML = ft.join('');
+  if (B.slow) ft.push(`<span class="tag">🧊${B.slow}</span>`);
+  if (B.stun) ft.push('<span class="tag warn">💫</span>');
   const ht = [];
   if (B.atkUp) ht.push(`<span class="tag">📣${B.atkUp}</span>`);
+  if (B.berserk) ht.push(`<span class="tag">😤${B.berserk}</span>`);
+  if (B.focus) ht.push(`<span class="tag">🧘${B.focus}</span>`);
+  if (B.ironwall) ht.push(`<span class="tag">🧱${B.ironwall}</span>`);
+  if (B.manaShield) ht.push(`<span class="tag">🔵${B.manaShield}</span>`);
+  if (B.evade) ht.push('<span class="tag">💨</span>');
   if (B.defending) ht.push('<span class="tag">🛡️</span>');
   $('htags').innerHTML = ht.join('');
   const foe = $('u-foe');
   foe.classList.toggle('charging', !!B.charging);
   foe.classList.toggle('enraged', !!B.enraged);
+  foe.classList.toggle('stunned', B.stun > 0);
+  foe.classList.toggle('frozen', B.slow > 0);
+  document.getElementById('u-hero').classList.toggle('berserk', B.berserk > 0);
 }
 
 /* ---------- ตัวช่วยแอนิเมชัน ---------- */
@@ -209,14 +219,16 @@ function boom(color, at) {
 }
 
 const PROJ = {
+  ice: '<svg viewBox="0 0 60 16" width="54"><path d="M0 8 L14 2 L60 8 L14 14 Z" fill="#bdf0ff" stroke="#5ac8ff" stroke-width="1.2"/><path d="M14 2 L22 8 L14 14" stroke="#fff" fill="none"/></svg>',
+  dark: '<div class="darkorb"></div>',
   fire: '<div class="fireball"></div>',
   arrow: '<svg viewBox="0 0 60 12" width="46"><path d="M0 6 L48 6" stroke="#8a5a34" stroke-width="2.5"/><path d="M60 6 L46 0 L48 6 L46 12 Z" fill="#dfe6f2"/><path d="M0 6 L8 0 M0 6 L8 12 M5 6 L12 0 M5 6 L12 12" stroke="#ff5b6a" stroke-width="1.6"/></svg>',
   poison: '<svg viewBox="0 0 60 12" width="46"><path d="M0 6 L48 6" stroke="#3b4a1c" stroke-width="2.5"/><path d="M60 6 L46 0 L48 6 L46 12 Z" fill="#7dff6b"/><path d="M0 6 L8 0 M0 6 L8 12" stroke="#7dff6b" stroke-width="1.6"/></svg>',
 };
-function projectile(kind, delay, onHit) {
+function projectile(kind, delay, onHit, big) {
   later(delay, () => {
     const a = unitPos('u-hero'), b = unitPos('u-foe');
-    const d = spawn(`proj ${kind}`, PROJ[kind], a.x + a.w * 0.3, a.y);
+    const d = spawn(`proj ${kind} ${big ? 'bigp' : ''}`, PROJ[kind], a.x + a.w * 0.3, a.y);
     if (!d || !canAnim()) { if (d) d.remove(); onHit(); return; }
     const dx = b.x - (a.x + a.w * 0.3);
     const dy = (b.y - a.y) + (Math.random() * 10 - 5);
@@ -240,7 +252,7 @@ function aura(kind) {
     anim(document.getElementById('hero-body'), [{ filter: 'drop-shadow(0 0 0 #ff3b3b)' }, { filter: 'drop-shadow(0 0 14px #ff3b3b) brightness(1.3)' }, { filter: 'drop-shadow(0 0 0 #ff3b3b)' }], { duration: 700 });
     return;
   }
-  const color = kind === 'mana' ? '#6bb6ff' : '#7dff6b';
+  const color = kind === 'mana' ? '#6bb6ff' : kind === 'wind' ? '#e6f7ff' : '#7dff6b';
   for (let i = 0; i < 9; i++) {
     const d = spawn('spk', '✦', p.x + (Math.random() * 60 - 30), p.y + p.h * 0.3 - Math.random() * 20);
     if (!d) return;
@@ -281,10 +293,12 @@ function playOne(ev) {
       anim(hero, [{ transform: 'translateX(0)' }, { transform: `translateX(${dist}px)`, offset: .45 }, { transform: `translateX(${dist}px)`, offset: .6 }, { transform: 'translateX(0)' }],
         { duration: 560, easing: 'ease-in-out' });
       later(240, () => {
-        slashFx(ev.big, ev.hits[0] && ev.hits[0].crit);
+        ev.hits.forEach((h, i) => slashFx(ev.big, h.crit, i * 110));
         if (ev.dual) slashFx(false, false, 110);
         hitNums(ev.hits, 110);
-        if (ev.big) shake(5);
+        if (ev.spin) anim(document.getElementById('hero-body'), [{ transform: 'scaleX(1)' }, { transform: 'scaleX(-1)' }, { transform: 'scaleX(1)' }, { transform: 'scaleX(-1)' }, { transform: 'scaleX(1)' }], { duration: 360 });
+        if (ev.quake) { boom('#c8a06a'); shake(12); flash('#ffcc4d'); }
+        else if (ev.big) shake(5);
       });
       return 600;
     }
@@ -296,12 +310,43 @@ function playOne(ev) {
         flinch('u-foe', h.crit);
         if (ev.kind === 'fire') { boom('#ff8a2a'); shake(5); }
         if (ev.kind === 'poison') boom('#7dff6b');
-      }));
+        if (ev.kind === 'ice') boom('#8fd0ff');
+        if (ev.kind === 'dark') boom('#b884ff');
+        if (ev.big) { boom('#ffffff'); shake(6); }
+      }, ev.big));
       return 380 + (n - 1) * 120 + 120;
+    }
+    case 'bolt': {
+      const p = unitPos('u-foe');
+      flash('#e8f4ff');
+      const d = spawn('bolt', '<svg viewBox="0 0 40 200" preserveAspectRatio="none"><path d="M24 0 L8 80 L22 84 L6 200 L34 70 L20 66 L32 0 Z" fill="#fff6a8" stroke="#ffe23a" stroke-width="2"/></svg>', p.x, 0);
+      anim(d, [{ opacity: 0 }, { opacity: 1, offset: .15 }, { opacity: .6, offset: .4 }, { opacity: 1, offset: .55 }, { opacity: 0 }], { duration: 450 });
+      kill(d, 460);
+      later(80, () => { boom('#fff6a8'); shake(9); hitNums(ev.hits, 0); });
+      return 520;
+    }
+    case 'meteor': {
+      const p = unitPos('u-foe');
+      ev.hits.forEach((h, i) => later(i * 200, () => {
+        const sx = p.x + 60 + Math.random() * 40;
+        const d = spawn('proj', '<div class="fireball meteor"></div>', sx, -20);
+        anim(d, [{ transform: 'translate(-50%,-50%) translate(0,0)' }, { transform: `translate(-50%,-50%) translate(${p.x - sx + (i - 1) * 16}px,${p.y + 20}px)` }], { duration: 300, easing: 'ease-in' });
+        kill(d, 300);
+        later(300, () => { boom('#ff5a1a'); shake(8); popNum('foe', `-${h.dmg.toLocaleString('th-TH')}`, h.crit ? 'crit' : ''); flinch('u-foe', true); });
+      }));
+      return 300 + ev.hits.length * 200 + 100;
+    }
+    case 'stun': {
+      const p = unitPos('u-foe');
+      const d = spawn('stars', '⭐ 💫 ⭐', p.x, p.y - p.h * 0.45);
+      anim(d, [{ transform: 'translate(-50%,0) rotate(0)', opacity: 0 }, { opacity: 1, offset: .2 }, { transform: 'translate(-50%,0) rotate(360deg)', opacity: 1, offset: .8 }, { opacity: 0 }], { duration: 900 });
+      kill(d, 900);
+      popNum('foe', `${ev.text}!`, 'warn');
+      return 450;
     }
     case 'aura':
       aura(ev.kind);
-      if (ev.text) later(150, () => popNum('hero', ev.text, ev.kind === 'buff' ? 'buff' : ev.kind === 'shield' ? 'shield' : 'heal'));
+      if (ev.text) later(150, () => popNum('hero', ev.text, ev.kind === 'buff' ? 'buff' : ev.kind === 'shield' || ev.kind === 'wind' ? 'shield' : ev.kind === 'mana' ? 'mana' : 'heal'));
       return 500;
     case 'num':
       popNum(ev.t, ev.text, ev.cls);
@@ -322,6 +367,11 @@ function playOne(ev) {
       anim(foe, [{ transform: 'translateX(0)' }, { transform: `translateX(${-dist}px)`, offset: .45 }, { transform: `translateX(${-dist}px)`, offset: .6 }, { transform: 'translateX(0)' }],
         { duration: 540, easing: 'ease-in-out' });
       later(240, () => {
+        if (ev.miss) {
+          anim(document.getElementById('hero-body'), [{ transform: 'translateX(0)', opacity: 1 }, { transform: 'translateX(-40px)', opacity: .4 }, { transform: 'translateX(0)', opacity: 1 }], { duration: 400 });
+          popNum('hero', 'หลบ!', 'shield');
+          return;
+        }
         if (ev.defended) aura('shield');
         boom(ev.charged ? '#ff3b3b' : '#ffffff', 'u-hero');
         popNum('hero', `-${ev.dmg.toLocaleString('th-TH')}`, ev.crit || ev.charged ? 'crit' : 'hurt');
@@ -364,5 +414,5 @@ function stagePlay(events) {
   stageQueueEnd = now + t;
 }
 function estimate(ev) {
-  return { melee: 600, proj: 380 + ((ev.hits || []).length - 1) * 120 + 120, aura: 450, num: 300, charge: 400, enrage: 500, foeAtk: 600, foeDie: 800, heroDie: 700, flee: 600 }[ev.a] || 0;
+  return { bolt: 520, meteor: 300 + ((ev.hits || []).length) * 200 + 100, stun: 450, melee: 600, proj: 380 + ((ev.hits || []).length - 1) * 120 + 120, aura: 450, num: 300, charge: 400, enrage: 500, foeAtk: 600, foeDie: 800, heroDie: 700, flee: 600 }[ev.a] || 0;
 }

@@ -301,3 +301,36 @@ h2 { margin: 6px 0; }
 .amb-flicker { animation: flicker .25s ease-in-out infinite alternate; transform-box: view-box; }
 @keyframes flicker { from { transform: scale(1,1); } to { transform: scale(.9,1.12); } }
 @media (prefers-reduced-motion: reduce) { .amb-drift, .amb-sway, .amb-twinkle, .amb-rise, .amb-fall, .amb-smoke, .amb-bob, .amb-float, .amb-flicker, .foe-sprite { animation: none !important; } }
+
+/* สกิล */
+.skill-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+.skill-btn { padding: 8px 2px 6px; display: flex; flex-direction: column; align-items: center; gap: 1px; border-radius: 12px; background: linear-gradient(180deg,#33285a,#251e3e); border-color: #5a4a8a; min-width: 0; }
+.skill-btn .sk-ico { font-size: 24px; line-height: 1.1; }
+.skill-btn .sk-nm { font-size: 12px; font-family: 'Kanit'; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.skill-btn .sk-mp { font-size: 10px; color: #8fb8ff; font-family: 'Sarabun'; }
+.skill-btn.nomp .sk-mp { color: var(--hp); }
+.skill-btn.empty { background: #15111f; border-style: dashed; }
+.skill-btn.empty .sk-ico { opacity: .4; }
+.skill-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.sslot { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 2px 8px; border-radius: 14px; border-style: dashed; background: #15111f; min-width: 0; }
+.sslot.has { border-style: solid; background: linear-gradient(180deg,#33285a,#251e3e); }
+.sslot.on { box-shadow: 0 0 0 2px var(--gold); border-color: var(--gold); }
+.sslot .sn { position: absolute; top: 3px; left: 7px; font-size: 11px; color: var(--muted); }
+.sslot .si { font-size: 28px; }
+.sslot .sl { font-size: 12px; font-family: 'Kanit'; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.skill-card.locked { opacity: .5; }
+.skill-card.equipped { border-color: var(--accent); }
+.new-skill { margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: #2a2342; border: 1px solid var(--gold); display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; font-size: 14px; }
+.actions + .skill-bar { margin-top: 8px; }
+/* เอฟเฟกต์สกิลในฉาก */
+.bolt { width: 44px; height: 75%; transform: translateX(-50%); filter: drop-shadow(0 0 10px #ffe23a); }
+.bolt svg { width: 100%; height: 100%; }
+.darkorb { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0%, #d0a8ff 25%, #6a2bd6 65%, transparent 72%); box-shadow: 0 0 16px #b884ff; }
+.fireball.meteor { width: 40px; height: 40px; box-shadow: 0 0 22px #ff6a00, 14px -14px 22px #ff6a0099; }
+.bigp { filter: drop-shadow(0 0 8px #fff); transform-origin: center; }
+.stars { font-size: 18px; white-space: nowrap; }
+.dnum.mana { color: #8fb8ff; font-size: 18px; }
+.foe-u.stunned .foe-sprite { animation: wobble 1s ease-in-out infinite; filter: grayscale(.4); }
+@keyframes wobble { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+.foe-u.frozen .foe-sprite { filter: drop-shadow(0 0 10px #8fd0ff) hue-rotate(170deg) saturate(.7); }
+.hero-u.berserk .ubody { filter: drop-shadow(0 0 10px #ff3b3b); }

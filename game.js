@@ -23,29 +23,55 @@ const CLASSES = {
     name: 'นักรบ', icon: '🧔🏻‍♂️', desc: 'เลือดเยอะ เกราะหนา ตีแรง เหมาะกับมือใหม่',
     base: { hp: 130, mp: 30, atk: 13, def: 9, crit: 5 },
     grow: { hp: 16, mp: 3, atk: 3, def: 2, crit: 0.3 },
-    skills: [
-      { id: 'slash', name: 'ฟันสะบั้น', icon: '💥', mp: 8, lv: 1, desc: 'โจมตีแรง 200%' },
-      { id: 'warcry', name: 'คำรามศึก', icon: '📣', mp: 12, lv: 5, desc: 'พลังโจมตี +50% 3 เทิร์น' },
-    ],
   },
   mage: {
     name: 'จอมเวท', icon: '🧙🏻', desc: 'เวทแรงทะลุเกราะ รักษาตัวเองได้ แต่ตัวบาง',
     base: { hp: 90, mp: 70, atk: 15, def: 5, crit: 5 },
     grow: { hp: 10, mp: 8, atk: 3.5, def: 1, crit: 0.3 },
-    skills: [
-      { id: 'fireball', name: 'ลูกไฟ', icon: '🔥', mp: 10, lv: 1, desc: 'เวท 230% ไม่สนเกราะ' },
-      { id: 'heal', name: 'แสงรักษา', icon: '✨', mp: 15, lv: 5, desc: 'ฟื้น HP 40%' },
-    ],
   },
   archer: {
     name: 'นักธนู', icon: '🧝🏻', desc: 'คริติคอลสูง ยิงหลายดอก ใช้พิษได้',
     base: { hp: 105, mp: 45, atk: 12, def: 6, crit: 15 },
     grow: { hp: 12, mp: 5, atk: 3, def: 1.5, crit: 0.6 },
-    skills: [
-      { id: 'volley', name: 'ฝนธนู', icon: '🌧️', mp: 9, lv: 1, desc: 'ยิง 3 ดอก ดอกละ 80%' },
-      { id: 'poison', name: 'ธนูพิษ', icon: '☠️', mp: 12, lv: 5, desc: 'โจมตี 100% + พิษ 3 เทิร์น' },
-    ],
   },
+};
+
+/* สกิล 8 แบบต่ออาชีพ ปลดล็อกตามเลเวล เลือกใส่ได้ 4 ช่อง */
+const SKILLS = {
+  // นักรบ
+  slash: { cls: 'warrior', lv: 1, mp: 8, name: 'ฟันสะบั้น', icon: '💥', desc: 'โจมตีแรง 200%' },
+  warcry: { cls: 'warrior', lv: 3, mp: 12, name: 'คำรามศึก', icon: '📣', desc: 'พลังโจมตี +50% 3 เทิร์น' },
+  bash: { cls: 'warrior', lv: 5, mp: 14, name: 'กระแทกโล่', icon: '🔨', desc: 'โจมตี 130% + ศัตรูมึน 1 เทิร์น ยกเลิกการชาร์จได้ (บอสติด 50%)' },
+  ironwall: { cls: 'warrior', lv: 8, mp: 12, name: 'กำแพงเหล็ก', icon: '🧱', desc: 'ป้องกัน +60% 3 เทิร์น' },
+  whirl: { cls: 'warrior', lv: 12, mp: 18, name: 'พายุดาบ', icon: '🌀', desc: 'ฟัน 3 ครั้ง ครั้งละ 90%' },
+  bloodlust: { cls: 'warrior', lv: 16, mp: 16, name: 'ดาบดูดเลือด', icon: '🩸', desc: 'โจมตี 170% ฟื้น HP ครึ่งหนึ่งของดาเมจ' },
+  earthsplit: { cls: 'warrior', lv: 20, mp: 30, name: 'ผ่าปฐพี', icon: '⛰️', desc: 'โจมตี 350% เจาะเกราะครึ่งหนึ่ง' },
+  berserk: { cls: 'warrior', lv: 25, mp: 20, name: 'คลั่งศึก', icon: '😤', desc: 'พลังโจมตี ×2 แต่ป้องกัน -30% 3 เทิร์น' },
+  // จอมเวท
+  fireball: { cls: 'mage', lv: 1, mp: 10, name: 'ลูกไฟ', icon: '🔥', desc: 'เวท 230% ไม่สนเกราะ' },
+  icebolt: { cls: 'mage', lv: 3, mp: 10, name: 'หอกน้ำแข็ง', icon: '🧊', desc: 'เวท 170% + ศัตรูโจมตีเบาลง 30% 2 เทิร์น' },
+  heal: { cls: 'mage', lv: 5, mp: 15, name: 'แสงรักษา', icon: '✨', desc: 'ฟื้น HP 40%' },
+  manashield: { cls: 'mage', lv: 8, mp: 14, name: 'เกราะมานา', icon: '🔵', desc: 'รับดาเมจลดลง 50% 3 เทิร์น' },
+  lightning: { cls: 'mage', lv: 12, mp: 20, name: 'สายฟ้าฟาด', icon: '⚡', desc: 'เวท 300% ไม่สนเกราะ' },
+  drain: { cls: 'mage', lv: 16, mp: 4, name: 'ดูดพลังเวท', icon: '💫', desc: 'เวท 120% + ฟื้น MP 20%' },
+  meteor: { cls: 'mage', lv: 20, mp: 34, name: 'อุกกาบาต', icon: '☄️', desc: 'เวท 3 ลูก ลูกละ 140% ไม่สนเกราะ' },
+  timestop: { cls: 'mage', lv: 25, mp: 24, name: 'หยุดเวลา', icon: '⏳', desc: 'ศัตรูหยุด 1 เทิร์น (บอสติด 50%) + ฟื้น HP 15%' },
+  // นักธนู
+  volley: { cls: 'archer', lv: 1, mp: 9, name: 'ฝนธนู', icon: '🌧️', desc: 'ยิง 3 ดอก ดอกละ 80% (+10% คริ)' },
+  aimshot: { cls: 'archer', lv: 3, mp: 10, name: 'เล็งจุดตาย', icon: '🎯', desc: 'ยิง 180% โอกาสคริ +40%' },
+  poison: { cls: 'archer', lv: 5, mp: 12, name: 'ธนูพิษ', icon: '☠️', desc: 'ยิง 100% + พิษ 3 เทิร์น' },
+  evade: { cls: 'archer', lv: 8, mp: 10, name: 'ก้าวหลบ', icon: '💨', desc: 'หลบการโจมตีครั้งถัดไป (รวมท่าไม้ตาย)' },
+  trap: { cls: 'archer', lv: 12, mp: 16, name: 'กับดักหนาม', icon: '🪤', desc: 'ยิง 100% + ศัตรูติดกับดัก 1 เทิร์น (บอสติด 50%)' },
+  snipe: { cls: 'archer', lv: 16, mp: 18, name: 'ยิงทะลวง', icon: '🏹', desc: 'ยิง 260% ไม่สนเกราะ' },
+  arrowstorm: { cls: 'archer', lv: 20, mp: 28, name: 'พายุศร', icon: '🌪️', desc: 'ยิง 5 ดอก ดอกละ 75% (+15% คริ)' },
+  focus: { cls: 'archer', lv: 25, mp: 16, name: 'ตั้งสมาธิ', icon: '🧘', desc: 'พลังโจมตี +30% คริ +40% 3 เทิร์น' },
+};
+const SKILL_SLOTS = 4;
+const skillsOf = (cls) => Object.entries(SKILLS).filter(([, sk]) => sk.cls === cls).map(([id, sk]) => ({ id, ...sk }));
+const defaultLoadout = (cls, lv) => {
+  const ids = skillsOf(cls).filter((sk) => sk.lv <= lv).map((sk) => sk.id).slice(0, SKILL_SLOTS);
+  while (ids.length < SKILL_SLOTS) ids.push(null);
+  return ids;
 };
 
 /* มอนสเตอร์: [ชื่อ, ไอคอน, ตัวคูณHP, ตัวคูณโจมตี, ตัวคูณป้องกัน]
@@ -220,6 +246,7 @@ function migrate(s) {
   }
   for (const k of Object.keys(POTIONS)) if (s.pots[k] == null) s.pots[k] = 0;
   if (s.charms == null) s.charms = 0;
+  if (!Array.isArray(s.loadout)) s.loadout = defaultLoadout(s.cls, s.lv);
   return s;
 }
 
@@ -237,7 +264,7 @@ function newGame(name, cls) {
     bag: [], pots: { hp_s: 3, mp_s: 2, hp_l: 0, elixir: 0 }, charms: 0,
     diff: 'normal', prog: { normal: { zoneKills: {}, bossWins: {} } }, clearedDiffs: {},
     collection: {}, bestiary: {},
-    uid: 1, wins: 0,
+    uid: 1, wins: 0, loadout: defaultLoadout(cls, 1),
   };
   const starter = { warrior: ['sword', 'ดาบฝึกหัด', '🗡️'], mage: ['staff', 'คทาฝึกหัด', '🪄'], archer: ['bow', 'ธนูฝึกหัด', '🏹'] }[cls];
   S.equip.weapon = finalizeItem({ slot: 'weapon', key: `${starter[0]}:common`, name: starter[1], icon: starter[2], rarity: 'common', tier: 1, stats: { atk: 3 } });
@@ -520,8 +547,9 @@ function startBattle(zi, isBoss) {
     id: ++battleSeq, events: [],
     zi, isBoss, e, log: [`${e.i} ${e.n} ปรากฏตัว!`],
     eTurns: 0, charging: false, defending: false, enraged: false,
-    atkUp: 0, poison: 0, poisonDmg: 0,
-    fx: null, sub: null, result: null,
+    atkUp: 0, berserk: 0, focus: 0, ironwall: 0, manaShield: 0, evade: false,
+    stun: 0, slow: 0, poison: 0, poisonDmg: 0,
+    sub: null, result: null,
   };
   view = 'battle';
   render();
@@ -529,7 +557,7 @@ function startBattle(zi, isBoss) {
 
 function calcDmg(atk, def, mult, opt = {}) {
   const base = atk * mult * rand(0.9, 1.1);
-  let d = opt.ignoreDef ? base : base - def * 0.5;
+  let d = opt.ignoreDef ? base : base - def * 0.5 * (1 - (opt.pierce || 0));
   d = Math.max(d, base * 0.15);
   const crit = Math.random() * 100 < (opt.crit || 0);
   if (crit) d *= 1.6;
@@ -540,8 +568,9 @@ function log(msg) { B.log.unshift(msg); if (B.log.length > 30) B.log.pop(); }
 
 function hitEnemy(mult, opt = {}) {
   const st = stats();
-  const atk = st.atk * (B.atkUp > 0 ? 1.5 : 1);
-  const r = calcDmg(atk, B.e.def, mult, { crit: st.crit + (opt.bonusCrit || 0), ignoreDef: opt.ignoreDef });
+  const atk = st.atk * (B.atkUp > 0 ? 1.5 : 1) * (B.berserk > 0 ? 2 : 1) * (B.focus > 0 ? 1.3 : 1);
+  const crit = Math.min(95, st.crit + (opt.bonusCrit || 0) + (B.focus > 0 ? 40 : 0));
+  const r = calcDmg(atk, B.e.def, mult, { crit, ignoreDef: opt.ignoreDef, pierce: opt.pierce });
   B.e.hp = Math.max(0, B.e.hp - r.dmg);
   return r;
 }
@@ -558,37 +587,10 @@ function playerAct(act, arg) {
     log(`คุณโจมตี ${e.n} ${r.crit ? '💥คริติคอล! ' : ''}${fmt(r.dmg)} ดาเมจ`);
     ev({ a: 'melee', hits: [r], dual: dualWield() });
   } else if (act === 'skill') {
-    const sk = CLASSES[S.cls].skills.find((s) => s.id === arg);
-    if (!sk || S.mp < sk.mp || S.lv < sk.lv) return;
+    const sk = SKILLS[arg];
+    if (!sk || sk.cls !== S.cls || S.mp < sk.mp || S.lv < sk.lv || !S.loadout.includes(arg)) return;
     S.mp -= sk.mp;
-    if (sk.id === 'slash') {
-      const r = hitEnemy(2);
-      log(`${sk.icon} ${sk.name}! ${r.crit ? 'คริติคอล! ' : ''}${fmt(r.dmg)} ดาเมจ`);
-      ev({ a: 'melee', big: true, hits: [r], dual: dualWield() });
-    } else if (sk.id === 'warcry') {
-      B.atkUp = 4; // ลดลงตอนจบเทิร์นนี้ → เหลือ 3
-      log(`${sk.icon} ${sk.name}! พลังโจมตีเพิ่มขึ้น 50%`);
-      ev({ a: 'aura', kind: 'buff', text: 'ATK↑' });
-    } else if (sk.id === 'fireball') {
-      const r = hitEnemy(2.3, { ignoreDef: true });
-      log(`${sk.icon} ${sk.name}! ${r.crit ? 'คริติคอล! ' : ''}${fmt(r.dmg)} ดาเมจ`);
-      ev({ a: 'proj', kind: 'fire', hits: [r] });
-    } else if (sk.id === 'heal') {
-      const amt = Math.round(st.hp * 0.4);
-      S.hp = Math.min(st.hp, S.hp + amt);
-      ev({ a: 'aura', kind: 'heal', text: `+${fmt(amt)}` });
-      log(`${sk.icon} ${sk.name}! ฟื้น HP ${fmt(amt)}`);
-    } else if (sk.id === 'volley') {
-      let total = 0, crits = 0; const hits = [];
-      for (let k = 0; k < 3 && e.hp > 0; k++) { const r = hitEnemy(0.8, { bonusCrit: 10 }); hits.push(r); total += r.dmg; if (r.crit) crits++; }
-      ev({ a: 'proj', kind: 'arrow', hits });
-      log(`${sk.icon} ${sk.name}! รวม ${fmt(total)} ดาเมจ${crits ? ` (คริ ${crits} ดอก)` : ''}`);
-    } else if (sk.id === 'poison') {
-      const r = hitEnemy(1);
-      B.poison = 3; B.poisonDmg = Math.round(st.atk * 0.6 + e.maxHp * 0.03);
-      ev({ a: 'proj', kind: 'poison', hits: [r] });
-      log(`${sk.icon} ${sk.name}! ${fmt(r.dmg)} ดาเมจ และติดพิษ`);
-    }
+    useSkill(arg, sk, st, e);
   } else if (act === 'defend') {
     B.defending = true;
     const gain = Math.round(st.mp * 0.08);
@@ -612,11 +614,70 @@ function playerAct(act, arg) {
     ev({ a: 'num', t: 'hero', text: 'หนีไม่พ้น!', cls: 'warn' });
   }
 
-  if (B.atkUp > 0) B.atkUp--;
+  for (const k of ['atkUp', 'berserk', 'focus', 'ironwall', 'manaShield']) if (B[k] > 0) B[k]--;
   if (e.hp <= 0) return victory();
   busy = true;
   render();
   setTimeout(enemyTurn, typeof stageQueueEnd === 'number' ? Math.max(650, stageQueueEnd - Date.now() + 120) : 650);
+}
+
+/* ผลของสกิลแต่ละแบบ (ค่า 4 เทิร์น = ลดลงทันทีตอนจบเทิร์นนี้ เหลือ 3) */
+function multiHit(n, mult, opt) {
+  const hits = [];
+  for (let k = 0; k < n && B.e.hp > 0; k++) hits.push(hitEnemy(mult, opt));
+  return hits;
+}
+function hitLog(sk, hits, extra = '') {
+  const total = hits.reduce((a, h) => a + h.dmg, 0), crits = hits.filter((h) => h.crit).length;
+  log(`${sk.icon} ${sk.name}! ${hits.length > 1 ? 'รวม ' : ''}${fmt(total)} ดาเมจ${crits ? (hits.length > 1 ? ` (คริ ${crits})` : ' คริติคอล!') : ''}${extra}`);
+}
+function tryStun(word) {
+  if (B.isBoss && Math.random() < 0.5) { log(`${B.e.n} ต้านทานได้!`); ev({ a: 'num', t: 'foe', text: 'ต้านทาน!', cls: 'warn' }); return; }
+  B.stun = 1;
+  const wasCharging = B.charging; B.charging = false;
+  log(`💫 ${B.e.n} ${word}!${wasCharging ? ' การชาร์จถูกยกเลิก' : ''}`);
+  ev({ a: 'stun', text: word });
+}
+function useSkill(id, sk, st, e) {
+  const heal = (amt) => { amt = Math.min(Math.round(amt), st.hp - S.hp); S.hp += amt; return amt; };
+  switch (id) {
+    case 'slash': { const h = [hitEnemy(2)]; hitLog(sk, h); ev({ a: 'melee', big: true, hits: h, dual: dualWield() }); break; }
+    case 'warcry': B.atkUp = 4; log(`${sk.icon} ${sk.name}! พลังโจมตี +50%`); ev({ a: 'aura', kind: 'buff', text: 'ATK↑' }); break;
+    case 'bash': { const h = [hitEnemy(1.3)]; hitLog(sk, h); ev({ a: 'melee', big: true, hits: h }); if (e.hp > 0) tryStun('มึน'); break; }
+    case 'ironwall': B.ironwall = 4; log(`${sk.icon} ${sk.name}! ป้องกัน +60%`); ev({ a: 'aura', kind: 'shield', text: 'DEF↑' }); break;
+    case 'whirl': { const h = multiHit(3, 0.9); hitLog(sk, h); ev({ a: 'melee', hits: h, spin: true }); break; }
+    case 'bloodlust': {
+      const h = [hitEnemy(1.7)]; const amt = heal(h[0].dmg * 0.5);
+      hitLog(sk, h, ` · ฟื้น HP ${fmt(amt)}`); ev({ a: 'melee', big: true, hits: h }); ev({ a: 'aura', kind: 'heal', text: `+${fmt(amt)}` }); break;
+    }
+    case 'earthsplit': { const h = [hitEnemy(3.5, { pierce: 0.5 })]; hitLog(sk, h); ev({ a: 'melee', big: true, quake: true, hits: h }); break; }
+    case 'berserk': B.berserk = 4; log(`${sk.icon} ${sk.name}! พลังโจมตี ×2 แต่ป้องกันลดลง`); ev({ a: 'aura', kind: 'buff', text: 'ATK×2' }); break;
+    case 'fireball': { const h = [hitEnemy(2.3, { ignoreDef: true })]; hitLog(sk, h); ev({ a: 'proj', kind: 'fire', hits: h }); break; }
+    case 'icebolt': {
+      const h = [hitEnemy(1.7, { ignoreDef: true })]; B.slow = 2;
+      hitLog(sk, h, ' · ศัตรูหนาวสั่น'); ev({ a: 'proj', kind: 'ice', hits: h }); break;
+    }
+    case 'heal': { const amt = heal(st.hp * 0.4); ev({ a: 'aura', kind: 'heal', text: `+${fmt(amt)}` }); log(`${sk.icon} ${sk.name}! ฟื้น HP ${fmt(amt)}`); break; }
+    case 'manashield': B.manaShield = 4; log(`${sk.icon} ${sk.name}! รับดาเมจลดลง 50%`); ev({ a: 'aura', kind: 'shield', text: 'บาเรีย' }); break;
+    case 'lightning': { const h = [hitEnemy(3, { ignoreDef: true })]; hitLog(sk, h); ev({ a: 'bolt', hits: h }); break; }
+    case 'drain': {
+      const h = [hitEnemy(1.2, { ignoreDef: true })]; const g = Math.min(Math.round(st.mp * 0.2), st.mp - S.mp); S.mp += g;
+      hitLog(sk, h, ` · ฟื้น MP ${fmt(g)}`); ev({ a: 'proj', kind: 'dark', hits: h }); ev({ a: 'aura', kind: 'mana', text: `+${fmt(g)} MP` }); break;
+    }
+    case 'meteor': { const h = multiHit(3, 1.4, { ignoreDef: true }); hitLog(sk, h); ev({ a: 'meteor', hits: h }); break; }
+    case 'timestop': { const amt = heal(st.hp * 0.15); log(`${sk.icon} ${sk.name}! ฟื้น HP ${fmt(amt)}`); ev({ a: 'aura', kind: 'heal', text: `+${fmt(amt)}` }); tryStun('หยุดนิ่ง'); break; }
+    case 'volley': { const h = multiHit(3, 0.8, { bonusCrit: 10 }); hitLog(sk, h); ev({ a: 'proj', kind: 'arrow', hits: h }); break; }
+    case 'aimshot': { const h = [hitEnemy(1.8, { bonusCrit: 40 })]; hitLog(sk, h); ev({ a: 'proj', kind: 'arrow', hits: h }); break; }
+    case 'poison': {
+      const h = [hitEnemy(1)]; B.poison = 3; B.poisonDmg = Math.round(st.atk * 0.6 + e.maxHp * 0.03);
+      hitLog(sk, h, ' และติดพิษ'); ev({ a: 'proj', kind: 'poison', hits: h }); break;
+    }
+    case 'evade': B.evade = true; log(`${sk.icon} ${sk.name}! พร้อมหลบการโจมตีครั้งถัดไป`); ev({ a: 'aura', kind: 'wind', text: 'หลบ' }); break;
+    case 'trap': { const h = [hitEnemy(1)]; hitLog(sk, h); ev({ a: 'proj', kind: 'arrow', hits: h }); if (e.hp > 0) tryStun('ติดกับดัก'); break; }
+    case 'snipe': { const h = [hitEnemy(2.6, { ignoreDef: true })]; hitLog(sk, h); ev({ a: 'proj', kind: 'arrow', big: true, hits: h }); break; }
+    case 'arrowstorm': { const h = multiHit(5, 0.75, { bonusCrit: 15 }); hitLog(sk, h); ev({ a: 'proj', kind: 'arrow', hits: h }); break; }
+    case 'focus': B.focus = 4; log(`${sk.icon} ${sk.name}! พลังโจมตี +30% คริ +40%`); ev({ a: 'aura', kind: 'buff', text: 'สมาธิ' }); break;
+  }
 }
 
 function enemyTurn() {
@@ -641,6 +702,13 @@ function enemyTurn() {
     ev({ a: 'enrage' });
   }
 
+  if (B.stun > 0) {
+    B.stun--;
+    log(`💫 ${e.n} ขยับไม่ได้!`);
+    ev({ a: 'num', t: 'foe', text: 'ขยับไม่ได้', cls: 'warn' });
+    save(); render(); return;
+  }
+
   B.eTurns++;
   let mult = 1, text;
   if (B.charging) {
@@ -656,10 +724,20 @@ function enemyTurn() {
   } else {
     text = `${e.n} โจมตี`;
   }
-  let { dmg, crit } = calcDmg(e.atk, st.def, mult, { crit: d.eCrit });
+  const myDef = st.def * (B.ironwall > 0 ? 1.6 : 1) * (B.berserk > 0 ? 0.7 : 1);
+  const eAtk = e.atk * (B.slow > 0 ? 0.7 : 1);
+  if (B.slow > 0) B.slow--;
+  if (B.evade) {
+    B.evade = false; B.defending = false;
+    log(`${text} แต่คุณหลบได้! 💨`);
+    ev({ a: 'foeAtk', dmg: 0, miss: true, charged: mult > 2 });
+    save(); render(); return;
+  }
+  let { dmg, crit } = calcDmg(eAtk, myDef, mult, { crit: d.eCrit });
   if (B.defending) dmg = Math.max(1, Math.round(dmg * 0.35));
+  if (B.manaShield > 0) dmg = Math.max(1, Math.round(dmg * 0.5));
   S.hp = Math.max(0, S.hp - dmg);
-  ev({ a: 'foeAtk', dmg, crit, big: mult > 1.3 && mult < 2, charged: mult > 2, defended: B.defending });
+  ev({ a: 'foeAtk', dmg, crit, big: mult > 1.3 && mult < 2, charged: mult > 2, defended: B.defending || B.manaShield > 0 });
   log(`${text}${crit ? ' (คริติคอล!)' : ''} คุณเสีย ${fmt(dmg)} HP${B.defending ? ' (ป้องกันไว้)' : ''}`);
   B.defending = false;
 
@@ -694,7 +772,9 @@ function victory() {
     }
   }
   for (const it of rewards.items) if (addItem(it)) rewards.newItems++;
+  const oldLv = S.lv;
   rewards.levels = gainExp(e.exp);
+  rewards.newSkills = unlockSkills(oldLv);
 
   log(`🏆 ชนะ ${e.n}!`);
   ev({ a: 'foeDie' });
@@ -702,6 +782,16 @@ function victory() {
   B.rewards = rewards;
   save();
   render();
+}
+
+/* สกิลที่ปลดล็อกใหม่ — ใส่ลงช่องว่างให้อัตโนมัติ */
+function unlockSkills(oldLv) {
+  const fresh = skillsOf(S.cls).filter((sk) => sk.lv > oldLv && sk.lv <= S.lv);
+  for (const sk of fresh) {
+    const i = S.loadout.indexOf(null);
+    if (i >= 0 && !S.loadout.includes(sk.id)) S.loadout[i] = sk.id;
+  }
+  return fresh;
 }
 
 function gainExp(n) {
@@ -786,7 +876,7 @@ function hud() {
 
 function nav() {
   const items = [['town', '🏘️', 'เมือง'], ['map', '🗺️', 'ผจญภัย'], ['bag', '🎒', 'กระเป๋า'], ['collection', '📖', 'สะสม']];
-  const sub = { shop: 'town', forge: 'town', diff: 'town' };
+  const sub = { shop: 'town', forge: 'town', diff: 'town', skills: 'town' };
   return `<nav class="nav"><div class="in">${items.map(([v, i, n]) =>
     `<button data-a="go" data-v="${v}" class="${view === v || sub[view] === v ? 'on' : ''}"><span class="ico">${i}</span>${n}</button>`).join('')}</div></nav>`;
 }
@@ -803,6 +893,7 @@ function render() {
     else if (view === 'shop') html += renderShop();
     else if (view === 'forge') html += renderForge();
     else if (view === 'diff') html += renderDiff();
+    else if (view === 'skills') html += renderSkills();
     else if (view === 'map') html += renderMap();
     else if (view === 'bag') html += renderBag();
     else if (view === 'collection') html += renderCollection();
@@ -840,7 +931,7 @@ function renderCreate() {
         <button data-a="pickcls" data-v="${k}" class="${cs.cls === k ? 'sel' : ''}">
           <span class="ico">${c.icon}</span>
           <span><b>${c.name}</b><span class="subtle">${c.desc}</span>
-          <span class="subtle">สกิล: ${c.skills.map((s) => `${s.icon}${s.name}${s.lv > 1 ? ` (Lv.${s.lv})` : ''}`).join(' · ')}</span></span>
+          <span class="subtle">สกิล ${skillsOf(k).length} แบบ: ${skillsOf(k).slice(0, 4).map((s) => `${s.icon}${s.name}`).join(' · ')} …</span></span>
         </button>`).join('')}
     </div>
     <button class="primary" style="width:100%" data-a="create">เริ่มผจญภัย!</button>
@@ -863,6 +954,7 @@ function renderTown() {
     <button data-a="inn" ${full ? 'disabled' : ''}><span class="ico">🏨</span>โรงเตี๊ยม<span class="subtle">พักฟื้นเต็ม ${fmt(innCost)} 💰</span></button>
     <button data-a="go" data-v="shop"><span class="ico">🛒</span>ร้านค้า<span class="subtle">ยา หีบ & ยันต์</span></button>
     <button data-a="go" data-v="forge"><span class="ico">⚒️</span>ช่างตีเหล็ก<span class="subtle">ตีบวกอุปกรณ์</span></button>
+    <button data-a="go" data-v="skills"><span class="ico">📜</span>สกิล<span class="subtle">${S.loadout.filter(Boolean).length}/${SKILL_SLOTS} ช่อง · ปลดล็อก ${skillsOf(S.cls).filter((k) => k.lv <= S.lv).length}/${skillsOf(S.cls).length}</span></button>
     <button data-a="go" data-v="diff" class="${anyCleared() ? 'glow-btn' : ''}"><span class="ico">${anyCleared() ? '🎚️' : '🔒'}</span>ระดับความยาก<span class="subtle">${anyCleared() ? `ตอนนี้: ${d.name}` : 'ปลดล็อกเมื่อจบเกม'}</span></button>
   </div>
   <div class="card" style="margin-top:12px">
@@ -1010,26 +1102,67 @@ function renderBattleView() {
 
 function battleActions() {
   const st = stats();
-  if (B.sub === 'skill') {
-    return `<div class="actions">${CLASSES[S.cls].skills.map((s) => {
-      const locked = S.lv < s.lv;
-      return `<button data-a="skill" data-v="${s.id}" ${locked || S.mp < s.mp || busy ? 'disabled' : ''}>
-        ${s.icon} ${s.name}<span class="subtle">${locked ? `ปลดล็อก Lv.${s.lv}` : `${s.mp} MP · ${s.desc}`}</span></button>`;
-    }).join('')}<button class="full ghost" data-a="sub" data-v="">← ย้อนกลับ</button></div>`;
-  }
   if (B.sub === 'item') {
     return `<div class="actions">${Object.entries(POTIONS).map(([k, p]) =>
       `<button data-a="useitem" data-v="${k}" ${!S.pots[k] || busy ? 'disabled' : ''}>${p.i} ${p.n} ×${S.pots[k]}<span class="subtle">${p.desc}</span></button>`
     ).join('')}<button class="full ghost" data-a="sub" data-v="">← ย้อนกลับ</button></div>`;
   }
   const d = busy ? 'disabled' : '';
+  const skillBtn = (id, i) => {
+    if (!id) return `<button class="skill-btn empty" disabled><span class="sk-ico">➕</span><span class="sk-nm">ช่อง ${i + 1} ว่าง</span><span class="sk-mp">จัดที่หมู่บ้าน</span></button>`;
+    const sk = SKILLS[id];
+    const no = S.mp < sk.mp;
+    return `<button class="skill-btn ${no ? 'nomp' : ''}" data-a="skill" data-v="${id}" ${no || busy ? 'disabled' : ''} title="${sk.desc}">
+      <span class="sk-ico">${sk.icon}</span><span class="sk-nm">${sk.name}</span><span class="sk-mp">${sk.mp} MP</span></button>`;
+  };
   return `<div class="actions">
     <button class="primary" data-a="attack" ${d}>⚔️ โจมตี</button>
-    <button data-a="sub" data-v="skill" ${d}>✨ สกิล<span class="subtle">MP ${fmt(S.mp)}/${fmt(st.mp)}</span></button>
-    <button data-a="defend" ${d}>🛡️ ป้องกัน<span class="subtle">ลดดาเมจ 65%</span></button>
+    <button data-a="defend" ${d}>🛡️ ป้องกัน<span class="subtle">ลดดาเมจ 65% · ฟื้น MP</span></button>
+  </div>
+  <div class="skill-bar">${S.loadout.map(skillBtn).join('')}</div>
+  <div class="actions">
     <button data-a="sub" data-v="item" ${d}>🧪 ไอเทม</button>
-    ${B.isBoss ? '' : `<button class="full ghost" data-a="flee" ${d}>🏃 หนี (65%)</button>`}
+    ${B.isBoss ? `<button disabled class="ghost">MP ${fmt(S.mp)}/${fmt(st.mp)}</button>` : `<button class="ghost" data-a="flee" ${d}>🏃 หนี (65%)</button>`}
   </div>`;
+}
+
+let skillSlotSel = null;
+function renderSkills() {
+  const all = skillsOf(S.cls);
+  let html = `<div class="row between"><h2>📜 สกิล${CLASSES[S.cls].name}</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>
+  <div class="muted" style="font-size:14px;margin-bottom:8px">เลือกได้ ${SKILL_SLOTS} ช่องสำหรับใช้ในการต่อสู้ · แตะช่องเพื่อเลือก แล้วกด "ใส่" ที่สกิลด้านล่าง</div>
+  <div class="skill-slots">${S.loadout.map((id, i) => {
+    const sk = id && SKILLS[id];
+    return `<button class="sslot ${skillSlotSel === i ? 'on' : ''} ${sk ? 'has' : ''}" data-a="skillslot" data-v="${i}">
+      <span class="sn">${i + 1}</span><span class="si">${sk ? sk.icon : '➕'}</span><span class="sl">${sk ? sk.name : 'ว่าง'}</span></button>`;
+  }).join('')}</div>`;
+  html += all.map((sk) => {
+    const locked = S.lv < sk.lv;
+    const at = S.loadout.indexOf(sk.id);
+    return `<div class="item skill-card ${locked ? 'locked' : ''} ${at >= 0 ? 'equipped' : ''}">
+      <span class="ico">${locked ? '🔒' : sk.icon}</span>
+      <div class="info"><div class="nm">${sk.name} <span class="muted" style="font-size:13px">· ${sk.mp} MP${locked ? ` · ปลดล็อก Lv.${sk.lv}` : ''}</span></div>
+        <div class="st">${sk.desc}</div></div>
+      ${locked ? '' : at >= 0
+        ? `<div class="btncol"><span class="tag">ช่อง ${at + 1}</span><button class="small" data-a="skillrm" data-v="${sk.id}">ถอด</button></div>`
+        : `<button class="small primary" data-a="skillset" data-v="${sk.id}">ใส่${skillSlotSel != null ? ` ช่อง ${skillSlotSel + 1}` : ''}</button>`}
+    </div>`;
+  }).join('');
+  return html;
+}
+
+function setSkill(id) {
+  const sk = SKILLS[id];
+  if (!sk || sk.cls !== S.cls || S.lv < sk.lv) return;
+  let slot = skillSlotSel;
+  if (slot == null) slot = S.loadout.indexOf(null);
+  if (slot < 0) { toast('ช่องเต็มแล้ว — แตะช่องที่ต้องการเปลี่ยนก่อน'); return; }
+  const cur = S.loadout.indexOf(id);
+  if (cur >= 0) S.loadout[cur] = S.loadout[slot];
+  S.loadout[slot] = id;
+  skillSlotSel = null;
+  save();
+  toast(`${sk.icon} ${sk.name} → ช่อง ${slot + 1}`);
 }
 
 function battleResult() {
@@ -1060,6 +1193,8 @@ function battleResult() {
     <h3 style="margin-top:0">🏆 ชัยชนะ!</h3>
     <div>✨ +${fmt(r.exp)} EXP &nbsp; <span class="gold">💰 +${fmt(r.gold)}</span></div>
     ${r.levels ? `<div class="up" style="font-family:Kanit;font-size:18px;margin-top:6px">⬆️ เลเวลอัพ! ตอนนี้ Lv.${S.lv} (ฟื้นฟูเต็ม)</div>` : ''}
+    ${r.newSkills && r.newSkills.length ? `<div class="new-skill">📜 ปลดล็อกสกิลใหม่: ${r.newSkills.map((sk) => `<b>${sk.icon} ${sk.name}</b>`).join(', ')}
+      <button class="small" data-a="go" data-v="skills">จัดสกิล</button></div>` : ''}
     ${r.pots.length ? `<div style="margin-top:6px">ได้ ${r.pots.map((k) => `${POTIONS[k].i} ${POTIONS[k].n}`).join(', ')}</div>` : ''}
     ${r.charm ? '<div style="margin-top:6px">ได้ 🧿 ยันต์คุ้มครอง</div>' : ''}
     ${items ? `<div style="margin-top:10px">${items}</div>` : ''}
@@ -1176,7 +1311,7 @@ document.addEventListener('click', (ev) => {
   const a = el.dataset.a, v = el.dataset.v;
 
   switch (a) {
-    case 'go': view = v; B = null; forgeFx = null; break;
+    case 'go': view = v; B = null; busy = false; forgeFx = null; skillSlotSel = null; break;
     case 'continue': S = load(); view = 'town'; break;
     case 'newgame':
       if (load() && !confirm('มีเซฟเก่าอยู่ เริ่มใหม่จะลบเซฟเดิม ตกลงไหม?')) return;
@@ -1246,6 +1381,9 @@ document.addEventListener('click', (ev) => {
     }
     case 'slotsel': slotSel = slotSel === v ? null : v; if (S.equip[v]) forgeSel = S.equip[v].uid; break;
     case 'bagfilter': bagFilter = v; break;
+    case 'skillslot': skillSlotSel = skillSlotSel === +v ? null : +v; break;
+    case 'skillset': setSkill(v); break;
+    case 'skillrm': { const i = S.loadout.indexOf(v); if (i >= 0) { S.loadout[i] = null; save(); } break; }
     case 'sell': {
       const i = S.bag.findIndex((x) => x.uid === +v); if (i < 0) return;
       const it = S.bag[i];
