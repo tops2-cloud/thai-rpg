@@ -334,3 +334,10 @@ h2 { margin: 6px 0; }
 @keyframes wobble { 0%,100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
 .foe-u.frozen .foe-sprite { filter: drop-shadow(0 0 10px #8fd0ff) hue-rotate(170deg) saturate(.7); }
 .hero-u.berserk .ubody { filter: drop-shadow(0 0 10px #ff3b3b); }
+
+/* หน้าใส่อุปกรณ์ (จัดใหม่) */
+.equip-board { grid-template-columns: 64px 1fr 64px; }
+.eb-mid { display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 100%; gap: 6px; }
+.eb-bottom { display: flex; gap: 8px; }
+.dual-note { font-size: 13px; color: var(--muted); background: #15111f; border: 1px dashed var(--line); border-radius: 10px; padding: 6px 10px; margin: -4px 0 12px; }
+.dual-note.on { color: var(--gold); border-style: solid; border-color: #ffcc4d66; }

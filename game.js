@@ -125,7 +125,7 @@ const DIFFS = {
     desc: 'ผจญภัยครั้งแรก ไอเทมสูงสุดระดับตำนาน' },
   hard: { name: 'ยาก', icon: '🟠', off: 28, mul: { hp: 1.35, atk: 1.4, def: 1.15 }, tierAdd: 10, stars: '★', minR: 1, maxR: 4, bossMinR: 3, reward: 1.3, enrage: 0.3, eCrit: 5,
     desc: 'มอนสเตอร์ +28 เลเวล · บอสคลั่งเมื่อเลือดต่ำ · ดรอประดับเทพนิยาย' },
-  advanced: { name: 'ขั้นสูง', icon: '🔴', off: 56, mul: { hp: 1.7, atk: 1.75, def: 1.3 }, tierAdd: 20, stars: '★★', minR: 2, maxR: 5, bossMinR: 4, reward: 1.6, enrage: 0.5, eCrit: 10,
+  advanced: { name: 'ขั้นสูง', icon: '🔴', off: 56, mul: { hp: 1.95, atk: 1.95, def: 1.35 }, tierAdd: 20, stars: '★★', minR: 2, maxR: 5, bossMinR: 4, reward: 1.6, enrage: 0.5, eCrit: 10,
     desc: 'มอนสเตอร์ +56 เลเวล · บอสคลั่งเร็ว · ดรอประดับเทพเจ้า' },
 };
 const DIFF_ORDER = ['normal', 'hard', 'advanced'];
@@ -141,7 +141,7 @@ const RARITY = [
 const RARITY_ORDER = { unique: 0, divine: 1, mythic: 2, legend: 3, epic: 4, rare: 5, common: 6 };
 
 /* m = ตัวคูณโจมตี, c = ตัวคูณคริ, mp = ให้ MP, minTier = ระดับไอเทมขั้นต่ำที่จะดรอป (อาวุธระดับสูง)
-   h2 = อาวุธสองมือ (แรงกว่า ×1.4 แต่ถือมือรองไม่ได้) */
+   h2 = อาวุธสองมือ (แรงกว่า ×1.4 · ก่อน Lv.51 ใช้มือซ้ายไม่ได้) */
 const GEAR = {
   weapon: [
     { k: 'sword', n: 'ดาบ', i: '🗡️', m: 1, c: 1 },
@@ -167,10 +167,13 @@ const TWO_HAND = new Set(['bow', 'crossbow', 'greatsword', 'ngao', 'scythe', 'u:
 const isTwoHand = (it) => !!it && it.slot === 'weapon' && TWO_HAND.has(gearKind(it));
 /* ช่องสวมใส่ 9 ช่อง */
 const EQUIP_SLOTS = ['weapon', 'offhand', 'helmet', 'armor', 'boots', 'cape', 'necklace', 'ring1', 'ring2'];
-const SLOT_NAME = { weapon: 'มือหลัก', offhand: 'มือรอง', helmet: 'หมวก', armor: 'ชุดเกราะ', boots: 'รองเท้า', cape: 'ผ้าคลุม', necklace: 'สร้อยคอ', ring1: 'แหวนวง 1', ring2: 'แหวนวง 2' };
-const CAT_NAME = { weapon: 'อาวุธ', offhand: 'มือรอง', helmet: 'หมวก', armor: 'ชุดเกราะ', boots: 'รองเท้า', cape: 'ผ้าคลุม', necklace: 'สร้อยคอ', ring: 'แหวน' };
+const SLOT_NAME = { weapon: 'มือขวา', offhand: 'มือซ้าย', helmet: 'หมวก', armor: 'ชุดเกราะ', boots: 'รองเท้า', cape: 'ผ้าคลุม', necklace: 'สร้อยคอ', ring1: 'แหวนขวา', ring2: 'แหวนซ้าย' };
+const SHORT_SLOT = { weapon: 'มือขวา', offhand: 'มือซ้าย', ring1: 'แหวนขวา', ring2: 'แหวนซ้าย' };
+const CAT_NAME = { weapon: 'อาวุธ', offhand: 'มือซ้าย', helmet: 'หมวก', armor: 'ชุดเกราะ', boots: 'รองเท้า', cape: 'ผ้าคลุม', necklace: 'สร้อยคอ', ring: 'แหวน' };
 const SLOT_ICON = { weapon: '⚔️', offhand: '🔰', helmet: '🪖', armor: '🛡️', boots: '👢', cape: '🧣', necklace: '📿', ring1: '💍', ring2: '💍' };
-const OFFHAND_WEAPON_RATE = 0.6; // อาวุธที่ถือมือรองได้ค่าพลัง 60%
+const OFFHAND_WEAPON_RATE = 0.6; // ก่อน Lv.51: อาวุธที่ถือมือซ้ายได้ค่าพลัง 60%
+const DUAL_LV = 51; // Lv.51 ขึ้นไป (มากกว่า 50): ถืออาวุธอะไรก็ได้ทั้ง 2 มือ พลังเต็ม รวมอาวุธสองมือ
+const freeDual = () => !!S && S.lv >= DUAL_LV;
 const STAT_NAME = { atk: 'โจมตี', def: 'ป้องกัน', hp: 'HP', mp: 'MP', crit: 'คริ%' };
 
 /* อัตราสำเร็จการตีบวก จาก +N ไป +N+1 (index = ค่าบวกปัจจุบัน) */
@@ -429,9 +432,9 @@ const statText = (st) => Object.entries(st).map(([k, v]) => `${STAT_NAME[k]} +${
 const itemName = (it) => `${it.plus ? `<b class="plus">+${it.plus}</b> ` : ''}${esc(it.name)}`;
 const itemNameText = (it) => `${it.plus ? `+${it.plus} ` : ''}${it.name}`;
 
-/* ค่าพลังที่ได้จริงเมื่อใส่ในช่องนั้น (อาวุธมือรองได้ 60%) */
+/* ค่าพลังที่ได้จริงเมื่อใส่ในช่องนั้น (ก่อน Lv.51 อาวุธมือซ้ายได้ 60%) */
 function effStats(it, slot) {
-  if (slot === 'offhand' && it.slot === 'weapon') {
+  if (slot === 'offhand' && it.slot === 'weapon' && !freeDual()) {
     const o = {};
     for (const k in it.stats) o[k] = Math.round(it.stats[k] * OFFHAND_WEAPON_RATE);
     return o;
@@ -441,7 +444,7 @@ function effStats(it, slot) {
 
 /* ช่องที่ไอเทมชิ้นนี้ใส่ได้ */
 function equipTargets(it) {
-  if (it.slot === 'weapon') return isTwoHand(it) ? ['weapon'] : ['weapon', 'offhand'];
+  if (it.slot === 'weapon') return isTwoHand(it) && !freeDual() ? ['weapon'] : ['weapon', 'offhand'];
   if (it.slot === 'ring') return ['ring1', 'ring2'];
   return [it.slot];
 }
@@ -459,6 +462,7 @@ function defaultTarget(it) {
 function displaced(it, target) {
   const out = [];
   if (S.equip[target]) out.push([S.equip[target], target]);
+  if (freeDual()) return out;
   if (target === 'weapon' && isTwoHand(it) && S.equip.offhand) out.push([S.equip.offhand, 'offhand']);
   if (target === 'offhand' && isTwoHand(S.equip.weapon)) out.push([S.equip.weapon, 'weapon']);
   return out;
@@ -775,6 +779,7 @@ function victory() {
   const oldLv = S.lv;
   rewards.levels = gainExp(e.exp);
   rewards.newSkills = unlockSkills(oldLv);
+  rewards.dualUnlock = oldLv < DUAL_LV && S.lv >= DUAL_LV;
 
   log(`🏆 ชนะ ${e.n}!`);
   ev({ a: 'foeDie' });
@@ -1193,6 +1198,7 @@ function battleResult() {
     <h3 style="margin-top:0">🏆 ชัยชนะ!</h3>
     <div>✨ +${fmt(r.exp)} EXP &nbsp; <span class="gold">💰 +${fmt(r.gold)}</span></div>
     ${r.levels ? `<div class="up" style="font-family:Kanit;font-size:18px;margin-top:6px">⬆️ เลเวลอัพ! ตอนนี้ Lv.${S.lv} (ฟื้นฟูเต็ม)</div>` : ''}
+    ${r.dualUnlock ? `<div class="new-skill">⚔️⚔️ Lv.${DUAL_LV}! ปลดล็อกถืออาวุธอะไรก็ได้ทั้ง 2 มือ พลังเต็ม <button class="small" data-a="go" data-v="bag">ไปจัดอุปกรณ์</button></div>` : ''}
     ${r.newSkills && r.newSkills.length ? `<div class="new-skill">📜 ปลดล็อกสกิลใหม่: ${r.newSkills.map((sk) => `<b>${sk.icon} ${sk.name}</b>`).join(', ')}
       <button class="small" data-a="go" data-v="skills">จัดสกิล</button></div>` : ''}
     ${r.pots.length ? `<div style="margin-top:6px">ได้ ${r.pots.map((k) => `${POTIONS[k].i} ${POTIONS[k].n}`).join(', ')}</div>` : ''}
@@ -1212,7 +1218,7 @@ let slotSel = null;
 
 function slotCell(slot) {
   const it = S.equip[slot];
-  const blocked = slot === 'offhand' && isTwoHand(S.equip.weapon);
+  const blocked = slot === 'offhand' && isTwoHand(S.equip.weapon) && !freeDual();
   return `<button class="slot ${it ? `b-${it.rarity} has` : ''} ${slotSel === slot ? 'on' : ''}" data-a="slotsel" data-v="${slot}">
     <span class="si">${it ? it.icon : blocked ? '✋' : `<span class="ghost-ico">${SLOT_ICON[slot]}</span>`}</span>
     ${it && it.plus ? `<b class="splus">+${it.plus}</b>` : ''}
@@ -1220,22 +1226,29 @@ function slotCell(slot) {
 }
 
 function renderEquipBoard() {
-  const left = ['helmet', 'necklace', 'cape', 'offhand', 'ring2'];
-  const right = ['weapon', 'armor', 'boots', 'ring1'];
+  // ซ้าย: หมวก / มือซ้าย / เกราะ / แหวนซ้าย · ขวา: สร้อย / มือขวา / รองเท้า / แหวนขวา · กลาง: ตัวละคร + ผ้าคลุม + ตีบวก
+  const left = ['helmet', 'offhand', 'armor', 'ring2'];
+  const right = ['necklace', 'weapon', 'boots', 'ring1'];
   let html = `<div class="card equip-board">
     <div class="eb-col">${left.map(slotCell).join('')}</div>
-    <div class="eb-hero">${heroSVG(S.cls, S.equip, 120)}</div>
-    <div class="eb-col">${right.map(slotCell).join('')}<button class="slot forge-slot" data-a="go" data-v="forge"><span class="si">⚒️</span><span class="sl">ตีบวก</span></button></div>
-  </div>`;
+    <div class="eb-mid">
+      <div class="eb-hero">${heroSVG(S.cls, S.equip, 116)}</div>
+      <div class="eb-bottom">${slotCell('cape')}<button class="slot forge-slot" data-a="go" data-v="forge"><span class="si">⚒️</span><span class="sl">ตีบวก</span></button></div>
+    </div>
+    <div class="eb-col">${right.map(slotCell).join('')}</div>
+  </div>
+  <div class="dual-note ${freeDual() ? 'on' : ''}">${freeDual()
+    ? '⚔️⚔️ ปลดล็อกแล้ว: ถืออาวุธอะไรก็ได้ทั้ง 2 มือ พลังเต็ม (รวมอาวุธสองมือ)'
+    : `🔒 Lv.${DUAL_LV} ขึ้นไป: ถืออาวุธอะไรก็ได้ทั้ง 2 มือ พลังเต็ม (ตอนนี้ Lv.${S.lv}) · ตอนนี้อาวุธมือซ้ายได้ 60% และอาวุธสองมือใช้มือซ้ายไม่ได้`}</div>`;
   if (slotSel) {
     const it = S.equip[slotSel];
     html += it ? `<div class="item b-${it.rarity} slot-detail"><span class="ico">${it.icon}</span>
         <div class="info"><div class="nm r-${it.rarity}">${itemName(it)}</div>
           <div class="st">${SLOT_NAME[slotSel]} · ${rarityName(it.rarity)}${isTwoHand(it) ? ' · อาวุธสองมือ' : ''}</div>
-          <div class="st">${statText(effStats(it, slotSel))}${slotSel === 'offhand' && it.slot === 'weapon' ? ' (มือรองได้ 60%)' : ''}</div></div>
+          <div class="st">${statText(effStats(it, slotSel))}${slotSel === 'offhand' && it.slot === 'weapon' && !freeDual() ? ' (มือซ้ายได้ 60%)' : ''}</div></div>
         <button class="small" data-a="unequip" data-v="${slotSel}">ถอด</button></div>`
       : `<div class="item slot-detail"><span class="ico" style="opacity:.4">${SLOT_ICON[slotSel]}</span><div class="info"><div class="nm muted">${SLOT_NAME[slotSel]}: ว่าง</div>
-          <div class="st">${slotSel === 'offhand' ? (isTwoHand(S.equip.weapon) ? 'ถืออาวุธสองมืออยู่ — ใส่ของมือรองจะถอดอาวุธหลักออก' : 'ใส่โล่ ลูกแก้ว มีดสั้น หรืออาวุธมือเดียว (ได้ 60%)') : 'เลือกไอเทมจากกระเป๋าด้านล่าง'}</div></div></div>`;
+          <div class="st">${slotSel === 'offhand' ? (freeDual() ? 'ใส่อาวุธอะไรก็ได้ (พลังเต็ม) หรือโล่ ลูกแก้ว มีดสั้น' : isTwoHand(S.equip.weapon) ? 'ถืออาวุธสองมืออยู่ — ใส่ของมือซ้ายจะถอดอาวุธมือขวาออก' : 'ใส่โล่ ลูกแก้ว มีดสั้น หรืออาวุธมือเดียว (ได้ 60%)') : 'เลือกไอเทมจากกระเป๋าด้านล่าง'}</div></div></div>`;
   }
   return html;
 }
@@ -1261,12 +1274,12 @@ function renderBag() {
   html += list.map((it) => {
     const tg = equipTargets(it);
     const btns = tg.length > 1
-      ? tg.map((t) => `<button class="small primary" data-a="equip" data-v="${it.uid}" data-t="${t}">${t === 'offhand' ? 'มือรอง' : t === 'weapon' ? 'มือหลัก' : t === 'ring1' ? 'วง 1' : 'วง 2'}</button>`).join('')
+      ? tg.map((t) => `<button class="small primary" data-a="equip" data-v="${it.uid}" data-t="${t}">${SHORT_SLOT[t]}</button>`).join('')
       : `<button class="small primary" data-a="equip" data-v="${it.uid}" data-t="${tg[0]}">ใส่</button>`;
     return `<div class="item b-${it.rarity}"><span class="ico">${it.icon}</span>
       <div class="info"><div class="nm r-${it.rarity}">${itemName(it)}</div>
         <div class="st">${CAT_NAME[it.slot]}${isTwoHand(it) ? ' (สองมือ)' : ''} · ${rarityName(it.rarity)} · ${statText(it.stats)}</div>
-        <div class="st">เทียบ: ${tg.map((t) => (tg.length > 1 ? `<span class="muted">${t === 'offhand' ? 'มือรอง' : t === 'weapon' ? 'มือหลัก' : t === 'ring1' ? 'วง1' : 'วง2'}:</span> ` : '') + compareText(it, t)).join(' &nbsp;')}</div></div>
+        <div class="st">เทียบ: ${tg.map((t) => (tg.length > 1 ? `<span class="muted">${SHORT_SLOT[t]}:</span> ` : '') + compareText(it, t)).join(' &nbsp;')}</div></div>
       <div class="btncol">${btns}<button class="small" data-a="sell" data-v="${it.uid}">ขาย ${fmt(it.value)}</button></div></div>`;
   }).join('');
   return html;
