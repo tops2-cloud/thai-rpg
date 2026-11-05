@@ -381,3 +381,11 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .btool .auto-on { background: linear-gradient(180deg,#2fa86a,#1f7a4a); border-color: #4bd18a; animation: autopulse 1.6s ease-in-out infinite; }
 .btool .on { border-color: var(--accent); }
 @keyframes autopulse { 0%,100% { box-shadow: 0 0 0 0 #4bd18a66; } 50% { box-shadow: 0 0 0 4px #4bd18a22; } }
+
+/* เลเวลสกิล */
+.skill-btn { position: relative; }
+.sk-lv { position: absolute; top: 2px; right: 4px; font-size: 9px; font-family: 'Kanit'; color: #8fb8ff; background: #0d0b16cc; border-radius: 6px; padding: 0 4px; }
+.sk-lv.max { color: var(--gold); }
+.sslot .sk-lv { top: 3px; right: 5px; }
+.sklv { margin-top: 4px; font-size: 13px; }
+.sklv .bar { margin: 3px 0; }

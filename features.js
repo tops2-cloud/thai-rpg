@@ -145,6 +145,8 @@ const ACH = [
   { id: 'p10', n: 'ราชาแห่งสัตว์', d: 'มีสัตว์เลี้ยงครบ 10 ตัว', v: () => S.pets.length, need: 10, gold: 30000, charm: 5 },
   { id: 'pmax', n: 'เลี้ยงจนโต', d: 'สัตว์เลี้ยงถึง Lv.10', v: () => Math.max(0, ...S.pets.map((p) => p.lv)), need: 10, gold: 8000 },
   { id: 's100', n: 'จอมเวทย์มนตร์', d: 'ใช้สกิล 100 ครั้ง', v: () => trackVal('skills'), need: 100, gold: 1500 },
+  { id: 'sk5', n: 'ฝึกฝนจนชำนาญ', d: 'สกิลใดก็ได้ถึง Lv.5', v: () => Math.max(1, ...Object.values(S.skillLv || {}).map((r) => r.lv)), need: 5, gold: 3000 },
+  { id: 'sk10', n: 'ปรมาจารย์สกิล', d: 'สกิลใดก็ได้ถึง Lv.10', v: () => Math.max(1, ...Object.values(S.skillLv || {}).map((r) => r.lv)), need: 10, gold: 15000, charm: 3 },
   { id: 'q10', n: 'คนขยัน', d: 'ทำภารกิจประจำวัน 10 อย่าง', v: () => trackVal('questsDone'), need: 10, gold: 4000, charm: 2 },
 ];
 const achProg = (a) => Math.min(a.need, a.v() || 0);
@@ -272,7 +274,7 @@ function scheduleAuto() {
 /* เลือกคำสั่งให้อัตโนมัติ */
 function autoStep() {
   const st = stats();
-  const can = (id) => S.loadout.includes(id) && SKILLS[id] && S.mp >= SKILLS[id].mp && S.lv >= SKILLS[id].lv;
+  const can = (id) => S.loadout.includes(id) && SKILLS[id] && S.mp >= skillCost(id) && S.lv >= SKILLS[id].lv;
   const use = (id) => playerAct('skill', id);
   if (B.charging) {
     for (const id of ['bash', 'trap', 'timestop', 'evade']) if (can(id)) return use(id);
@@ -291,7 +293,7 @@ function autoStep() {
   }
   if (!B.poison && can('poison') && B.isBoss) return use('poison');
   if (!B.slow && can('icebolt') && B.isBoss) return use('icebolt');
-  for (const id of ['earthsplit', 'meteor', 'lightning', 'arrowstorm', 'snipe', 'whirl', 'slash', 'fireball', 'aimshot', 'volley']) if (can(id) && S.mp - SKILLS[id].mp >= st.mp * 0.15) return use(id);
+  for (const id of ['earthsplit', 'meteor', 'lightning', 'arrowstorm', 'snipe', 'whirl', 'slash', 'fireball', 'aimshot', 'volley']) if (can(id) && S.mp - skillCost(id) >= st.mp * 0.15) return use(id);
   return playerAct('attack');
 }
 
