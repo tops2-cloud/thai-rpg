@@ -134,6 +134,7 @@ const ACH = [
   { id: 'l10', n: 'เติบโต', d: 'ถึง Lv.10', v: () => S.lv, need: 10, gold: 300 },
   { id: 'l30', n: 'นักรบเก๋า', d: 'ถึง Lv.30', v: () => S.lv, need: 30, gold: 3000 },
   { id: 'l51', n: 'สองมือสองอาวุธ', d: 'ถึง Lv.51', v: () => S.lv, need: 51, gold: 10000, charm: 2 },
+  { id: 'adv', n: 'เลื่อนขั้นอาชีพ', d: `เลื่อนขั้นเป็นคลาสขั้นสูง (Lv.70)`, v: () => (S.adv ? 1 : 0), need: 1, gold: 20000, charm: 3 },
   { id: 'l80', n: 'ยอดฝีมือ', d: 'ถึง Lv.80', v: () => S.lv, need: 80, gold: 40000, charm: 4 },
   { id: 'f7', n: 'ช่างฝึกหัด', d: 'ตีบวกถึง +7', v: () => trackVal('forgeBest'), need: 7, gold: 1000 },
   { id: 'f10', n: 'ช่างฝีมือ', d: 'ตีบวกถึง +10', v: () => trackVal('forgeBest'), need: 10, gold: 5000, charm: 2 },
@@ -274,14 +275,14 @@ function scheduleAuto() {
 /* เลือกคำสั่งให้อัตโนมัติ */
 function autoStep() {
   const st = stats();
-  const can = (id) => S.loadout.includes(id) && SKILLS[id] && S.mp >= skillCost(id) && S.lv >= SKILLS[id].lv;
+  const can = (id) => S.loadout.includes(id) && SKILLS[id] && S.mp >= skillCost(id) && skillOpen(SKILLS[id]);
   const use = (id) => playerAct('skill', id);
   if (B.charging) {
-    for (const id of ['bash', 'trap', 'timestop', 'evade']) if (can(id)) return use(id);
+    for (const id of ['bash', 'trap', 'timestop', 'shadowstep', 'evade', 'divineshield']) if (can(id)) return use(id);
     return playerAct('defend');
   }
   if (S.hp < st.hp * 0.38) {
-    for (const id of ['heal', 'bloodlust']) if (can(id)) return use(id);
+    for (const id of ['lifebless', 'heal', 'holystrike', 'avatar', 'bloodlust']) if (can(id)) return use(id);
     const pk = ['hp_l', 'hp_s', 'elixir'].find((k) => S.pots[k]);
     if (pk) return playerAct('item', pk);
   }
@@ -289,11 +290,13 @@ function autoStep() {
   if (B.isBoss) {
     if (!B.manaShield && can('manashield') && S.hp < st.hp * 0.7) return use('manashield');
     if (!B.ironwall && can('ironwall') && S.hp < st.hp * 0.6) return use('ironwall');
+    if (!B.divine && can('divineshield') && S.hp < st.hp * 0.7) return use('divineshield');
+    if (!B.avatar && can('avatar')) return use('avatar');
     for (const [id, k] of [['warcry', 'atkUp'], ['berserk', 'berserk'], ['focus', 'focus']]) if (!B[k] && can(id)) return use(id);
   }
   if (!B.poison && can('poison') && B.isBoss) return use('poison');
   if (!B.slow && can('icebolt') && B.isBoss) return use('icebolt');
-  for (const id of ['earthsplit', 'meteor', 'lightning', 'arrowstorm', 'snipe', 'whirl', 'slash', 'fireball', 'aimshot', 'volley']) if (can(id) && S.mp - skillCost(id) >= st.mp * 0.15) return use(id);
+  for (const id of ['apocalypse', 'thousand', 'judgment', 'arcanenova', 'phoenix', 'holystrike', 'blizzard', 'windarrow', 'earthsplit', 'meteor', 'lightning', 'arrowstorm', 'snipe', 'whirl', 'slash', 'fireball', 'aimshot', 'volley']) if (can(id) && S.mp - skillCost(id) >= st.mp * 0.15) return use(id);
   return playerAct('attack');
 }
 

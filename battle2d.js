@@ -140,6 +140,9 @@ function stageUpdate(B) {
   if (B.focus) ht.push(`<span class="tag">🧘${B.focus}</span>`);
   if (B.ironwall) ht.push(`<span class="tag">🧱${B.ironwall}</span>`);
   if (B.manaShield) ht.push(`<span class="tag">🔵${B.manaShield}</span>`);
+  if (B.divine) ht.push(`<span class="tag">🛡️${B.divine}</span>`);
+  if (B.avatar) ht.push(`<span class="tag">👼${B.avatar}</span>`);
+  if (B.regen) ht.push(`<span class="tag">🌿${B.regen}</span>`);
   if (B.evade) ht.push('<span class="tag">💨</span>');
   if (B.defending) ht.push('<span class="tag">🛡️</span>');
   $('htags').innerHTML = ht.join('');

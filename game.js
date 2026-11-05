@@ -65,13 +65,39 @@ const SKILLS = {
   snipe: { cls: 'archer', lv: 16, mp: 18, name: 'ยิงทะลวง', icon: '🏹', desc: 'ยิง 260% ไม่สนเกราะ' },
   arrowstorm: { cls: 'archer', lv: 20, mp: 28, name: 'พายุศร', icon: '🌪️', desc: 'ยิง 5 ดอก ดอกละ 75% (+15% คริ)' },
   focus: { cls: 'archer', lv: 25, mp: 16, name: 'ตั้งสมาธิ', icon: '🧘', desc: 'พลังโจมตี +30% คริ +40% 3 เทิร์น' },
+  // ---- สกิลคลาสขั้นสูง (ต้องเลื่อนขั้นที่ Lv.70) ----
+  holystrike: { cls: 'warrior', adv: true, lv: 70, mp: 30, name: 'ดาบศักดิ์สิทธิ์', icon: '⚜️', desc: 'โจมตี 400% เจาะเกราะครึ่งหนึ่ง + ฟื้น HP 10%' },
+  divineshield: { cls: 'warrior', adv: true, lv: 75, mp: 26, name: 'โล่เทพ', icon: '🛡️', desc: 'รับดาเมจลดลง 70% 3 เทิร์น' },
+  judgment: { cls: 'warrior', adv: true, lv: 85, mp: 42, name: 'พิพากษา', icon: '⚖️', desc: 'ฟาด 3 ครั้ง ครั้งละ 180% ไม่สนเกราะ' },
+  avatar: { cls: 'warrior', adv: true, lv: 95, mp: 45, name: 'ร่างอวตาร', icon: '👼', desc: 'พลังโจมตี ×1.6 ป้องกัน ×1.5 3 เทิร์น + ฟื้น HP 25%' },
+  blizzard: { cls: 'mage', adv: true, lv: 70, mp: 32, name: 'พายุหิมะ', icon: '🌨️', desc: 'เวท 4 ครั้ง ครั้งละ 100% ไม่สนเกราะ + ศัตรูช้า' },
+  arcanenova: { cls: 'mage', adv: true, lv: 75, mp: 38, name: 'อาร์เคนโนวา', icon: '💥', desc: 'เวท 450% ไม่สนเกราะ' },
+  lifebless: { cls: 'mage', adv: true, lv: 85, mp: 30, name: 'พรแห่งชีวิต', icon: '🌿', desc: 'ฟื้น HP 55% + ฟื้นฟูต่อเนื่อง 8% 3 เทิร์น' },
+  apocalypse: { cls: 'mage', adv: true, lv: 95, mp: 60, name: 'วันสิ้นโลก', icon: '🌋', desc: 'อุกกาบาต 5 ลูก ลูกละ 150% ไม่สนเกราะ' },
+  windarrow: { cls: 'archer', adv: true, lv: 70, mp: 26, name: 'ศรวายุ', icon: '🍃', desc: 'ยิง 4 ดอก ดอกละ 110% (+20% คริ)' },
+  phoenix: { cls: 'archer', adv: true, lv: 75, mp: 34, name: 'ศรหงส์เพลิง', icon: '🐦‍🔥', desc: 'ยิง 380% ไม่สนเกราะ + ติดไฟ (พิษ) 3 เทิร์น' },
+  shadowstep: { cls: 'archer', adv: true, lv: 85, mp: 20, name: 'ก้าวเงา', icon: '👤', desc: 'หลบการโจมตีครั้งถัดไป + สมาธิ 2 เทิร์น' },
+  thousand: { cls: 'archer', adv: true, lv: 95, mp: 50, name: 'พันศร', icon: '🎆', desc: 'ยิง 8 ดอก ดอกละ 70% (+20% คริ)' },
 };
 const SKILL_SLOTS = 4;
+
+/* คลาสขั้นสูง: เลื่อนขั้นได้ที่ Lv.70 · ค่าพลัง +15% คริ +5 · สกิลใหม่ 4 แบบ · ช่องสกิลที่ 5 */
+const ADV_LV = 70;
+const ADV_CLASSES = {
+  warrior: { name: 'อัศวินศักดิ์สิทธิ์', icon: '⚜️', desc: 'อัศวินผู้ได้รับพรจากสวรรค์ ทั้งตีแรงและทนทาน ฟื้นเลือดตัวเองได้' },
+  mage: { name: 'จอมปราชญ์', icon: '🔮', desc: 'ผู้หยั่งรู้เวทมนตร์ทั้งปวง เวททำลายล้างรุนแรงที่สุดในเกม' },
+  archer: { name: 'นักล่าสายลม', icon: '🌪️', desc: 'นักธนูผู้เร็วดั่งลม ยิงรัวไม่หยุด หลบหลีกดั่งเงา' },
+};
+const ADV_BONUS = 0.15;
+const className = () => (S.adv ? ADV_CLASSES[S.cls].name : CLASSES[S.cls].name);
+const classIcon = () => (S.adv ? ADV_CLASSES[S.cls].icon : CLASSES[S.cls].icon);
+const skillSlots = () => (S && S.adv ? 5 : SKILL_SLOTS);
+const skillOpen = (sk) => S.lv >= sk.lv && (!sk.adv || !!S.adv);
 
 /* เลเวลสกิล: ใช้บ่อยแล้วเก่งขึ้น (สูงสุด Lv.10)
    ทุกเลเวล: แรง/ฮีล +8% · MP -3% · Lv.5 และ Lv.10: บัฟนานขึ้น +1 เทิร์น */
 const SKILL_MAX_LV = 10;
-const BUFF_SKILLS = new Set(['warcry', 'ironwall', 'berserk', 'manashield', 'focus']);
+const BUFF_SKILLS = new Set(['warcry', 'ironwall', 'berserk', 'manashield', 'focus', 'divineshield', 'avatar', 'lifebless']);
 const skillUseNeed = (lv) => 8 + lv * 6;              // ครั้งที่ต้องใช้เพื่อขึ้นเลเวลถัดไป
 const skillLv = (id) => (S && S.skillLv && S.skillLv[id] ? S.skillLv[id].lv : 1);
 const skillPow = (id) => 1 + 0.08 * (skillLv(id) - 1);
@@ -89,7 +115,7 @@ function skillGainXp(id) {
 }
 const skillsOf = (cls) => Object.entries(SKILLS).filter(([, sk]) => sk.cls === cls).map(([id, sk]) => ({ id, ...sk }));
 const defaultLoadout = (cls, lv) => {
-  const ids = skillsOf(cls).filter((sk) => sk.lv <= lv).map((sk) => sk.id).slice(0, SKILL_SLOTS);
+  const ids = skillsOf(cls).filter((sk) => sk.lv <= lv && !sk.adv).map((sk) => sk.id).slice(0, SKILL_SLOTS);
   while (ids.length < SKILL_SLOTS) ids.push(null);
   return ids;
 };
@@ -319,6 +345,7 @@ function stats() {
     const st = effStats(it, slot);
     for (const k in st) s[k] = (s[k] || 0) + st[k];
   }
+  if (S.adv) { for (const k of ['hp', 'mp', 'atk', 'def']) s[k] *= 1 + ADV_BONUS; s.crit += 5; }
   for (const k in s) s[k] = Math.round(s[k]);
   s.crit = clamp(s.crit, 0, 75);
   return s;
@@ -609,7 +636,7 @@ function log(msg) { B.log.unshift(msg); if (B.log.length > 30) B.log.pop(); }
 
 function hitEnemy(mult, opt = {}) {
   const st = stats();
-  const atk = (opt.atk != null ? opt.atk : st.atk) * (B.atkUp > 0 ? 1.5 : 1) * (B.berserk > 0 ? 2 : 1) * (B.focus > 0 ? 1.3 : 1);
+  const atk = (opt.atk != null ? opt.atk : st.atk) * (B.atkUp > 0 ? 1.5 : 1) * (B.berserk > 0 ? 2 : 1) * (B.focus > 0 ? 1.3 : 1) * (B.avatar > 0 ? 1.6 : 1);
   const crit = Math.min(95, st.crit + (opt.bonusCrit || 0) + (B.focus > 0 ? 40 : 0));
   const r = calcDmg(atk, B.e.def, mult * (B.skillMul || 1), { crit, ignoreDef: opt.ignoreDef, pierce: opt.pierce, post: opt.post });
   B.e.hp = Math.max(0, B.e.hp - r.dmg);
@@ -636,7 +663,7 @@ function playerAct(act, arg) {
     }
   } else if (act === 'skill') {
     const sk = SKILLS[arg];
-    if (!sk || sk.cls !== S.cls || S.mp < skillCost(arg) || S.lv < sk.lv || !S.loadout.includes(arg)) return;
+    if (!sk || sk.cls !== S.cls || S.mp < skillCost(arg) || !skillOpen(sk) || !S.loadout.includes(arg)) return;
     S.mp -= skillCost(arg);
     B.skillMul = skillPow(arg); B.curSkill = arg;
     useSkill(arg, sk, st, e);
@@ -671,7 +698,8 @@ function playerAct(act, arg) {
   }
 
   if (e.hp > 0) petAct(st);
-  for (const k of ['atkUp', 'berserk', 'focus', 'ironwall', 'manaShield']) if (B[k] > 0) B[k]--;
+  if (B.regen > 0 && S.hp < st.hp) { const a = Math.min(Math.round(st.hp * 0.08 * skillPow('lifebless')), st.hp - S.hp); S.hp += a; log(`🌿 ฟื้นฟู HP ${fmt(a)}`); }
+  for (const k of ['atkUp', 'berserk', 'focus', 'ironwall', 'manaShield', 'divine', 'avatar', 'regen']) if (B[k] > 0) B[k]--;
   if (e.hp <= 0) return victory();
   busy = true;
   render();
@@ -735,6 +763,24 @@ function useSkill(id, sk, st, e) {
     case 'trap': { const h = [hitEnemy(1)]; hitLog(sk, h); ev({ a: 'proj', kind: 'arrow', hits: h }); if (e.hp > 0) tryStun('ติดกับดัก'); break; }
     case 'snipe': { const h = [hitEnemy(2.6, { ignoreDef: true })]; hitLog(sk, h); ev({ a: 'proj', kind: 'arrow', big: true, hits: h }); break; }
     case 'arrowstorm': { const h = multiHit(5, 0.75, { bonusCrit: 15 }); hitLog(sk, h); ev({ a: 'proj', kind: 'arrow', hits: h }); break; }
+    case 'holystrike': {
+      const h = [hitEnemy(4, { pierce: 0.5 })]; const amt = heal(st.hp * 0.1);
+      hitLog(sk, h, ` · ฟื้น HP ${fmt(amt)}`); ev({ a: 'melee', big: true, quake: true, hits: h }); ev({ a: 'aura', kind: 'heal', text: `+${fmt(amt)}` }); break;
+    }
+    case 'divineshield': B.divine = dur; log(`${sk.icon} ${sk.name}! รับดาเมจลดลง 70%`); ev({ a: 'aura', kind: 'shield', text: 'โล่เทพ' }); break;
+    case 'judgment': { const h = multiHit(3, 1.8, { ignoreDef: true }); hitLog(sk, h); ev({ a: 'bolt', hits: h }); break; }
+    case 'avatar': { B.avatar = dur; const amt = heal(st.hp * 0.25); log(`${sk.icon} ${sk.name}! พลังโจมตี ×1.6 ป้องกัน ×1.5 · ฟื้น HP ${fmt(amt)}`); ev({ a: 'aura', kind: 'buff', text: 'อวตาร!' }); ev({ a: 'aura', kind: 'heal', text: `+${fmt(amt)}` }); break; }
+    case 'blizzard': { const h = multiHit(4, 1, { ignoreDef: true }); B.slow = 2; hitLog(sk, h, ' · ศัตรูหนาวสั่น'); ev({ a: 'proj', kind: 'ice', hits: h }); break; }
+    case 'arcanenova': { const h = [hitEnemy(4.5, { ignoreDef: true })]; hitLog(sk, h); ev({ a: 'proj', kind: 'dark', big: true, hits: h }); break; }
+    case 'lifebless': { const amt = heal(st.hp * 0.55); B.regen = dur; log(`${sk.icon} ${sk.name}! ฟื้น HP ${fmt(amt)} + ฟื้นฟูต่อเนื่อง`); ev({ a: 'aura', kind: 'heal', text: `+${fmt(amt)}` }); break; }
+    case 'apocalypse': { const h = multiHit(5, 1.5, { ignoreDef: true }); hitLog(sk, h); ev({ a: 'meteor', hits: h }); break; }
+    case 'windarrow': { const h = multiHit(4, 1.1, { bonusCrit: 20 }); hitLog(sk, h); ev({ a: 'proj', kind: 'arrow', hits: h }); break; }
+    case 'phoenix': {
+      const h = [hitEnemy(3.8, { ignoreDef: true })]; B.poison = 3; B.poisonDmg = Math.round((st.atk * 0.8 + e.maxHp * 0.03) * pw);
+      hitLog(sk, h, ' · ติดไฟ'); ev({ a: 'proj', kind: 'fire', big: true, hits: h }); break;
+    }
+    case 'shadowstep': B.evade = true; B.focus = Math.max(B.focus, 3); log(`${sk.icon} ${sk.name}! หลบครั้งถัดไป + สมาธิ`); ev({ a: 'aura', kind: 'wind', text: 'ก้าวเงา' }); break;
+    case 'thousand': { const h = multiHit(8, 0.7, { bonusCrit: 20 }); hitLog(sk, h); ev({ a: 'proj', kind: 'arrow', hits: h }); break; }
     case 'focus': B.focus = dur; log(`${sk.icon} ${sk.name}! พลังโจมตี +30% คริ +40%`); ev({ a: 'aura', kind: 'buff', text: 'สมาธิ' }); break;
   }
 }
@@ -783,7 +829,7 @@ function enemyTurn() {
   } else {
     text = `${e.n} โจมตี`;
   }
-  const myDef = st.def * (B.ironwall > 0 ? 1.6 : 1) * (B.berserk > 0 ? 0.7 : 1);
+  const myDef = st.def * (B.ironwall > 0 ? 1.6 : 1) * (B.berserk > 0 ? 0.7 : 1) * (B.avatar > 0 ? 1.5 : 1);
   const eAtk = e.atk * (B.slow > 0 ? 0.7 : 1);
   if (B.slow > 0) B.slow--;
   const petDodged = !B.evade && Math.random() < petDodge();
@@ -796,9 +842,10 @@ function enemyTurn() {
   let { dmg, crit } = calcDmg(eAtk, myDef, mult, { crit: d.eCrit });
   if (B.defending) dmg = Math.max(1, Math.round(dmg * 0.35));
   if (B.manaShield > 0) dmg = Math.max(1, Math.round(dmg * 0.5));
+  if (B.divine > 0) dmg = Math.max(1, Math.round(dmg * 0.3));
   if (petGuard()) dmg = Math.max(1, Math.round(dmg * (1 - petGuard())));
   S.hp = Math.max(0, S.hp - dmg);
-  ev({ a: 'foeAtk', dmg, crit, big: mult > 1.3 && mult < 2, charged: mult > 2, defended: B.defending || B.manaShield > 0 });
+  ev({ a: 'foeAtk', dmg, crit, big: mult > 1.3 && mult < 2, charged: mult > 2, defended: B.defending || B.manaShield > 0 || B.divine > 0 });
   log(`${text}${crit ? ' (คริติคอล!)' : ''} คุณเสีย ${fmt(dmg)} HP${B.defending ? ' (ป้องกันไว้)' : ''}`);
   B.defending = false;
 
@@ -837,6 +884,7 @@ function victory() {
   rewards.levels = gainExp(e.exp);
   rewards.newSkills = unlockSkills(oldLv);
   rewards.dualUnlock = oldLv < DUAL_LV && S.lv >= DUAL_LV;
+  rewards.advUnlock = !S.adv && oldLv < ADV_LV && S.lv >= ADV_LV;
   onVictoryExtras(rewards);
 
   log(`🏆 ชนะ ${e.n}!`);
@@ -849,7 +897,7 @@ function victory() {
 
 /* สกิลที่ปลดล็อกใหม่ — ใส่ลงช่องว่างให้อัตโนมัติ */
 function unlockSkills(oldLv) {
-  const fresh = skillsOf(S.cls).filter((sk) => sk.lv > oldLv && sk.lv <= S.lv);
+  const fresh = skillsOf(S.cls).filter((sk) => sk.lv > oldLv && sk.lv <= S.lv && (!sk.adv || S.adv));
   for (const sk of fresh) {
     const i = S.loadout.indexOf(null);
     if (i >= 0 && !S.loadout.includes(sk.id)) S.loadout[i] = sk.id;
@@ -927,7 +975,7 @@ function hud() {
   const d = D();
   return `<div class="hud">
     <div class="row between">
-      <div class="name">${c.icon} ${esc(S.name)} <span class="muted">Lv.${S.lv} ${c.name}</span></div>
+      <div class="name">${classIcon()} ${esc(S.name)} <span class="muted">Lv.${S.lv} ${className()}</span></div>
       <div class="row" style="gap:10px"><span class="diff-badge d-${S.diff}">${d.icon} ${d.name}</span><span class="gold">💰 ${fmt(S.gold)}</span></div>
     </div>
     <div class="bars">
@@ -940,7 +988,7 @@ function hud() {
 
 function nav() {
   const items = [['town', '🏘️', 'เมือง'], ['map', '🗺️', 'ผจญภัย'], ['bag', '🎒', 'กระเป๋า'], ['collection', '📖', 'สะสม']];
-  const sub = { shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town' };
+  const sub = { advance: 'town', shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town' };
   return `<nav class="nav"><div class="in">${items.map(([v, i, n]) =>
     `<button data-a="go" data-v="${v}" class="${view === v || sub[view] === v ? 'on' : ''}"><span class="ico">${i}</span>${n}</button>`).join('')}</div></nav>`;
 }
@@ -960,6 +1008,7 @@ function render() {
     else if (view === 'forge') html += renderForge();
     else if (view === 'diff') html += renderDiff();
     else if (view === 'skills') html += renderSkills();
+    else if (view === 'advance') html += renderAdvance();
     else if (view === 'pets') html += renderPets();
     else if (view === 'quests') html += renderQuests();
     else if (view === 'save') html += renderSave();
@@ -1026,7 +1075,8 @@ function renderTown() {
     <button data-a="inn" ${full ? 'disabled' : ''}><span class="ico">🏨</span>โรงเตี๊ยม<span class="subtle">พักฟื้นเต็ม ${fmt(innCost)} 💰</span></button>
     <button data-a="go" data-v="shop"><span class="ico">🛒</span>ร้านค้า<span class="subtle">ยา หีบ & ยันต์</span></button>
     <button data-a="go" data-v="forge"><span class="ico">⚒️</span>ช่างตีเหล็ก<span class="subtle">ตีบวกอุปกรณ์</span></button>
-    <button data-a="go" data-v="skills"><span class="ico">📜</span>สกิล<span class="subtle">${S.loadout.filter(Boolean).length}/${SKILL_SLOTS} ช่อง · ปลดล็อก ${skillsOf(S.cls).filter((k) => k.lv <= S.lv).length}/${skillsOf(S.cls).length}</span></button>
+    <button data-a="go" data-v="skills"><span class="ico">📜</span>สกิล<span class="subtle">${S.loadout.filter(Boolean).length}/${skillSlots()} ช่อง · ปลดล็อก ${skillsOf(S.cls).filter(skillOpen).length}/${skillsOf(S.cls).length}</span></button>
+    <button data-a="go" data-v="advance" class="${!S.adv && S.lv >= ADV_LV ? 'glow-btn' : ''}"><span class="ico">${S.adv ? ADV_CLASSES[S.cls].icon : S.lv >= ADV_LV ? '🌟' : '🔒'}</span>เลื่อนขั้นอาชีพ<span class="subtle">${S.adv ? ADV_CLASSES[S.cls].name : S.lv >= ADV_LV ? 'พร้อมแล้ว!' : `ปลดล็อก Lv.${ADV_LV}`}</span></button>
     <button data-a="go" data-v="pets"><span class="ico">🐾</span>สัตว์เลี้ยง<span class="subtle">${curPet() ? `${petDef(S.pet).n} Lv.${curPet().lv}` : `${S.pets.length}/${PETS.length} ตัว`}</span></button>
     <button data-a="go" data-v="quests" class="${claimable() ? 'glow-btn' : ''}"><span class="ico">📋</span>ภารกิจ${claimable() ? ` <span class="badge">${claimable()}</span>` : ''}<span class="subtle">ประจำวัน & ความสำเร็จ</span></button>
     <button data-a="go" data-v="diff" class="${anyCleared() ? 'glow-btn' : ''}"><span class="ico">${anyCleared() ? '🎚️' : '🔒'}</span>ระดับความยาก<span class="subtle">${anyCleared() ? `ตอนนี้: ${d.name}` : 'ปลดล็อกเมื่อจบเกม'}</span></button>
@@ -1199,7 +1249,7 @@ function battleActions() {
     <button class="primary" data-a="attack" ${d}>⚔️ โจมตี</button>
     <button data-a="defend" ${d}>🛡️ ป้องกัน<span class="subtle">ลดดาเมจ 65% · ฟื้น MP</span></button>
   </div>
-  <div class="skill-bar">${S.loadout.map(skillBtn).join('')}</div>
+  <div class="skill-bar" style="grid-template-columns:repeat(${S.loadout.length},1fr)">${S.loadout.map(skillBtn).join('')}</div>
   <div class="actions">
     <button data-a="sub" data-v="item" ${d}>🧪 ไอเทม</button>
     ${B.isBoss ? `<button disabled class="ghost">MP ${fmt(S.mp)}/${fmt(st.mp)}</button>` : `<button class="ghost" data-a="flee" ${d}>🏃 หนี (65%)</button>`}
@@ -1216,20 +1266,20 @@ function skillLvLine(id) {
 }
 function renderSkills() {
   const all = skillsOf(S.cls);
-  let html = `<div class="row between"><h2>📜 สกิล${CLASSES[S.cls].name}</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>
-  <div class="muted" style="font-size:14px;margin-bottom:8px">เลือกได้ ${SKILL_SLOTS} ช่องสำหรับใช้ในการต่อสู้ · แตะช่องเพื่อเลือก แล้วกด "ใส่" ที่สกิลด้านล่าง<br>
+  let html = `<div class="row between"><h2>📜 สกิล${className()}</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>
+  <div class="muted" style="font-size:14px;margin-bottom:8px">เลือกได้ ${skillSlots()} ช่องสำหรับใช้ในการต่อสู้ · แตะช่องเพื่อเลือก แล้วกด "ใส่" ที่สกิลด้านล่าง<br>
     ⬆️ ใช้สกิลบ่อยแล้วสกิลจะเลเวลอัพ (สูงสุด Lv.${SKILL_MAX_LV}): แรงขึ้น 8% · ใช้ MP น้อยลง 3% ต่อเลเวล · Lv.5/10 บัฟนานขึ้น</div>
-  <div class="skill-slots">${S.loadout.map((id, i) => {
+  <div class="skill-slots" style="grid-template-columns:repeat(${S.loadout.length},1fr)">${S.loadout.map((id, i) => {
     const sk = id && SKILLS[id];
     return `<button class="sslot ${skillSlotSel === i ? 'on' : ''} ${sk ? 'has' : ''}" data-a="skillslot" data-v="${i}">
       <span class="sn">${i + 1}</span>${sk && skillLv(id) > 1 ? `<span class="sk-lv">Lv.${skillLv(id)}</span>` : ''}<span class="si">${sk ? sk.icon : '➕'}</span><span class="sl">${sk ? sk.name : 'ว่าง'}</span></button>`;
   }).join('')}</div>`;
   html += all.map((sk) => {
-    const locked = S.lv < sk.lv;
+    const locked = !skillOpen(sk);
     const at = S.loadout.indexOf(sk.id);
     return `<div class="item skill-card ${locked ? 'locked' : ''} ${at >= 0 ? 'equipped' : ''}">
       <span class="ico">${locked ? '🔒' : sk.icon}</span>
-      <div class="info"><div class="nm">${sk.name} <span class="muted" style="font-size:13px">· ${skillCost(sk.id)} MP${locked ? ` · ปลดล็อก Lv.${sk.lv}` : ''}</span></div>
+      <div class="info"><div class="nm">${sk.name} <span class="muted" style="font-size:13px">· ${skillCost(sk.id)} MP${locked ? ` · ปลดล็อก Lv.${sk.lv}${sk.adv && !S.adv ? ' + เลื่อนขั้นอาชีพ' : ''}` : ''}</span>${sk.adv ? `<span class="adv-badge">${ADV_CLASSES[S.cls].name}</span>` : ''}</div>
         <div class="st">${sk.desc}</div>
         ${locked ? '' : skillLvLine(sk.id)}</div>
       ${locked ? '' : at >= 0
@@ -1240,9 +1290,45 @@ function renderSkills() {
   return html;
 }
 
+function advanceClass() {
+  if (S.adv || S.lv < ADV_LV) return;
+  S.adv = true;
+  while (S.loadout.length < 5) S.loadout.push(null);
+  for (const sk of skillsOf(S.cls)) if (sk.adv && sk.lv <= S.lv && !S.loadout.includes(sk.id)) { const i = S.loadout.indexOf(null); if (i >= 0) S.loadout[i] = sk.id; }
+  const st = stats(); S.hp = st.hp; S.mp = st.mp;
+  save();
+}
+
+function renderAdvance() {
+  const c = CLASSES[S.cls], a = ADV_CLASSES[S.cls];
+  const ready = S.lv >= ADV_LV;
+  const newSkills = skillsOf(S.cls).filter((sk) => sk.adv);
+  let html = `<div class="row between"><h2>🌟 เลื่อนขั้นอาชีพ</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>`;
+  html += `<div class="card adv-card">
+    <div class="adv-compare">
+      <div>${heroSVG(S.cls, S.equip, 96, false)}<div><b>${c.icon} ${c.name}</b></div></div>
+      <div class="arrow">➜</div>
+      <div>${heroSVG(S.cls, S.equip, 96, true)}<div><b class="gold">${a.icon} ${a.name}</b></div></div>
+    </div>
+    <div class="muted" style="margin-top:8px">${a.desc}</div></div>`;
+  html += `<div class="card"><h3 style="margin-top:0">สิ่งที่ได้</h3>
+    <div class="grid1" style="font-size:14px">
+      <div>💪 ค่าพลัง HP / MP / โจมตี / ป้องกัน <b class="up">+${Math.round(ADV_BONUS * 100)}%</b> · คริ <b class="up">+5%</b></div>
+      <div>🎯 ช่องสกิลเพิ่มเป็น <b class="up">5 ช่อง</b></div>
+      <div>👘 ชุดและออร่าใหม่</div>
+    </div>
+    <div class="muted" style="margin:10px 0 4px">สกิลใหม่</div>
+    ${newSkills.map((sk) => `<div class="item"><span class="ico">${sk.icon}</span><div class="info"><div class="nm">${sk.name} <span class="muted" style="font-size:13px">· Lv.${sk.lv} · ${sk.mp} MP</span></div><div class="st">${sk.desc}</div></div></div>`).join('')}
+  </div>`;
+  html += S.adv
+    ? `<div class="card" style="text-align:center"><b class="gold">✅ คุณเป็น${a.name}แล้ว</b></div>`
+    : `<button class="primary" style="width:100%" data-a="advance" ${ready ? '' : 'disabled'}>${ready ? `🌟 เลื่อนขั้นเป็น${a.name}!` : `🔒 ต้อง Lv.${ADV_LV} (ตอนนี้ Lv.${S.lv})`}</button>`;
+  return html;
+}
+
 function setSkill(id) {
   const sk = SKILLS[id];
-  if (!sk || sk.cls !== S.cls || S.lv < sk.lv) return;
+  if (!sk || sk.cls !== S.cls || !skillOpen(sk)) return;
   let slot = skillSlotSel;
   if (slot == null) slot = S.loadout.indexOf(null);
   if (slot < 0) { toast('ช่องเต็มแล้ว — แตะช่องที่ต้องการเปลี่ยนก่อน'); return; }
@@ -1283,6 +1369,7 @@ function battleResult() {
     <div>✨ +${fmt(r.exp)} EXP &nbsp; <span class="gold">💰 +${fmt(r.gold)}</span></div>
     ${r.levels ? `<div class="up" style="font-family:Kanit;font-size:18px;margin-top:6px">⬆️ เลเวลอัพ! ตอนนี้ Lv.${S.lv} (ฟื้นฟูเต็ม)</div>` : ''}
     ${extrasResultHTML(r)}
+    ${r.advUnlock ? `<div class="new-skill">🌟 Lv.${ADV_LV}! เลื่อนขั้นเป็น<b>${ADV_CLASSES[S.cls].name}</b>ได้แล้ว <button class="small primary" data-a="go" data-v="advance">ไปเลื่อนขั้น</button></div>` : ''}
     ${r.dualUnlock ? `<div class="new-skill">⚔️⚔️ Lv.${DUAL_LV}! ปลดล็อกใส่อาวุธสองมือได้ทั้ง 2 มือ <button class="small" data-a="go" data-v="bag">ไปจัดอุปกรณ์</button></div>` : ''}
     ${r.newSkills && r.newSkills.length ? `<div class="new-skill">📜 ปลดล็อกสกิลใหม่: ${r.newSkills.map((sk) => `<b>${sk.icon} ${sk.name}</b>`).join(', ')}
       <button class="small" data-a="go" data-v="skills">จัดสกิล</button></div>` : ''}
@@ -1480,6 +1567,9 @@ document.addEventListener('click', (ev) => {
     }
     case 'slotsel': slotSel = slotSel === v ? null : v; if (S.equip[v]) forgeSel = S.equip[v].uid; break;
     case 'bagfilter': bagFilter = v; break;
+    case 'advance':
+      if (!confirm(`เลื่อนขั้นเป็น${ADV_CLASSES[S.cls].name}? (เปลี่ยนกลับไม่ได้)`)) return;
+      advanceClass(); toast(`🌟 ยินดีด้วย! คุณเป็น${ADV_CLASSES[S.cls].name}แล้ว`); break;
     case 'skillslot': skillSlotSel = skillSlotSel === +v ? null : +v; break;
     case 'skillset': setSkill(v); break;
     case 'skillrm': { const i = S.loadout.indexOf(v); if (i >= 0) { S.loadout[i] = null; save(); } break; }

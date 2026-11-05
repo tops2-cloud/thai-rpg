@@ -8,9 +8,15 @@
 const RARITY_COLOR = { common: '#c9c3dc', rare: '#4ba3ff', epic: '#c06bff', legend: '#ffad33', mythic: '#2ee6c8', divine: '#fff27a', unique: '#ff5b8a' };
 
 const HERO_LOOK = {
-  warrior: { skin: '#f2c7a0', shirt: '#b5432f', pants: '#4a3b2c', boots: '#3a2a1c', hair: '#6b3f1f' },
-  mage: { skin: '#f4d1b0', shirt: '#5b3fa8', pants: '#3a2c5e', boots: '#2a2040', hair: '#e8e4ff' },
-  archer: { skin: '#eec39b', shirt: '#3f7d3a', pants: '#5a4630', boots: '#3b2d1e', hair: '#e8c66a' },
+  warrior: { skin: '#f2c7a0', shirt: '#b5432f', pants: '#4a3b2c', boots: '#3a2a1c', hair: '#6b3f1f', band: '#c9302c' },
+  mage: { skin: '#f4d1b0', shirt: '#5b3fa8', pants: '#3a2c5e', boots: '#2a2040', hair: '#e8e4ff', hat: '#4a2f8f', brim: '#3b2577', star: '#ffcc4d' },
+  archer: { skin: '#eec39b', shirt: '#3f7d3a', pants: '#5a4630', boots: '#3b2d1e', hair: '#e8c66a', hood: '#2f5e2c' },
+};
+/* ชุดของคลาสขั้นสูง (Lv.70+) */
+const HERO_LOOK_ADV = {
+  warrior: { skin: '#f2c7a0', shirt: '#eceaf6', pants: '#33396a', boots: '#22253f', hair: '#6b3f1f', band: '#ffcc4d', aura: '#ffd84a', adv: true },
+  mage: { skin: '#f4d1b0', shirt: '#1f2f8a', pants: '#141d52', boots: '#10163a', hair: '#ffffff', hat: '#16226a', brim: '#0f1850', star: '#7fe9ff', aura: '#5ac8ff', adv: true },
+  archer: { skin: '#eec39b', shirt: '#17706c', pants: '#22403e', boots: '#162a28', hair: '#f4f0d8', hood: '#0f4f4a', aura: '#5affd6', adv: true },
 };
 
 // ดึงชนิดของอุปกรณ์จาก key เช่น "sword:rare" → "sword", "u:castle" → "u:castle"
@@ -40,20 +46,24 @@ function heroHead(cls, L, helmet) {
   if (helmet) return face + heroHair(cls, L) + heroHelmet(helmet);
   if (cls === 'warrior') return face + `
     <path d="M42 50 Q41 30 60 30 Q79 30 78 50 L74 44 L70 47 L66 41 L60 45 L54 41 L50 47 L46 44 Z" fill="${L.hair}"/>
-    <rect x="43" y="41" width="34" height="5" rx="2" fill="#c9302c"/>
-    <path d="M77 43 L86 39 L84 47 Z" fill="#c9302c"/>`;
+    ${L.adv ? `<path d="M42 44 Q60 36 78 44" stroke="url(#gold)" stroke-width="4" fill="none"/>
+      <path d="M42 42 Q30 34 28 24 Q36 32 44 36 Q34 30 34 22 Q42 32 46 38 Z M78 42 Q90 34 92 24 Q84 32 76 36 Q86 30 86 22 Q78 32 74 38 Z" fill="#fff" stroke="#ffcc4d" stroke-width=".8"/>
+      <circle cx="60" cy="38" r="2.6" fill="#5ac8ff"/>` : `<rect x="43" y="41" width="34" height="5" rx="2" fill="${L.band}"/>
+    <path d="M77 43 L86 39 L84 47 Z" fill="${L.band}"/>`}`;
   if (cls === 'mage') return face + `
     <path d="M43 52 Q42 62 46 66 L48 50 Z M77 52 Q78 62 74 66 L72 50 Z" fill="${L.hair}"/>
-    <ellipse cx="60" cy="40" rx="27" ry="6" fill="#3b2577"/>
-    <path d="M40 40 Q52 34 58 8 Q62 2 70 6 Q64 10 66 18 Q72 30 80 40 Z" fill="#4a2f8f"/>
-    <path d="M43 39 Q60 33 77 39" stroke="#ffcc4d" stroke-width="2.5" fill="none"/>
-    <path d="M61 22 l1.6 3.4 3.7.4 -2.8 2.5 .8 3.6 -3.3-1.9 -3.3 1.9 .8-3.6 -2.8-2.5 3.7-.4z" fill="#ffcc4d"/>`;
+    <ellipse cx="60" cy="40" rx="27" ry="6" fill="${L.brim}"/>
+    <path d="M40 40 Q52 34 58 8 Q62 2 70 6 Q64 10 66 18 Q72 30 80 40 Z" fill="${L.hat}"/>
+    <path d="M43 39 Q60 33 77 39" stroke="${L.adv ? 'url(#gold)' : '#ffcc4d'}" stroke-width="${L.adv ? 3.5 : 2.5}" fill="none"/>
+    <path d="M61 22 l1.6 3.4 3.7.4 -2.8 2.5 .8 3.6 -3.3-1.9 -3.3 1.9 .8-3.6 -2.8-2.5 3.7-.4z" fill="${L.star}"/>
+    ${L.adv ? '<circle cx="52" cy="30" r="1.4" fill="#fff"/><circle cx="68" cy="16" r="1.2" fill="#fff"/><circle cx="58" cy="14" r="1" fill="#7fe9ff"/><path d="M70 6 L74 0 L72 7 Z" fill="#7fe9ff"/>' : ''}`;
   // archer — ฮู้ด + หูแหลม
   return face + `
     <path d="M43 51 L35 44 L44 56 Z M77 51 L85 44 L76 56 Z" fill="${L.skin}"/>
     <path d="M44 46 Q46 34 60 34 Q74 34 76 46 Q70 40 60 41 Q50 40 44 46 Z" fill="${L.hair}"/>
-    <path d="M40 52 Q38 26 60 26 Q82 26 80 52 Q78 40 60 38 Q42 40 40 52 Z" fill="#2f5e2c"/>
-    <path d="M60 26 Q70 20 76 24 Q70 26 68 30 Z" fill="#2f5e2c"/>`;
+    <path d="M40 52 Q38 26 60 26 Q82 26 80 52 Q78 40 60 38 Q42 40 40 52 Z" fill="${L.hood}"/>
+    <path d="M60 26 Q70 20 76 24 Q70 26 68 30 Z" fill="${L.hood}"/>
+    ${L.adv ? '<path d="M74 30 Q90 14 96 4 Q92 20 80 34 Z" fill="#5affd6" stroke="#fff" stroke-width=".6"/><path d="M76 32 Q86 20 92 10" stroke="#fff" stroke-width=".6" fill="none"/><path d="M42 44 Q60 34 78 44" stroke="#5affd6" stroke-width="1.6" fill="none"/>' : ''}`;
 }
 
 /* ผมอย่างเดียว (ใช้ตอนสวมหมวก) */
@@ -311,8 +321,9 @@ function heroWeapon(it, off) {
 }
 
 /* ---------- ประกอบร่าง ---------- */
-function heroSVG(cls, equip = {}, size = 140) {
-  const L = HERO_LOOK[cls];
+function heroSVG(cls, equip = {}, size = 140, adv) {
+  if (adv === undefined) adv = typeof S !== 'undefined' && !!S && S.cls === cls && !!S.adv;
+  const L = adv ? HERO_LOOK_ADV[cls] : HERO_LOOK[cls];
   const robe = ['robe', 'u:spirit'].includes(gearKind(equip.armor));
   return `<svg class="hero-svg" viewBox="0 0 120 170" width="${size}" height="${Math.round(size * 170 / 120)}" xmlns="http://www.w3.org/2000/svg" aria-label="ตัวละคร">
     <defs>
@@ -322,6 +333,7 @@ function heroSVG(cls, equip = {}, size = 140) {
       <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".5" stop-color="#ffcc4d"/><stop offset="1" stop-color="#c8901a"/></linearGradient>
     </defs>
     <ellipse cx="60" cy="160" rx="30" ry="5" fill="#000" opacity=".35"/>
+    ${L.adv ? `<g class="adv-aura"><ellipse cx="60" cy="96" rx="40" ry="62" fill="${L.aura}" opacity=".16"/><ellipse cx="60" cy="158" rx="34" ry="6" fill="none" stroke="${L.aura}" stroke-width="1.6" opacity=".7"/></g>` : ''}
     ${heroCape(equip.cape)}
     <!-- ขา -->
     ${robe ? '' : `<rect x="48" y="108" width="10" height="42" rx="4" fill="${L.pants}"/>
@@ -332,6 +344,7 @@ function heroSVG(cls, equip = {}, size = 140) {
     <path d="M75 76 L85 104" stroke="${L.shirt}" stroke-width="9" stroke-linecap="round"/>
     <!-- ลำตัว -->
     <rect x="43" y="68" width="34" height="44" rx="10" fill="${L.shirt}"/>
+    ${L.adv ? `<path d="M60 70 L60 104 M50 82 L70 82" stroke="${cls === 'warrior' ? '#ffcc4d' : L.aura}" stroke-width="2.4" opacity=".9"/>` : ''}
     <rect x="43" y="104" width="34" height="5" fill="#3a2a1c"/><rect x="57" y="103.5" width="6" height="6" rx="1" fill="#d8b06a"/>
     ${heroArmor(equip.armor, L)}
     ${heroCapeCollar(equip.cape)}
