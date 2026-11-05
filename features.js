@@ -236,12 +236,8 @@ function renderSave() {
       <button style="width:100%;margin-top:8px" data-a="restorebk">กู้คืนจากสำรองอัตโนมัติ</button></div>`;
   if (S) html += `<div class="card"><h3 style="margin-top:0">⚙️ ตั้งค่าการต่อสู้</h3>
       <div class="row between"><span>ความเร็วเริ่มต้น</span><div class="row">${[1, 2, 3].map((n) => `<button class="small ${S.settings.speed === n ? 'primary' : ''}" data-a="speed" data-v="${n}">x${n}</button>`).join('')}</div></div>
-      <div class="row between" style="margin-top:8px"><span>ภาพนักรบในฉากต่อสู้</span><div class="row">
-        <button class="small ${S.settings.sprite !== 'doll' ? 'primary' : ''}" data-a="sprite" data-v="knight">อัศวินเคลื่อนไหว</button>
-        <button class="small ${S.settings.sprite === 'doll' ? 'primary' : ''}" data-a="sprite" data-v="doll">เปลี่ยนตามชุด</button></div></div>
       <div class="row between" style="margin-top:8px"><span>ออโต้: ล่าต่อเนื่องหลังชนะ</span><button class="small ${S.settings.chain ? 'primary' : ''}" data-a="chain">${S.settings.chain ? 'เปิด' : 'ปิด'}</button></div>
       <div class="row between" style="margin-top:8px"><span>ออโต้: หยุดเมื่อ HP ต่ำกว่า</span><div class="row">${[30, 50, 70].map((n) => `<button class="small ${S.settings.stopHp === n ? 'primary' : ''}" data-a="stophp" data-v="${n}">${n}%</button>`).join('')}</div></div></div>`;
-  html += `<div class="muted credits">เครดิตภาพ: อัศวิน (นักรบ) โดย Segel T · facebook.com/Segel.T</div>`;
   return html;
 }
 
@@ -399,7 +395,6 @@ function featureClick(a, v, el) {
     case 'speed': S.settings.speed = +v; save(); return true;
     case 'chain': S.settings.chain = !S.settings.chain; save(); return true;
     case 'stophp': S.settings.stopHp = +v; save(); return true;
-    case 'sprite': S.settings.sprite = v; save(); return true;
     case 'install': if (installPrompt) { installPrompt.prompt(); installPrompt.userChoice.finally(() => { installPrompt = null; render(); }); } return false;
     default: return false;
   }

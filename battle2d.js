@@ -154,21 +154,12 @@ function stageUpdate(B) {
   document.getElementById('u-hero').classList.toggle('berserk', B.berserk > 0);
 }
 
-/* ---------- สไปรต์อัศวิน (ภาพโดย Segel T) ----------
-   แต่ละท่าเป็นแผ่นเดียว 8 เฟรม · ภาพต้นฉบับหันซ้าย จึงพลิกให้หันขวา */
-const SPRITE_ANIMS = { idle: 0.9, run: 0.5, attack: 0.45, hurt: 0.45, die: 0.8 };
-const heroSpriteOn = () => typeof S !== 'undefined' && !!S && S.cls === 'warrior' && (!S.settings || S.settings.sprite !== 'doll');
-const heroSpriteHTML = () => '<div class="spr knight idle" id="hero-spr"></div>';
-if (typeof window !== 'undefined') for (const k of Object.keys(SPRITE_ANIMS)) { const im = new Image(); im.src = `sprites/knight/${k}.webp`; }
-let sprTimer = null;
-function heroAnim(name, holdMs) {
-  const el = document.getElementById('hero-spr'); if (!el) return;
-  clearTimeout(sprTimer);
-  el.className = 'spr knight';
-  void el.offsetWidth; // เริ่มแอนิเมชันใหม่
-  el.className = `spr knight ${name}`;
-  el.style.animationDuration = `${SPRITE_ANIMS[name] / SPD()}s`;
-  if (name !== 'die' && name !== 'idle') sprTimer = setTimeout(() => heroAnim('idle'), (holdMs || SPRITE_ANIMS[name] * 1000) / SPD());
+/* ท่าเหวี่ยงอาวุธ (หมุนแขน+อาวุธรอบหัวไหล่) */
+function heroAnim(name) {
+  if (name !== 'attack') return;
+  const w = document.querySelector('#hero-body .wpn-main');
+  anim(w, [{ transform: 'rotate(0deg)' }, { transform: 'rotate(28deg)', offset: .3 }, { transform: 'rotate(-62deg)', offset: .62 }, { transform: 'rotate(0deg)' }],
+    { duration: 440, easing: 'ease-out' });
 }
 
 /* สัตว์เลี้ยงในฉาก */
@@ -330,8 +321,7 @@ function playOne(ev) {
       const dist = Math.max(0, b.x - a.x - (a.w + b.w) * 0.35);
       anim(hero, [{ transform: 'translateX(0)' }, { transform: `translateX(${dist}px)`, offset: .45 }, { transform: `translateX(${dist}px)`, offset: .6 }, { transform: 'translateX(0)' }],
         { duration: 560, easing: 'ease-in-out' });
-      heroAnim('run', 200);
-      later(170, () => heroAnim('attack', 420));
+      later(80, () => heroAnim('attack'));
       later(240, () => {
         ev.hits.forEach((h, i) => slashFx(ev.big, h.crit, i * 110));
         if (ev.dual) slashFx(false, false, 110);
@@ -433,7 +423,6 @@ function playOne(ev) {
           popNum('hero', 'หลบ!', 'shield');
           return;
         }
-        heroAnim('hurt');
         if (ev.defended) aura('shield');
         boom(ev.charged ? '#ff3b3b' : '#ffffff', 'u-hero');
         popNum('hero', `-${ev.dmg.toLocaleString('th-TH')}`, ev.crit || ev.charged ? 'crit' : 'hurt');
@@ -451,12 +440,10 @@ function playOne(ev) {
       later(250, coins);
       return 800;
     case 'heroDie':
-      if (document.getElementById('hero-spr')) { heroAnim('die'); return 800; }
       anim(document.getElementById('hero-body'), [{ transform: 'rotate(0)', opacity: 1 }, { transform: 'rotate(-80deg) translateX(-20px)', opacity: .5 }],
         { duration: 700, easing: 'ease-in', fill: 'forwards' });
       return 700;
     case 'flee':
-      heroAnim('run', 600);
       anim(hero, [{ transform: 'translateX(0)' }, { transform: 'translateX(-260px)' }], { duration: 600, easing: 'ease-in', fill: 'forwards' });
       return 600;
     default: return 0;

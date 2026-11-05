@@ -1044,7 +1044,7 @@ function renderCreate() {
       <div class="muted" style="margin-bottom:6px">ชื่อผู้กล้า</div>
       <input type="text" id="pname" maxlength="16" placeholder="เช่น ไอ้เข้ม" value="${esc(cs.name)}" />
     </div>
-    <div class="hero-stage">${cs.cls === 'warrior' ? '<div class="spr knight idle create-spr"></div>' : heroSVG(cs.cls, { weapon: { key: { warrior: 'sword', mage: 'staff', archer: 'bow' }[cs.cls] + ':common', rarity: 'common' } }, 130)}</div>
+    <div class="hero-stage">${heroSVG(cs.cls, { weapon: { key: { warrior: 'sword', mage: 'staff', archer: 'bow' }[cs.cls] + ':common', rarity: 'common' } }, 170, false)}</div>
     <div class="muted">เลือกอาชีพ</div>
     <div class="class-pick">
       ${Object.entries(CLASSES).map(([k, c]) => `
@@ -1084,7 +1084,7 @@ function renderTown() {
   <div class="card" style="margin-top:12px">
     <h3 style="margin-top:0">สถานะ</h3>
     <div class="row" style="align-items:flex-start">
-    <div class="hero-stage small" data-a="go" data-v="bag">${heroSVG(S.cls, S.equip, 110)}</div>
+    <div class="hero-stage small" data-a="go" data-v="bag">${heroSVG(S.cls, S.equip, 124)}</div>
     <div class="grid1 muted" style="flex:1">
       <div>⚔️ โจมตี: <b>${fmt(st.atk)}</b>${offWeapon() ? ` <span style="font-size:12px">+ ${fmt(offhandAtk(st) * OFFHAND_HIT_RATE)}</span>` : ''}</div><div>🛡️ ป้องกัน: <b>${fmt(st.def)}</b></div>
       <div>❤️ HP สูงสุด: <b>${fmt(st.hp)}</b></div><div>🎯 คริติคอล: <b>${st.crit}%</b></div>
@@ -1213,7 +1213,7 @@ function renderMap() {
 function renderBattleView() {
   if (app.dataset.bid !== String(B.id)) {
     app.innerHTML = `<div id="hudbox"></div>
-      ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroSpriteOn() ? heroSpriteHTML() : heroSVG(S.cls, S.equip, 104))}
+      ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroSVG(S.cls, S.equip, 150))}
       <div class="log" id="blog"></div><div id="bact"></div>`;
     app.dataset.bid = String(B.id);
     stageQueueEnd = 0;
@@ -1306,9 +1306,9 @@ function renderAdvance() {
   let html = `<div class="row between"><h2>🌟 เลื่อนขั้นอาชีพ</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>`;
   html += `<div class="card adv-card">
     <div class="adv-compare">
-      <div>${heroSVG(S.cls, S.equip, 96, false)}<div><b>${c.icon} ${c.name}</b></div></div>
+      <div>${heroSVG(S.cls, S.equip, 124, false)}<div><b>${c.icon} ${c.name}</b></div></div>
       <div class="arrow">➜</div>
-      <div>${heroSVG(S.cls, S.equip, 96, true)}<div><b class="gold">${a.icon} ${a.name}</b></div></div>
+      <div>${heroSVG(S.cls, S.equip, 124, true)}<div><b class="gold">${a.icon} ${a.name}</b></div></div>
     </div>
     <div class="muted" style="margin-top:8px">${a.desc}</div></div>`;
   html += `<div class="card"><h3 style="margin-top:0">สิ่งที่ได้</h3>
@@ -1404,7 +1404,7 @@ function renderEquipBoard() {
   let html = `<div class="card equip-board">
     <div class="eb-col">${left.map(slotCell).join('')}</div>
     <div class="eb-mid">
-      <div class="eb-hero">${heroSVG(S.cls, S.equip, 116)}</div>
+      <div class="eb-hero">${heroSVG(S.cls, S.equip, 150)}</div>
       <div class="eb-bottom">${slotCell('cape')}<button class="slot forge-slot" data-a="go" data-v="forge"><span class="si">⚒️</span><span class="sl">ตีบวก</span></button></div>
     </div>
     <div class="eb-col">${right.map(slotCell).join('')}</div>

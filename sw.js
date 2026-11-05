@@ -1,9 +1,8 @@
 /* Service worker: เล่นได้แม้ไม่มีเน็ต
    ไฟล์เกม = ดึงจากเน็ตก่อน (ได้เวอร์ชันล่าสุดเสมอ) ถ้าออฟไลน์ใช้ของที่เก็บไว้ */
-const CACHE = 'thai-rpg-v2';
+const CACHE = 'thai-rpg-v3';
 const CORE = ['./', 'index.html', 'style.css', 'hero.js', 'monsters.js', 'battle2d.js', 'features.js', 'game.js',
-  'manifest.webmanifest', 'icon-192.png', 'icon-512.png',
-  'sprites/knight/idle.webp', 'sprites/knight/run.webp', 'sprites/knight/attack.webp', 'sprites/knight/hurt.webp', 'sprites/knight/die.webp'];
+  'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
