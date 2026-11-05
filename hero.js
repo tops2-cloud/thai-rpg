@@ -27,7 +27,7 @@ const sparkles = (it, pts) => ((it && it.plus >= 10) ? pts.map(([x, y], i) =>
   `<path class="spark" style="animation-delay:${i * 0.4}s" d="M${x} ${y - 3} L${x + 0.8} ${y - 0.8} L${x + 3} ${y} L${x + 0.8} ${y + 0.8} L${x} ${y + 3} L${x - 0.8} ${y + 0.8} L${x - 3} ${y} L${x - 0.8} ${y - 0.8}Z" fill="#fff"/>`).join('') : '');
 
 /* ---------- ส่วนหัว/ผม ตามอาชีพ ---------- */
-function heroHead(cls, L) {
+function heroHead(cls, L, helmet) {
   const face = `
     <rect x="55" y="62" width="10" height="9" fill="${L.skin}"/>
     <circle cx="60" cy="50" r="17" fill="${L.skin}"/>
@@ -37,6 +37,7 @@ function heroHead(cls, L) {
     <ellipse cx="50" cy="58" rx="3" ry="1.6" fill="#ff8a8a" opacity=".45"/>
     <ellipse cx="70" cy="58" rx="3" ry="1.6" fill="#ff8a8a" opacity=".45"/>
     <path d="M56.5 59 Q60 62 63.5 59" stroke="#7a3b2e" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
+  if (helmet) return face + heroHair(cls, L) + heroHelmet(helmet);
   if (cls === 'warrior') return face + `
     <path d="M42 50 Q41 30 60 30 Q79 30 78 50 L74 44 L70 47 L66 41 L60 45 L54 41 L50 47 L46 44 Z" fill="${L.hair}"/>
     <rect x="43" y="41" width="34" height="5" rx="2" fill="#c9302c"/>
@@ -53,6 +54,99 @@ function heroHead(cls, L) {
     <path d="M44 46 Q46 34 60 34 Q74 34 76 46 Q70 40 60 41 Q50 40 44 46 Z" fill="${L.hair}"/>
     <path d="M40 52 Q38 26 60 26 Q82 26 80 52 Q78 40 60 38 Q42 40 40 52 Z" fill="#2f5e2c"/>
     <path d="M60 26 Q70 20 76 24 Q70 26 68 30 Z" fill="#2f5e2c"/>`;
+}
+
+/* ผมอย่างเดียว (ใช้ตอนสวมหมวก) */
+function heroHair(cls, L) {
+  if (cls === 'warrior') return `<path d="M43 52 Q42 40 48 36 L46 46 Z M77 52 Q78 40 72 36 L74 46 Z" fill="${L.hair}"/>`;
+  if (cls === 'mage') return `<path d="M43 52 Q42 64 46 68 L48 48 Z M77 52 Q78 64 74 68 L72 48 Z" fill="${L.hair}"/>`;
+  return `<path d="M43 51 L35 44 L44 56 Z M77 51 L85 44 L76 56 Z" fill="${L.skin}"/>
+    <path d="M43 52 Q42 62 46 66 L47 46 Z M77 52 Q78 62 74 66 L73 46 Z" fill="${L.hair}"/>`;
+}
+
+/* ---------- หมวก ---------- */
+function heroHelmet(it) {
+  const k = gearKind(it);
+  const t = RARITY_COLOR[it.rarity];
+  if (k === 'helm') return `<g ${glow(it)}>
+    <path d="M40 52 Q38 24 60 24 Q82 24 80 52 L75 52 Q74 38 60 38 Q46 38 45 52 Z" fill="url(#steel)" stroke="${t}" stroke-width="1.4"/>
+    <path d="M42 44 Q60 36 78 44" stroke="#8d97ad" stroke-width="2" fill="none"/>
+    <rect x="58" y="38" width="4" height="16" rx="1.5" fill="url(#steel)" stroke="#8d97ad" stroke-width=".6"/>
+    <path d="M60 24 Q56 12 64 6 Q62 16 68 20 Q64 22 60 24 Z" fill="${t}"/></g>`;
+  if (k === 'circlet') return `<g ${glow(it)}>
+    <path d="M41 46 Q42 32 60 31 Q78 32 79 46 Q70 38 60 38 Q50 38 41 46 Z" fill="#4a3220" opacity=".55"/>
+    <path d="M42 43 Q60 35 78 43" stroke="url(#gold)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M60 33 l4 5 -4 5 -4 -5z" fill="${t}" stroke="#fff" stroke-width=".8"/></g>`;
+  if (k === 'chada') return `<g ${glow(it)}> <!-- ชฎา -->
+    <path d="M41 46 Q42 34 60 33 Q78 34 79 46 Q70 39 60 39 Q50 39 41 46 Z" fill="url(#gold)" stroke="#a87a10" stroke-width=".8"/>
+    <path d="M45 36 L75 36 L70 28 L50 28 Z" fill="url(#gold)" stroke="#a87a10" stroke-width=".8"/>
+    <path d="M50 28 L70 28 L66 20 L54 20 Z" fill="url(#gold)" stroke="#a87a10" stroke-width=".8"/>
+    <path d="M54 20 L66 20 L63 12 L57 12 Z" fill="url(#gold)" stroke="#a87a10" stroke-width=".8"/>
+    <path d="M57 12 L63 12 L60 -2 Z" fill="url(#gold)" stroke="#a87a10" stroke-width=".8"/>
+    <circle cx="60" cy="31" r="2.2" fill="${t}"/><circle cx="52" cy="40" r="1.6" fill="${t}"/><circle cx="68" cy="40" r="1.6" fill="${t}"/>
+    <path d="M41 46 Q36 50 38 56 M79 46 Q84 50 82 56" stroke="url(#gold)" stroke-width="2.5" fill="none"/></g>`;
+  return '';
+}
+
+/* ---------- รองเท้า ---------- */
+function heroBoots(it, L) {
+  const k = gearKind(it);
+  if (!k) return `<rect x="45" y="146" width="14" height="10" rx="4" fill="${L.boots}"/>
+    <rect x="61" y="146" width="14" height="10" rx="4" fill="${L.boots}"/>`;
+  const t = RARITY_COLOR[it.rarity];
+  if (k === 'greaves') return `<g ${glow(it)}>
+    ${[46, 62].map((x) => `<path d="M${x} 128 L${x + 12} 128 L${x + 12} 148 L${x + 14} 150 L${x + 14} 157 L${x - 2} 157 L${x - 2} 150 L${x} 148 Z" fill="url(#steel)" stroke="${t}" stroke-width="1.2"/>
+    <ellipse cx="${x + 6}" cy="130" rx="7.5" ry="4" fill="url(#steel)" stroke="${t}" stroke-width="1"/>`).join('')}</g>`;
+  return `<g ${glow(it)}>
+    ${[46, 62].map((x) => `<path d="M${x} 132 L${x + 12} 132 L${x + 12} 149 L${x + 15} 151 L${x + 15} 157 L${x - 2} 157 L${x - 2} 150 L${x} 149 Z" fill="#7a4d2b" stroke="${t}" stroke-width="1.2"/>
+    <rect x="${x - 1}" y="130" width="14" height="5" rx="2" fill="#a8743f" stroke="${t}" stroke-width=".8"/>`).join('')}</g>`;
+}
+
+/* ---------- ผ้าคลุม (ด้านหลัง) ---------- */
+const CAPE_COLOR = { common: '#7a3030', rare: '#2b4a8a', epic: '#5a2b8a', legend: '#a8641a', mythic: '#147a6c', divine: '#e8d27a', unique: '#8a1a3a' };
+function heroCape(it) {
+  const k = gearKind(it);
+  if (!k) return '';
+  if (k === 'u:sky') return heroBack(it);
+  const t = RARITY_COLOR[it.rarity];
+  return `<g ${glow(it)}>
+    <path d="M44 70 Q60 64 76 70 L90 146 Q82 152 74 146 Q67 152 60 146 Q53 152 46 146 Q38 152 30 146 Z" fill="${CAPE_COLOR[it.rarity]}" stroke="${t}" stroke-width="1.4"/>
+    <path d="M44 70 L40 146 M76 70 L80 146" stroke="#000" stroke-opacity=".18" stroke-width="3"/></g>`;
+}
+function heroCapeCollar(it) {
+  const k = gearKind(it);
+  if (!k || k === 'u:sky') return '';
+  return `<path d="M44 70 Q60 78 76 70 L74 66 Q60 72 46 66 Z" fill="${CAPE_COLOR[it.rarity]}" stroke="${RARITY_COLOR[it.rarity]}" stroke-width="1"/>
+    <circle cx="60" cy="73" r="2.6" fill="url(#gold)"/>`;
+}
+
+/* ---------- มือรอง: โล่ / ลูกแก้ว / มีดสั้น / อาวุธมือเดียว ---------- */
+function heroOffhandBack(it) { // วาดก่อนมือ
+  const k = gearKind(it);
+  if (!k || k === 'shield' || k === 'orb') return '';
+  if (k === 'dagger') {
+    const t = RARITY_COLOR[it.rarity];
+    return `<g transform="translate(35 108) rotate(-30)" ${glow(it)}>
+      <path d="M-2.5 -8 L-2.5 -32 L0 -38 L2.5 -32 L2.5 -8 Z" fill="url(#blade)" stroke="#6f7a92" stroke-width=".7"/>
+      <rect x="-7" y="-9" width="14" height="3" rx="1.5" fill="${t}"/><rect x="-1.8" y="-6" width="3.6" height="9" fill="#5a3520"/>
+      ${sparkles(it, [[-6, -30], [5, -18]])}</g>`;
+  }
+  return heroWeapon(it, true);
+}
+function heroOffhandFront(it) { // วาดหลังมือ
+  const k = gearKind(it);
+  if (!k) return '';
+  const t = RARITY_COLOR[it.rarity];
+  if (k === 'shield') return `<g ${glow(it)}>
+    <path d="M18 88 Q31 82 44 88 L43 104 Q40 118 31 124 Q22 118 19 104 Z" fill="url(#steel)" stroke="${t}" stroke-width="2"/>
+    <path d="M23 92 Q31 88 39 92 L38 104 Q36 113 31 117 Q26 113 24 104 Z" fill="${CAPE_COLOR[it.rarity] || '#7a3030'}"/>
+    <path d="M31 95 L31 112 M25 102 L37 102" stroke="url(#gold)" stroke-width="2.4"/>
+    ${sparkles(it, [[20, 90], [42, 110]])}</g>`;
+  if (k === 'orb') return `<g ${glow(it)}>
+    <circle class="orb-float" cx="30" cy="92" r="7" fill="${t}" opacity=".9"/>
+    <circle cx="28" cy="90" r="2.4" fill="#fff" opacity=".85"/>
+    <ellipse cx="30" cy="103" rx="5" ry="1.4" fill="${t}" opacity=".35"/></g>`;
+  return '';
 }
 
 /* ---------- ชุดเกราะ ---------- */
@@ -114,8 +208,6 @@ function heroAccessory(it) {
   if (k === 'amulet') return `<g ${glow(it)}>
     <path d="M51 70 Q60 82 69 70" stroke="#ffcc4d" stroke-width="1.5" fill="none"/>
     <path d="M60 78 l4 5 -4 5 -4 -5z" fill="${t}" stroke="#fff" stroke-width=".8"/></g>`;
-  if (k === 'ring') return `<g ${glow(it)}><circle cx="34" cy="108" r="3" fill="none" stroke="#ffcc4d" stroke-width="2"/>
-    <circle cx="34" cy="105" r="1.8" fill="${t}"/></g>`;
   if (k === 'u:desert') return `<g ${glow(it)}>
     <path d="M51 70 Q60 80 69 70" stroke="#ffcc4d" stroke-width="1.5" fill="none"/>
     <path d="M60 77 L68 91 L52 91 Z" fill="#ffcc4d" stroke="#8a5a14" stroke-width="1"/>
@@ -127,12 +219,21 @@ function heroAccessory(it) {
   return '';
 }
 
+function heroRing(it, x, y) {
+  if (!it) return '';
+  const t = RARITY_COLOR[it.rarity];
+  return `<g ${glow(it)}><circle cx="${x - 1}" cy="${y + 1}" r="2.8" fill="none" stroke="#ffcc4d" stroke-width="1.8"/>
+    <circle cx="${x - 1}" cy="${y - 2}" r="1.7" fill="${t}"/></g>`;
+}
+
 /* ---------- อาวุธ (ถือที่มือขวาของภาพ, จุดจับ 86,106) ---------- */
-function heroWeapon(it) {
+function heroWeapon(it, off) {
   const k = gearKind(it);
   if (!k) return '';
   const t = RARITY_COLOR[it.rarity];
-  const wrap = (inner, rot = 22) => `<g transform="translate(86 106) rotate(${rot})" ${glow(it)}>${inner}</g>`;
+  const wrap = (inner, rot = 22) => off
+    ? `<g transform="translate(35 108) scale(-1 1) rotate(${rot})" ${glow(it)}>${inner}</g>`
+    : `<g transform="translate(86 106) rotate(${rot})" ${glow(it)}>${inner}</g>`;
   if (k === 'sword') return wrap(`
     <path d="M-3 -10 L-3 -58 L0 -64 L3 -58 L3 -10 Z" fill="url(#blade)" stroke="#6f7a92" stroke-width=".8"/>
     <rect x="-10" y="-11" width="20" height="4" rx="2" fill="${t}"/>
@@ -221,12 +322,11 @@ function heroSVG(cls, equip = {}, size = 140) {
       <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".5" stop-color="#ffcc4d"/><stop offset="1" stop-color="#c8901a"/></linearGradient>
     </defs>
     <ellipse cx="60" cy="160" rx="30" ry="5" fill="#000" opacity=".35"/>
-    ${heroBack(equip.accessory)}
+    ${heroCape(equip.cape)}
     <!-- ขา -->
     ${robe ? '' : `<rect x="48" y="108" width="10" height="42" rx="4" fill="${L.pants}"/>
     <rect x="62" y="108" width="10" height="42" rx="4" fill="${L.pants}"/>`}
-    <rect x="45" y="146" width="14" height="10" rx="4" fill="${L.boots}"/>
-    <rect x="61" y="146" width="14" height="10" rx="4" fill="${L.boots}"/>
+    ${heroBoots(equip.boots, L)}
     <!-- แขน -->
     <path d="M45 76 L35 106" stroke="${L.shirt}" stroke-width="9" stroke-linecap="round"/>
     <path d="M75 76 L85 104" stroke="${L.shirt}" stroke-width="9" stroke-linecap="round"/>
@@ -234,12 +334,16 @@ function heroSVG(cls, equip = {}, size = 140) {
     <rect x="43" y="68" width="34" height="44" rx="10" fill="${L.shirt}"/>
     <rect x="43" y="104" width="34" height="5" fill="#3a2a1c"/><rect x="57" y="103.5" width="6" height="6" rx="1" fill="#d8b06a"/>
     ${heroArmor(equip.armor, L)}
-    ${['ring', 'u:sky'].includes(gearKind(equip.accessory)) ? '' : heroAccessory(equip.accessory)}
-    ${heroHead(cls, L)}
+    ${heroCapeCollar(equip.cape)}
+    ${heroAccessory(equip.necklace)}
+    ${heroHead(cls, L, equip.helmet)}
     ${heroWeapon(equip.weapon)}
+    ${heroOffhandBack(equip.offhand)}
     <!-- มือ (วาดทับด้ามอาวุธ) -->
     <circle cx="35" cy="108" r="5" fill="${L.skin}"/>
     <circle cx="86" cy="106" r="5" fill="${L.skin}"/>
-    ${gearKind(equip.accessory) === 'ring' ? heroAccessory(equip.accessory) : ''}
+    ${heroOffhandFront(equip.offhand)}
+    ${heroRing(equip.ring1, 86, 106)}
+    ${heroRing(equip.ring2, 35, 108)}
   </svg>`;
 }

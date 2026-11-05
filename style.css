@@ -214,3 +214,90 @@ h2 { margin: 6px 0; }
 .charm-toggle input { width: 18px; height: 18px; }
 .item.sel { outline: 2px solid var(--accent); }
 .item[data-a="forgesel"] { cursor: pointer; }
+
+/* ช่องสวมใส่ */
+.equip-board { display: grid; grid-template-columns: 64px 1fr 64px; gap: 6px; align-items: center; padding: 10px; }
+.eb-col { display: grid; gap: 6px; }
+.eb-hero { display: flex; justify-content: center; }
+.slot { position: relative; width: 64px; height: 60px; padding: 4px 2px; border-radius: 12px; background: #15111f; border: 1px dashed var(--line);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.slot.has { border-style: solid; background: var(--panel2); border-left-width: 1px; border-width: 2px; }
+.slot.has.b-common { border-color: var(--common); } .slot.has.b-rare { border-color: var(--rare); } .slot.has.b-epic { border-color: var(--epic); }
+.slot.has.b-legend { border-color: var(--legend); } .slot.has.b-mythic { border-color: var(--mythic); } .slot.has.b-divine { border-color: var(--divine); } .slot.has.b-unique { border-color: var(--unique); }
+.slot.on { box-shadow: 0 0 0 2px var(--accent); }
+.slot .si { font-size: 24px; line-height: 1; }
+.slot .ghost-ico { opacity: .25; filter: grayscale(1); }
+.slot .sl { font-size: 10px; color: var(--muted); font-family: 'Sarabun'; white-space: nowrap; }
+.slot .splus { position: absolute; top: 2px; right: 4px; font-size: 11px; color: var(--gold); font-family: 'Kanit'; }
+.forge-slot { border-style: solid; background: #2a2040; }
+.slot-detail { margin-bottom: 12px; }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 6px; scrollbar-width: none; }
+.chip { flex: 0 0 auto; padding: 6px 12px; font-size: 13px; border-radius: 99px; }
+.chip.on { background: #3a2b62; border-color: var(--accent); }
+.btncol { display: flex; flex-direction: column; gap: 6px; }
+.orb-float { animation: orbf 2s ease-in-out infinite; transform-box: fill-box; }
+@keyframes orbf { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+/* ============ ฉากต่อสู้ 2D ============ */
+.stage { position: relative; height: 270px; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #000; isolation: isolate; }
+.stage-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
+.foe-panel { position: absolute; top: 8px; right: 8px; left: 38%; z-index: 3; background: #0d0b16cc; border: 1px solid #ffffff22; border-radius: 12px; padding: 6px 8px; backdrop-filter: blur(4px); }
+.foe-panel .fname { font-family: 'Kanit'; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.foe-panel .bar { height: 8px; margin-top: 4px; }
+.fhptext { font-size: 11px; color: var(--muted); text-align: right; margin-top: 1px; }
+.ftags .tag, .utags .tag { font-size: 10px; padding: 1px 6px; margin: 0 0 0 3px; }
+.unit { position: absolute; bottom: 18px; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+.hero-u { left: 6%; }
+.foe-u { right: 8%; }
+.ushadow { position: absolute; bottom: 2px; left: 50%; width: 70%; height: 10px; transform: translateX(-50%); background: radial-gradient(#000a, transparent 70%); }
+.hero-u .ubody { position: relative; }
+.utags { position: absolute; top: -6px; left: 0; display: flex; }
+.foe-sprite { font-size: 82px; line-height: 1; position: relative; padding-bottom: 8px; animation: foebob 1.8s ease-in-out infinite; filter: drop-shadow(0 4px 6px #0008); }
+.foe-u.boss .foe-sprite { font-size: 116px; filter: drop-shadow(0 0 16px #ff3b5c88); }
+.foe-u.boss .ushadow { width: 90%; height: 14px; }
+@keyframes foebob { 0%,100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-5px) scaleY(1.03); } }
+.foe-u.charging .foe-sprite { animation: foebob 1.8s ease-in-out infinite, chargeglow .7s ease-in-out infinite; }
+.foe-u.enraged .foe-sprite { filter: drop-shadow(0 0 14px #ff2a2a) saturate(1.6) hue-rotate(-12deg); }
+@keyframes chargeglow { 0%,100% { filter: drop-shadow(0 0 4px #ff3b3b); } 50% { filter: drop-shadow(0 0 28px #ff3b3b) brightness(1.4); } }
+.fx { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.fx > * { position: absolute; }
+.dnum { font-family: 'Kanit'; font-weight: 700; font-size: 24px; color: #fff; -webkit-text-stroke: 1px #0008; text-shadow: 0 2px 4px #000; white-space: nowrap; transform: translate(-50%,0); }
+.dnum.crit { color: var(--gold); font-size: 32px; }
+.dnum.hurt { color: #ff6b6b; }
+.dnum.heal { color: #7dff6b; } .dnum.buff { color: #ff8f6b; font-size: 20px; } .dnum.shield { color: #8fd0ff; font-size: 18px; }
+.dnum.poison { color: #b6ff6b; } .dnum.warn { color: #ff8fa1; font-size: 18px; }
+.slash { width: 110px; height: 110px; color: #fff; filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 12px #b884ff); transform: translate(-50%,-50%); }
+.slash.big { width: 150px; height: 150px; color: #ffe9a8; filter: drop-shadow(0 0 8px #ffcc4d) drop-shadow(0 0 16px #ff8a2a); }
+.slash.crit { color: #ffe066; }
+.slash svg { width: 100%; height: 100%; }
+.boom { width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle, #fff 0%, var(--c, #ff8a2a) 35%, transparent 70%); transform: translate(-50%,-50%); }
+.proj { transform: translate(-50%,-50%); }
+.fireball { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0%, #ffd23a 25%, #ff6a00 60%, #ff2a00aa 80%, transparent 82%); box-shadow: 0 0 18px #ff6a00, -14px 0 18px #ff6a0088; }
+.bubble { width: 120px; height: 150px; border-radius: 50%; border: 3px solid #8fd0ffcc; background: radial-gradient(circle at 35% 30%, #ffffff33, #4b8cef22 60%, transparent 70%); box-shadow: 0 0 20px #4b8cef88 inset, 0 0 14px #4b8cef88; transform: translate(-50%,-50%); }
+.ring-fx { width: 90px; height: 26px; border-radius: 50%; border: 3px solid #ff5b3b; box-shadow: 0 0 14px #ff5b3b; transform: translate(-50%,-50%); }
+.spk { font-size: 16px; text-shadow: 0 0 6px currentColor; transform: translate(-50%,0); }
+.coin { font-size: 18px; transform: translate(-50%,-50%); }
+.flash { inset: 0 !important; left: 0; top: 0; width: 100%; height: 100%; mix-blend-mode: screen; }
+#bact { margin-top: 2px; }
+#app .log { max-height: 76px; margin: 8px 0; }
+
+/* ความเคลื่อนไหวของฉากหลัง */
+.amb-drift { animation: drift 18s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: translateX(-12px); } to { transform: translateX(14px); } }
+.amb-sway { animation: sway 3.2s ease-in-out infinite alternate; transform-box: view-box; }
+@keyframes sway { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }
+.amb-twinkle { animation: twinkle 2.2s ease-in-out infinite; }
+@keyframes twinkle { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+.amb-rise { animation: rise 4s linear infinite; }
+@keyframes rise { from { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(-230px); opacity: 0; } }
+.amb-fall { animation: fall 5s linear infinite; }
+@keyframes fall { from { transform: translate(0,0); } to { transform: translate(-18px,250px); } }
+.amb-smoke { animation: smoke 4s ease-in-out infinite alternate; }
+@keyframes smoke { from { transform: translateY(0); opacity: .45; } to { transform: translateY(-8px) translateX(6px); opacity: .7; } }
+.amb-bob { animation: bob 4s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.amb-float { animation: wisp 5s ease-in-out infinite; }
+@keyframes wisp { 0%,100% { transform: translate(0,0); opacity: .4; } 50% { transform: translate(10px,-14px); opacity: .9; } }
+.amb-flicker { animation: flicker .25s ease-in-out infinite alternate; transform-box: view-box; }
+@keyframes flicker { from { transform: scale(1,1); } to { transform: scale(.9,1.12); } }
+@media (prefers-reduced-motion: reduce) { .amb-drift, .amb-sway, .amb-twinkle, .amb-rise, .amb-fall, .amb-smoke, .amb-bob, .amb-float, .amb-flicker, .foe-sprite { animation: none !important; } }
