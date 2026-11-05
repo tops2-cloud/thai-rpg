@@ -1044,7 +1044,7 @@ function renderCreate() {
       <div class="muted" style="margin-bottom:6px">ชื่อผู้กล้า</div>
       <input type="text" id="pname" maxlength="16" placeholder="เช่น ไอ้เข้ม" value="${esc(cs.name)}" />
     </div>
-    <div class="hero-stage">${heroSVG(cs.cls, { weapon: { key: { warrior: 'sword', mage: 'staff', archer: 'bow' }[cs.cls] + ':common', rarity: 'common' } }, 130)}</div>
+    <div class="hero-stage">${cs.cls === 'warrior' ? '<div class="spr knight idle create-spr"></div>' : heroSVG(cs.cls, { weapon: { key: { warrior: 'sword', mage: 'staff', archer: 'bow' }[cs.cls] + ':common', rarity: 'common' } }, 130)}</div>
     <div class="muted">เลือกอาชีพ</div>
     <div class="class-pick">
       ${Object.entries(CLASSES).map(([k, c]) => `
@@ -1213,7 +1213,7 @@ function renderMap() {
 function renderBattleView() {
   if (app.dataset.bid !== String(B.id)) {
     app.innerHTML = `<div id="hudbox"></div>
-      ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroSVG(S.cls, S.equip, 104))}
+      ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroSpriteOn() ? heroSpriteHTML() : heroSVG(S.cls, S.equip, 104))}
       <div class="log" id="blog"></div><div id="bact"></div>`;
     app.dataset.bid = String(B.id);
     stageQueueEnd = 0;
