@@ -296,6 +296,7 @@ function playOne(ev) {
         ev.hits.forEach((h, i) => slashFx(ev.big, h.crit, i * 110));
         if (ev.dual) slashFx(false, false, 110);
         hitNums(ev.hits, 110);
+        if (ev.twin) anim(document.getElementById('hero-body'), [{ transform: 'rotate(0)' }, { transform: 'rotate(-8deg)', offset: .3 }, { transform: 'rotate(10deg)', offset: .7 }, { transform: 'rotate(0)' }], { duration: 260, delay: 60 });
         if (ev.spin) anim(document.getElementById('hero-body'), [{ transform: 'scaleX(1)' }, { transform: 'scaleX(-1)' }, { transform: 'scaleX(1)' }, { transform: 'scaleX(-1)' }, { transform: 'scaleX(1)' }], { duration: 360 });
         if (ev.quake) { boom('#c8a06a'); shake(12); flash('#ffcc4d'); }
         else if (ev.big) shake(5);

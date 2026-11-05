@@ -125,7 +125,7 @@ const DIFFS = {
     desc: 'ผจญภัยครั้งแรก ไอเทมสูงสุดระดับตำนาน' },
   hard: { name: 'ยาก', icon: '🟠', off: 28, mul: { hp: 1.35, atk: 1.4, def: 1.15 }, tierAdd: 10, stars: '★', minR: 1, maxR: 4, bossMinR: 3, reward: 1.3, enrage: 0.3, eCrit: 5,
     desc: 'มอนสเตอร์ +28 เลเวล · บอสคลั่งเมื่อเลือดต่ำ · ดรอประดับเทพนิยาย' },
-  advanced: { name: 'ขั้นสูง', icon: '🔴', off: 56, mul: { hp: 1.95, atk: 1.95, def: 1.35 }, tierAdd: 20, stars: '★★', minR: 2, maxR: 5, bossMinR: 4, reward: 1.6, enrage: 0.5, eCrit: 10,
+  advanced: { name: 'ขั้นสูง', icon: '🔴', off: 56, mul: { hp: 1.75, atk: 1.8, def: 1.3 }, tierAdd: 20, stars: '★★', minR: 2, maxR: 5, bossMinR: 4, reward: 1.6, enrage: 0.5, eCrit: 10,
     desc: 'มอนสเตอร์ +56 เลเวล · บอสคลั่งเร็ว · ดรอประดับเทพเจ้า' },
 };
 const DIFF_ORDER = ['normal', 'hard', 'advanced'];
@@ -171,10 +171,12 @@ const SLOT_NAME = { weapon: 'มือขวา', offhand: 'มือซ้า�
 const SHORT_SLOT = { weapon: 'มือขวา', offhand: 'มือซ้าย', ring1: 'แหวนขวา', ring2: 'แหวนซ้าย' };
 const CAT_NAME = { weapon: 'อาวุธ', offhand: 'มือซ้าย', helmet: 'หมวก', armor: 'ชุดเกราะ', boots: 'รองเท้า', cape: 'ผ้าคลุม', necklace: 'สร้อยคอ', ring: 'แหวน' };
 const SLOT_ICON = { weapon: '⚔️', offhand: '🔰', helmet: '🪖', armor: '🛡️', boots: '👢', cape: '🧣', necklace: '📿', ring1: '💍', ring2: '💍' };
-const OFFHAND_WEAPON_RATE = 0.6; // ก่อน Lv.51: อาวุธที่ถือมือซ้ายได้ค่าพลัง 60%
-const DUAL_LV = 51; // Lv.51 ขึ้นไป (มากกว่า 50): ถืออาวุธอะไรก็ได้ทั้ง 2 มือ พลังเต็ม รวมอาวุธสองมือ
+/* ถืออาวุธ 2 มือ: กดโจมตีจะตี 2 ครั้ง — ครั้งแรกมือขวาเต็มแรง ครั้งที่ 2 มือซ้ายแรง 50%
+   (เช่น ครั้งแรก 100 + ครั้งที่ 2 50 = 150) */
+const OFFHAND_HIT_RATE = 0.5;
+const DUAL_LV = 51; // Lv.51 ขึ้นไป (มากกว่า 50): ใส่อาวุธสองมือที่มือซ้ายได้ด้วย
 const freeDual = () => !!S && S.lv >= DUAL_LV;
-const STAT_NAME = { atk: 'โจมตี', def: 'ป้องกัน', hp: 'HP', mp: 'MP', crit: 'คริ%' };
+const STAT_NAME = { atk: 'โจมตี', atk2: 'ตีครั้งที่ 2', def: 'ป้องกัน', hp: 'HP', mp: 'MP', crit: 'คริ%' };
 
 /* อัตราสำเร็จการตีบวก จาก +N ไป +N+1 (index = ค่าบวกปัจจุบัน) */
 const FORGE_RATE = [1, 1, 1, 0.85, 0.75, 0.65, 0.55, 0.45, 0.38, 0.3, 0.25, 0.2, 0.15, 0.1, 0.06];
@@ -201,7 +203,14 @@ let forgeFx = null;
 let busy = false;
 let battleSeq = 0;
 const ev = (o) => { if (B) B.events.push(o); };
-const dualWield = () => !!S.equip.offhand && S.equip.offhand.slot === 'weapon' || gearKind(S.equip.offhand) === 'dagger';
+const offWeapon = () => (S.equip.offhand && S.equip.offhand.slot === 'weapon' ? S.equip.offhand : null);
+const dualWield = () => !!offWeapon() || gearKind(S.equip.offhand) === 'dagger';
+/* พลังโจมตีของการตีครั้งที่ 2: ค่าพลังตัวละคร โดยเปลี่ยนอาวุธมือขวาเป็นอาวุธมือซ้าย (ดาเมจที่ได้ ×50%) */
+function offhandAtk(st) {
+  const off = offWeapon(); if (!off) return 0;
+  const main = S.equip.weapon;
+  return Math.max(1, (st || stats()).atk - (main ? main.stats.atk || 0 : 0) + (off.stats.atk || 0));
+}
 
 function save() { if (S) try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* ignore */ } }
 function load() {
@@ -434,9 +443,10 @@ const itemNameText = (it) => `${it.plus ? `+${it.plus} ` : ''}${it.name}`;
 
 /* ค่าพลังที่ได้จริงเมื่อใส่ในช่องนั้น (ก่อน Lv.51 อาวุธมือซ้ายได้ 60%) */
 function effStats(it, slot) {
-  if (slot === 'offhand' && it.slot === 'weapon' && !freeDual()) {
-    const o = {};
-    for (const k in it.stats) o[k] = Math.round(it.stats[k] * OFFHAND_WEAPON_RATE);
+  if (slot === 'offhand' && it.slot === 'weapon') {
+    // อาวุธมือซ้าย: พลังโจมตีไปอยู่ที่การตีครั้งที่ 2 (50%), ค่าอื่นได้ครึ่งหนึ่ง
+    const o = { atk2: Math.round((it.stats.atk || 0) * OFFHAND_HIT_RATE) };
+    for (const k in it.stats) if (k !== 'atk') o[k] = Math.round(it.stats[k] * OFFHAND_HIT_RATE);
     return o;
   }
   return it.stats;
@@ -448,7 +458,7 @@ function equipTargets(it) {
   if (it.slot === 'ring') return ['ring1', 'ring2'];
   return [it.slot];
 }
-const itemScore = (st) => (st.atk || 0) * 3 + (st.def || 0) * 3 + (st.hp || 0) * 0.4 + (st.crit || 0) * 3 + (st.mp || 0) * 0.3;
+const itemScore = (st) => (st.atk || 0) * 3 + (st.atk2 || 0) * 3 + (st.def || 0) * 3 + (st.hp || 0) * 0.4 + (st.crit || 0) * 3 + (st.mp || 0) * 0.3;
 function defaultTarget(it) {
   if (it.slot === 'ring') {
     if (!S.equip.ring1) return 'ring1';
@@ -565,6 +575,7 @@ function calcDmg(atk, def, mult, opt = {}) {
   d = Math.max(d, base * 0.15);
   const crit = Math.random() * 100 < (opt.crit || 0);
   if (crit) d *= 1.6;
+  if (opt.post) d *= opt.post;
   return { dmg: Math.max(1, Math.round(d)), crit };
 }
 
@@ -572,9 +583,9 @@ function log(msg) { B.log.unshift(msg); if (B.log.length > 30) B.log.pop(); }
 
 function hitEnemy(mult, opt = {}) {
   const st = stats();
-  const atk = st.atk * (B.atkUp > 0 ? 1.5 : 1) * (B.berserk > 0 ? 2 : 1) * (B.focus > 0 ? 1.3 : 1);
+  const atk = (opt.atk != null ? opt.atk : st.atk) * (B.atkUp > 0 ? 1.5 : 1) * (B.berserk > 0 ? 2 : 1) * (B.focus > 0 ? 1.3 : 1);
   const crit = Math.min(95, st.crit + (opt.bonusCrit || 0) + (B.focus > 0 ? 40 : 0));
-  const r = calcDmg(atk, B.e.def, mult, { crit, ignoreDef: opt.ignoreDef, pierce: opt.pierce });
+  const r = calcDmg(atk, B.e.def, mult, { crit, ignoreDef: opt.ignoreDef, pierce: opt.pierce, post: opt.post });
   B.e.hp = Math.max(0, B.e.hp - r.dmg);
   return r;
 }
@@ -588,8 +599,14 @@ function playerAct(act, arg) {
 
   if (act === 'attack') {
     const r = hitEnemy(1);
-    log(`คุณโจมตี ${e.n} ${r.crit ? '💥คริติคอล! ' : ''}${fmt(r.dmg)} ดาเมจ`);
-    ev({ a: 'melee', hits: [r], dual: dualWield() });
+    if (offWeapon() && e.hp > 0) {
+      const r2 = hitEnemy(1, { atk: offhandAtk(st), post: OFFHAND_HIT_RATE });
+      log(`คุณโจมตี 2 ครั้ง! ${fmt(r.dmg)}${r.crit ? '💥' : ''} + ${fmt(r2.dmg)}${r2.crit ? '💥' : ''} = ${fmt(r.dmg + r2.dmg)} ดาเมจ`);
+      ev({ a: 'melee', hits: [r, r2], twin: true });
+    } else {
+      log(`คุณโจมตี ${e.n} ${r.crit ? '💥คริติคอล! ' : ''}${fmt(r.dmg)} ดาเมจ`);
+      ev({ a: 'melee', hits: [r], dual: dualWield() });
+    }
   } else if (act === 'skill') {
     const sk = SKILLS[arg];
     if (!sk || sk.cls !== S.cls || S.mp < sk.mp || S.lv < sk.lv || !S.loadout.includes(arg)) return;
@@ -967,7 +984,7 @@ function renderTown() {
     <div class="row" style="align-items:flex-start">
     <div class="hero-stage small" data-a="go" data-v="bag">${heroSVG(S.cls, S.equip, 110)}</div>
     <div class="grid1 muted" style="flex:1">
-      <div>⚔️ โจมตี: <b>${fmt(st.atk)}</b></div><div>🛡️ ป้องกัน: <b>${fmt(st.def)}</b></div>
+      <div>⚔️ โจมตี: <b>${fmt(st.atk)}</b>${offWeapon() ? ` <span style="font-size:12px">+ ${fmt(offhandAtk(st) * OFFHAND_HIT_RATE)}</span>` : ''}</div><div>🛡️ ป้องกัน: <b>${fmt(st.def)}</b></div>
       <div>❤️ HP สูงสุด: <b>${fmt(st.hp)}</b></div><div>🎯 คริติคอล: <b>${st.crit}%</b></div>
       <div>🏆 ชนะทั้งหมด: <b>${fmt(S.wins)}</b></div><div>👑 บอสที่ล้ม: <b>${bossesBeaten()}/${ZONES.length}</b></div>
     </div></div>
@@ -1198,7 +1215,7 @@ function battleResult() {
     <h3 style="margin-top:0">🏆 ชัยชนะ!</h3>
     <div>✨ +${fmt(r.exp)} EXP &nbsp; <span class="gold">💰 +${fmt(r.gold)}</span></div>
     ${r.levels ? `<div class="up" style="font-family:Kanit;font-size:18px;margin-top:6px">⬆️ เลเวลอัพ! ตอนนี้ Lv.${S.lv} (ฟื้นฟูเต็ม)</div>` : ''}
-    ${r.dualUnlock ? `<div class="new-skill">⚔️⚔️ Lv.${DUAL_LV}! ปลดล็อกถืออาวุธอะไรก็ได้ทั้ง 2 มือ พลังเต็ม <button class="small" data-a="go" data-v="bag">ไปจัดอุปกรณ์</button></div>` : ''}
+    ${r.dualUnlock ? `<div class="new-skill">⚔️⚔️ Lv.${DUAL_LV}! ปลดล็อกใส่อาวุธสองมือได้ทั้ง 2 มือ <button class="small" data-a="go" data-v="bag">ไปจัดอุปกรณ์</button></div>` : ''}
     ${r.newSkills && r.newSkills.length ? `<div class="new-skill">📜 ปลดล็อกสกิลใหม่: ${r.newSkills.map((sk) => `<b>${sk.icon} ${sk.name}</b>`).join(', ')}
       <button class="small" data-a="go" data-v="skills">จัดสกิล</button></div>` : ''}
     ${r.pots.length ? `<div style="margin-top:6px">ได้ ${r.pots.map((k) => `${POTIONS[k].i} ${POTIONS[k].n}`).join(', ')}</div>` : ''}
@@ -1238,17 +1255,18 @@ function renderEquipBoard() {
     <div class="eb-col">${right.map(slotCell).join('')}</div>
   </div>
   <div class="dual-note ${freeDual() ? 'on' : ''}">${freeDual()
-    ? '⚔️⚔️ ปลดล็อกแล้ว: ถืออาวุธอะไรก็ได้ทั้ง 2 มือ พลังเต็ม (รวมอาวุธสองมือ)'
-    : `🔒 Lv.${DUAL_LV} ขึ้นไป: ถืออาวุธอะไรก็ได้ทั้ง 2 มือ พลังเต็ม (ตอนนี้ Lv.${S.lv}) · ตอนนี้อาวุธมือซ้ายได้ 60% และอาวุธสองมือใช้มือซ้ายไม่ได้`}</div>`;
+    ? '⚔️⚔️ ปลดล็อกแล้ว: ถืออาวุธอะไรก็ได้ทั้ง 2 มือ รวมอาวุธสองมือ'
+    : `🔒 Lv.${DUAL_LV} ขึ้นไป: ใส่อาวุธสองมือที่มือซ้ายได้ (ตอนนี้ Lv.${S.lv}) · ตอนนี้มือซ้ายถืออาวุธมือเดียวได้`}
+    <br>ถืออาวุธ 2 มือ = กดโจมตีแล้วตี 2 ครั้ง: มือขวาเต็มแรง + มือซ้ายแรง 50%${offWeapon() ? ` · ตอนนี้ <b>${fmt(stats().atk)} + ${fmt(offhandAtk() * OFFHAND_HIT_RATE)}</b>` : ''}</div>`;
   if (slotSel) {
     const it = S.equip[slotSel];
     html += it ? `<div class="item b-${it.rarity} slot-detail"><span class="ico">${it.icon}</span>
         <div class="info"><div class="nm r-${it.rarity}">${itemName(it)}</div>
           <div class="st">${SLOT_NAME[slotSel]} · ${rarityName(it.rarity)}${isTwoHand(it) ? ' · อาวุธสองมือ' : ''}</div>
-          <div class="st">${statText(effStats(it, slotSel))}${slotSel === 'offhand' && it.slot === 'weapon' && !freeDual() ? ' (มือซ้ายได้ 60%)' : ''}</div></div>
+          <div class="st">${statText(effStats(it, slotSel))}${slotSel === 'offhand' && it.slot === 'weapon' ? ' (ตีครั้งที่ 2 แรง 50%)' : ''}</div></div>
         <button class="small" data-a="unequip" data-v="${slotSel}">ถอด</button></div>`
       : `<div class="item slot-detail"><span class="ico" style="opacity:.4">${SLOT_ICON[slotSel]}</span><div class="info"><div class="nm muted">${SLOT_NAME[slotSel]}: ว่าง</div>
-          <div class="st">${slotSel === 'offhand' ? (freeDual() ? 'ใส่อาวุธอะไรก็ได้ (พลังเต็ม) หรือโล่ ลูกแก้ว มีดสั้น' : isTwoHand(S.equip.weapon) ? 'ถืออาวุธสองมืออยู่ — ใส่ของมือซ้ายจะถอดอาวุธมือขวาออก' : 'ใส่โล่ ลูกแก้ว มีดสั้น หรืออาวุธมือเดียว (ได้ 60%)') : 'เลือกไอเทมจากกระเป๋าด้านล่าง'}</div></div></div>`;
+          <div class="st">${slotSel === 'offhand' ? (freeDual() ? 'ใส่อาวุธอะไรก็ได้ (ตีครั้งที่ 2 แรง 50%) หรือโล่ ลูกแก้ว มีดสั้น' : isTwoHand(S.equip.weapon) ? 'ถืออาวุธสองมืออยู่ — ใส่ของมือซ้ายจะถอดอาวุธมือขวาออก' : 'ใส่โล่ ลูกแก้ว มีดสั้น หรืออาวุธมือเดียว (ตีครั้งที่ 2 แรง 50%)') : 'เลือกไอเทมจากกระเป๋าด้านล่าง'}</div></div></div>`;
   }
   return html;
 }
