@@ -475,8 +475,9 @@ function displaced(it, target) {
   const out = [];
   if (S.equip[target]) out.push([S.equip[target], target]);
   if (freeDual()) return out;
-  if (target === 'weapon' && isTwoHand(it) && S.equip.offhand) out.push([S.equip.offhand, 'offhand']);
-  if (target === 'offhand' && isTwoHand(S.equip.weapon)) out.push([S.equip.weapon, 'weapon']);
+  // ก่อน Lv.51: อาวุธสองมือถือคู่กับ "อาวุธ" อีกเล่มไม่ได้ (แต่โล่/ลูกแก้ว/มีดสั้นใส่คู่ได้เสมอ)
+  if (target === 'weapon' && isTwoHand(it) && S.equip.offhand && S.equip.offhand.slot === 'weapon') out.push([S.equip.offhand, 'offhand']);
+  if (target === 'offhand' && it.slot === 'weapon' && isTwoHand(S.equip.weapon)) out.push([S.equip.weapon, 'weapon']);
   return out;
 }
 
@@ -1262,7 +1263,7 @@ let slotSel = null;
 
 function slotCell(slot) {
   const it = S.equip[slot];
-  const blocked = slot === 'offhand' && isTwoHand(S.equip.weapon) && !freeDual();
+  const blocked = false;
   return `<button class="slot ${it ? `b-${it.rarity} has` : ''} ${slotSel === slot ? 'on' : ''}" data-a="slotsel" data-v="${slot}">
     <span class="si">${it ? it.icon : blocked ? '✋' : `<span class="ghost-ico">${SLOT_ICON[slot]}</span>`}</span>
     ${it && it.plus ? `<b class="splus">+${it.plus}</b>` : ''}
@@ -1283,7 +1284,7 @@ function renderEquipBoard() {
   </div>
   <div class="dual-note ${freeDual() ? 'on' : ''}">${freeDual()
     ? '⚔️⚔️ ปลดล็อกแล้ว: ถืออาวุธอะไรก็ได้ทั้ง 2 มือ รวมอาวุธสองมือ'
-    : `🔒 Lv.${DUAL_LV} ขึ้นไป: ใส่อาวุธสองมือที่มือซ้ายได้ (ตอนนี้ Lv.${S.lv}) · ตอนนี้มือซ้ายถืออาวุธมือเดียวได้`}
+    : `🔒 Lv.${DUAL_LV} ขึ้นไป: ถืออาวุธสองมือคู่กับอาวุธอีกเล่มได้ (ตอนนี้ Lv.${S.lv}) · โล่ ลูกแก้ว มีดสั้น ใส่คู่กับอาวุธอะไรก็ได้`}
     <br>ถืออาวุธ 2 มือ = กดโจมตีแล้วตี 2 ครั้ง: มือขวาเต็มแรง + มือซ้ายแรง 50%${offWeapon() ? ` · ตอนนี้ <b>${fmt(stats().atk)} + ${fmt(offhandAtk() * OFFHAND_HIT_RATE)}</b>` : ''}</div>`;
   if (slotSel) {
     const it = S.equip[slotSel];
@@ -1293,7 +1294,7 @@ function renderEquipBoard() {
           <div class="st">${statText(effStats(it, slotSel))}${slotSel === 'offhand' && it.slot === 'weapon' ? ' (ตีครั้งที่ 2 แรง 50%)' : ''}</div></div>
         <button class="small" data-a="unequip" data-v="${slotSel}">ถอด</button></div>`
       : `<div class="item slot-detail"><span class="ico" style="opacity:.4">${SLOT_ICON[slotSel]}</span><div class="info"><div class="nm muted">${SLOT_NAME[slotSel]}: ว่าง</div>
-          <div class="st">${slotSel === 'offhand' ? (freeDual() ? 'ใส่อาวุธอะไรก็ได้ (ตีครั้งที่ 2 แรง 50%) หรือโล่ ลูกแก้ว มีดสั้น' : isTwoHand(S.equip.weapon) ? 'ถืออาวุธสองมืออยู่ — ใส่ของมือซ้ายจะถอดอาวุธมือขวาออก' : 'ใส่โล่ ลูกแก้ว มีดสั้น หรืออาวุธมือเดียว (ตีครั้งที่ 2 แรง 50%)') : 'เลือกไอเทมจากกระเป๋าด้านล่าง'}</div></div></div>`;
+          <div class="st">${slotSel === 'offhand' ? (freeDual() ? 'ใส่อาวุธอะไรก็ได้ (ตีครั้งที่ 2 แรง 50%) หรือโล่ ลูกแก้ว มีดสั้น' : isTwoHand(S.equip.weapon) ? `ใส่โล่ ลูกแก้ว มีดสั้นได้ (ถืออาวุธสองมืออยู่ — อาวุธอีกเล่มต้อง Lv.${DUAL_LV})` : 'ใส่โล่ ลูกแก้ว มีดสั้น หรืออาวุธมือเดียว (ตีครั้งที่ 2 แรง 50%)') : 'เลือกไอเทมจากกระเป๋าด้านล่าง'}</div></div></div>`;
   }
   return html;
 }
