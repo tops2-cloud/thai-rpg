@@ -341,3 +341,43 @@ h2 { margin: 6px 0; }
 .eb-bottom { display: flex; gap: 8px; }
 .dual-note { font-size: 13px; color: var(--muted); background: #15111f; border: 1px dashed var(--line); border-radius: 10px; padding: 6px 10px; margin: -4px 0 12px; }
 .dual-note.on { color: var(--gold); border-style: solid; border-color: #ffcc4d66; }
+
+/* ภาพมอนสเตอร์ */
+.foe-sprite { font-size: 0; }
+.foe-sprite .mon-svg { display: block; }
+.mflame { animation: mflame .5s ease-in-out infinite alternate; transform-origin: 60px 112px; transform-box: view-box; }
+@keyframes mflame { from { transform: scale(1, 1); } to { transform: scale(.95, 1.06); } }
+.mfloat { animation: mfloat 2.4s ease-in-out infinite; }
+@keyframes mfloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.mspin-slow { animation: mspin 3s linear infinite; transform-origin: 60px 60px; transform-box: view-box; }
+@keyframes mspin { to { transform: rotate(360deg); } }
+.mbreath { animation: twinkle .6s ease-in-out infinite; }
+.coll .cell .mon-svg { margin-bottom: 1px; }
+
+/* สัตว์เลี้ยง */
+.pet-u { left: 1%; bottom: 14px; z-index: 3; }
+.pet-u .ushadow { width: 60%; }
+.pet-body { animation: foebob 1.4s ease-in-out infinite; }
+.pet-lv { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font-size: 10px; background: #0d0b16cc; border-radius: 99px; padding: 0 5px; white-space: nowrap; }
+.dnum.pet { color: #ffd9a8; font-size: 18px; }
+.pet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pet-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.pet-card.on { border-color: var(--gold); box-shadow: 0 0 0 2px #ffcc4d44; }
+.pet-card.locked .pet-art { filter: brightness(0) opacity(.35); }
+.pet-card .pet-art { height: 66px; display: flex; align-items: flex-end; }
+.pet-new { justify-content: flex-start; }
+/* ภารกิจ */
+.quest .bar { margin: 4px 0 2px; }
+.quest.ready { border-color: var(--gold); }
+.quest.claimed { opacity: .55; }
+.badge { display: inline-block; min-width: 18px; padding: 0 5px; border-radius: 99px; background: #e83b5a; color: #fff; font-size: 11px; vertical-align: top; }
+/* เซฟ */
+textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-radius: 10px; border: 1px solid var(--line); background: #0d0b16; color: var(--muted); font: 11px/1.3 monospace; resize: vertical; word-break: break-all; }
+.filebtn { display: flex; align-items: center; justify-content: center; padding: 12px 14px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line); font-family: 'Kanit'; cursor: pointer; }
+.install-btn { width: 100%; margin-top: 10px; background: linear-gradient(180deg,#2fa86a,#1f7a4a); border-color: #4bd18a; }
+/* แถบออโต้ */
+.btool { display: flex; gap: 6px; margin-bottom: 8px; }
+.btool button { flex: 1; padding: 7px 4px; font-size: 13px; }
+.btool .auto-on { background: linear-gradient(180deg,#2fa86a,#1f7a4a); border-color: #4bd18a; animation: autopulse 1.6s ease-in-out infinite; }
+.btool .on { border-color: var(--accent); }
+@keyframes autopulse { 0%,100% { box-shadow: 0 0 0 0 #4bd18a66; } 50% { box-shadow: 0 0 0 4px #4bd18a22; } }

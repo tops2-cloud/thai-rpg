@@ -123,9 +123,9 @@ const FINAL_ZONE = ZONES.length - 1;
 const DIFFS = {
   normal: { name: 'ปกติ', icon: '🟢', off: 0, mul: { hp: 1, atk: 1, def: 1 }, tierAdd: 0, stars: '', minR: 0, maxR: 3, bossMinR: 2, reward: 1, enrage: 0, eCrit: 0,
     desc: 'ผจญภัยครั้งแรก ไอเทมสูงสุดระดับตำนาน' },
-  hard: { name: 'ยาก', icon: '🟠', off: 28, mul: { hp: 1.35, atk: 1.4, def: 1.15 }, tierAdd: 10, stars: '★', minR: 1, maxR: 4, bossMinR: 3, reward: 1.3, enrage: 0.3, eCrit: 5,
+  hard: { name: 'ยาก', icon: '🟠', off: 28, mul: { hp: 1.45, atk: 1.55, def: 1.15 }, tierAdd: 10, stars: '★', minR: 1, maxR: 4, bossMinR: 3, reward: 1.3, enrage: 0.3, eCrit: 5,
     desc: 'มอนสเตอร์ +28 เลเวล · บอสคลั่งเมื่อเลือดต่ำ · ดรอประดับเทพนิยาย' },
-  advanced: { name: 'ขั้นสูง', icon: '🔴', off: 56, mul: { hp: 1.75, atk: 1.8, def: 1.3 }, tierAdd: 20, stars: '★★', minR: 2, maxR: 5, bossMinR: 4, reward: 1.6, enrage: 0.5, eCrit: 10,
+  advanced: { name: 'ขั้นสูง', icon: '🔴', off: 56, mul: { hp: 1.95, atk: 2.0, def: 1.3 }, tierAdd: 20, stars: '★★', minR: 2, maxR: 5, bossMinR: 4, reward: 1.6, enrage: 0.5, eCrit: 10,
     desc: 'มอนสเตอร์ +56 เลเวล · บอสคลั่งเร็ว · ดรอประดับเทพเจ้า' },
 };
 const DIFF_ORDER = ['normal', 'hard', 'advanced'];
@@ -212,7 +212,7 @@ function offhandAtk(st) {
   return Math.max(1, (st || stats()).atk - (main ? main.stats.atk || 0 : 0) + (off.stats.atk || 0));
 }
 
-function save() { if (S) try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* ignore */ } }
+function save() { if (S) try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); autoBackup(); } catch (e) { /* ignore */ } }
 function load() {
   try { const raw = localStorage.getItem(SAVE_KEY); if (raw) return migrate(JSON.parse(raw)); } catch (e) { /* ignore */ }
   return null;
@@ -259,6 +259,7 @@ function migrate(s) {
   for (const k of Object.keys(POTIONS)) if (s.pots[k] == null) s.pots[k] = 0;
   if (s.charms == null) s.charms = 0;
   if (!Array.isArray(s.loadout)) s.loadout = defaultLoadout(s.cls, s.lv);
+  migrateExtras(s);
   return s;
 }
 
@@ -278,6 +279,7 @@ function newGame(name, cls) {
     collection: {}, bestiary: {},
     uid: 1, wins: 0, loadout: defaultLoadout(cls, 1),
   };
+  migrateExtras(S);
   const starter = { warrior: ['sword', 'ดาบฝึกหัด', '🗡️'], mage: ['staff', 'คทาฝึกหัด', '🪄'], archer: ['bow', 'ธนูฝึกหัด', '🏹'] }[cls];
   S.equip.weapon = finalizeItem({ slot: 'weapon', key: `${starter[0]}:common`, name: starter[1], icon: starter[2], rarity: 'common', tier: 1, stats: { atk: 3 } });
   S.collection[S.equip.weapon.key] = true;
@@ -522,11 +524,13 @@ function forge(it) {
   if (!it || it.plus >= MAX_PLUS) return;
   const cost = forgeCost(it);
   if (S.gold < cost) { toast('ทองไม่พอ'); return; }
+  track('forges');
   const useCharm = forgeUseCharm && S.charms > 0 && it.plus > FORGE_SAFE;
   S.gold -= cost;
   if (Math.random() < FORGE_RATE[it.plus]) {
     it.plus++;
     forgeFx = { ok: true, text: `✨ สำเร็จ! ${it.name} เป็น +${it.plus}` };
+    if (it.plus > (S.track.forgeBest || 0)) S.track.forgeBest = it.plus;
   } else if (it.plus > FORGE_SAFE) {
     if (useCharm) { S.charms--; forgeFx = { ok: false, text: `🧿 ล้มเหลว แต่ยันต์คุ้มครองไว้ ยังเป็น +${it.plus}` }; }
     else { it.plus--; forgeFx = { ok: false, text: `💥 ล้มเหลว! ลดเหลือ +${it.plus}` }; }
@@ -587,6 +591,7 @@ function hitEnemy(mult, opt = {}) {
   const crit = Math.min(95, st.crit + (opt.bonusCrit || 0) + (B.focus > 0 ? 40 : 0));
   const r = calcDmg(atk, B.e.def, mult, { crit, ignoreDef: opt.ignoreDef, pierce: opt.pierce, post: opt.post });
   B.e.hp = Math.max(0, B.e.hp - r.dmg);
+  if (r.crit) track('crits');
   return r;
 }
 
@@ -612,6 +617,7 @@ function playerAct(act, arg) {
     if (!sk || sk.cls !== S.cls || S.mp < sk.mp || S.lv < sk.lv || !S.loadout.includes(arg)) return;
     S.mp -= sk.mp;
     useSkill(arg, sk, st, e);
+    track('skills');
   } else if (act === 'defend') {
     B.defending = true;
     const gain = Math.round(st.mp * 0.08);
@@ -635,11 +641,13 @@ function playerAct(act, arg) {
     ev({ a: 'num', t: 'hero', text: 'หนีไม่พ้น!', cls: 'warn' });
   }
 
+  if (e.hp > 0) petAct(st);
   for (const k of ['atkUp', 'berserk', 'focus', 'ironwall', 'manaShield']) if (B[k] > 0) B[k]--;
   if (e.hp <= 0) return victory();
   busy = true;
   render();
-  setTimeout(enemyTurn, typeof stageQueueEnd === 'number' ? Math.max(650, stageQueueEnd - Date.now() + 120) : 650);
+  const sp = gameSpeed();
+  setTimeout(enemyTurn, typeof stageQueueEnd === 'number' ? Math.max(650 / sp, stageQueueEnd - Date.now() + 120 / sp) : 650);
 }
 
 /* ผลของสกิลแต่ละแบบ (ค่า 4 เทิร์น = ลดลงทันทีตอนจบเทิร์นนี้ เหลือ 3) */
@@ -748,15 +756,17 @@ function enemyTurn() {
   const myDef = st.def * (B.ironwall > 0 ? 1.6 : 1) * (B.berserk > 0 ? 0.7 : 1);
   const eAtk = e.atk * (B.slow > 0 ? 0.7 : 1);
   if (B.slow > 0) B.slow--;
-  if (B.evade) {
+  const petDodged = !B.evade && Math.random() < petDodge();
+  if (B.evade || petDodged) {
     B.evade = false; B.defending = false;
-    log(`${text} แต่คุณหลบได้! 💨`);
+    log(`${text} แต่คุณหลบได้! 💨${petDodged ? ' (ผีน้อยช่วย)' : ''}`);
     ev({ a: 'foeAtk', dmg: 0, miss: true, charged: mult > 2 });
     save(); render(); return;
   }
   let { dmg, crit } = calcDmg(eAtk, myDef, mult, { crit: d.eCrit });
   if (B.defending) dmg = Math.max(1, Math.round(dmg * 0.35));
   if (B.manaShield > 0) dmg = Math.max(1, Math.round(dmg * 0.5));
+  if (petGuard()) dmg = Math.max(1, Math.round(dmg * (1 - petGuard())));
   S.hp = Math.max(0, S.hp - dmg);
   ev({ a: 'foeAtk', dmg, crit, big: mult > 1.3 && mult < 2, charged: mult > 2, defended: B.defending || B.manaShield > 0 });
   log(`${text}${crit ? ' (คริติคอล!)' : ''} คุณเสีย ${fmt(dmg)} HP${B.defending ? ' (ป้องกันไว้)' : ''}`);
@@ -797,6 +807,7 @@ function victory() {
   rewards.levels = gainExp(e.exp);
   rewards.newSkills = unlockSkills(oldLv);
   rewards.dualUnlock = oldLv < DUAL_LV && S.lv >= DUAL_LV;
+  onVictoryExtras(rewards);
 
   log(`🏆 ชนะ ${e.n}!`);
   ev({ a: 'foeDie' });
@@ -845,6 +856,7 @@ function usePotion(k, inBattle) {
   const st = stats();
   if (!S.pots[k]) return;
   S.pots[k]--;
+  track('pots');
   let msg;
   if (p.full) { S.hp = st.hp; S.mp = st.mp; msg = 'ฟื้นฟูเต็ม!'; }
   else if (p.hp) { const a = Math.min(Math.max(p.hp, Math.round(st.hp * p.hpPct)), st.hp - S.hp); S.hp += a; msg = `ฟื้น HP ${fmt(a)}`; }
@@ -898,7 +910,7 @@ function hud() {
 
 function nav() {
   const items = [['town', '🏘️', 'เมือง'], ['map', '🗺️', 'ผจญภัย'], ['bag', '🎒', 'กระเป๋า'], ['collection', '📖', 'สะสม']];
-  const sub = { shop: 'town', forge: 'town', diff: 'town', skills: 'town' };
+  const sub = { shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town' };
   return `<nav class="nav"><div class="in">${items.map(([v, i, n]) =>
     `<button data-a="go" data-v="${v}" class="${view === v || sub[view] === v ? 'on' : ''}"><span class="ico">${i}</span>${n}</button>`).join('')}</div></nav>`;
 }
@@ -907,8 +919,10 @@ function render() {
   if (view === 'battle' && B) { renderBattleView(); return; }
   app.dataset.bid = '';
   let html = '';
+  clearTimeout(autoTimer);
   if (view === 'title') html = renderTitle();
   else if (view === 'create') html = renderCreate();
+  else if (view === 'save' && !S) html = renderSave();
   else {
     html = hud();
     if (view === 'town') html += renderTown();
@@ -916,6 +930,9 @@ function render() {
     else if (view === 'forge') html += renderForge();
     else if (view === 'diff') html += renderDiff();
     else if (view === 'skills') html += renderSkills();
+    else if (view === 'pets') html += renderPets();
+    else if (view === 'quests') html += renderQuests();
+    else if (view === 'save') html += renderSave();
     else if (view === 'map') html += renderMap();
     else if (view === 'bag') html += renderBag();
     else if (view === 'collection') html += renderCollection();
@@ -934,6 +951,8 @@ function renderTitle() {
     <div class="stack">
       ${has ? '<button class="primary" data-a="continue">▶ เล่นต่อ</button>' : ''}
       <button class="${has ? '' : 'primary'}" data-a="newgame">✨ เริ่มเกมใหม่</button>
+      <button class="ghost" data-a="go" data-v="save">📥 นำเข้าเซฟจากเครื่องอื่น</button>
+      ${installButton()}
     </div>
   </div>`;
 }
@@ -962,6 +981,7 @@ function renderCreate() {
 }
 
 function renderTown() {
+  ensureQuests();
   const st = stats();
   const innCost = innPrice();
   const full = S.hp >= st.hp && S.mp >= st.mp;
@@ -977,6 +997,8 @@ function renderTown() {
     <button data-a="go" data-v="shop"><span class="ico">🛒</span>ร้านค้า<span class="subtle">ยา หีบ & ยันต์</span></button>
     <button data-a="go" data-v="forge"><span class="ico">⚒️</span>ช่างตีเหล็ก<span class="subtle">ตีบวกอุปกรณ์</span></button>
     <button data-a="go" data-v="skills"><span class="ico">📜</span>สกิล<span class="subtle">${S.loadout.filter(Boolean).length}/${SKILL_SLOTS} ช่อง · ปลดล็อก ${skillsOf(S.cls).filter((k) => k.lv <= S.lv).length}/${skillsOf(S.cls).length}</span></button>
+    <button data-a="go" data-v="pets"><span class="ico">🐾</span>สัตว์เลี้ยง<span class="subtle">${curPet() ? `${petDef(S.pet).n} Lv.${curPet().lv}` : `${S.pets.length}/${PETS.length} ตัว`}</span></button>
+    <button data-a="go" data-v="quests" class="${claimable() ? 'glow-btn' : ''}"><span class="ico">📋</span>ภารกิจ${claimable() ? ` <span class="badge">${claimable()}</span>` : ''}<span class="subtle">ประจำวัน & ความสำเร็จ</span></button>
     <button data-a="go" data-v="diff" class="${anyCleared() ? 'glow-btn' : ''}"><span class="ico">${anyCleared() ? '🎚️' : '🔒'}</span>ระดับความยาก<span class="subtle">${anyCleared() ? `ตอนนี้: ${d.name}` : 'ปลดล็อกเมื่อจบเกม'}</span></button>
   </div>
   <div class="card" style="margin-top:12px">
@@ -989,7 +1011,9 @@ function renderTown() {
       <div>🏆 ชนะทั้งหมด: <b>${fmt(S.wins)}</b></div><div>👑 บอสที่ล้ม: <b>${bossesBeaten()}/${ZONES.length}</b></div>
     </div></div>
   </div>
-  <button class="ghost small" style="width:100%;margin-top:6px" data-a="reset">🗑️ ลบเซฟ เริ่มใหม่</button>`;
+  <div class="row" style="margin-top:6px"><button class="small" style="flex:1" data-a="go" data-v="save">💾 เซฟ & ตั้งค่า</button>
+    <button class="ghost small" style="flex:1" data-a="reset">🗑️ ลบเซฟ เริ่มใหม่</button></div>
+  ${installButton()}`;
 }
 
 const innPrice = () => 10 + S.lv * 3;
@@ -1117,9 +1141,11 @@ function renderBattleView() {
   document.getElementById('hudbox').innerHTML = hud();
   stageUpdate(B);
   document.getElementById('blog').innerHTML = B.log.slice(0, 12).map((l) => `<div>${l}</div>`).join('');
-  document.getElementById('bact').innerHTML = B.result ? battleResult() : battleActions();
+  document.getElementById('bact').innerHTML = battleToolbar() + (B.result ? battleResult() : battleActions());
+  stagePet(curPet());
   const evs = B.events; B.events = [];
   stagePlay(evs);
+  scheduleAuto();
 }
 
 function battleActions() {
@@ -1215,6 +1241,7 @@ function battleResult() {
     <h3 style="margin-top:0">🏆 ชัยชนะ!</h3>
     <div>✨ +${fmt(r.exp)} EXP &nbsp; <span class="gold">💰 +${fmt(r.gold)}</span></div>
     ${r.levels ? `<div class="up" style="font-family:Kanit;font-size:18px;margin-top:6px">⬆️ เลเวลอัพ! ตอนนี้ Lv.${S.lv} (ฟื้นฟูเต็ม)</div>` : ''}
+    ${extrasResultHTML(r)}
     ${r.dualUnlock ? `<div class="new-skill">⚔️⚔️ Lv.${DUAL_LV}! ปลดล็อกใส่อาวุธสองมือได้ทั้ง 2 มือ <button class="small" data-a="go" data-v="bag">ไปจัดอุปกรณ์</button></div>` : ''}
     ${r.newSkills && r.newSkills.length ? `<div class="new-skill">📜 ปลดล็อกสกิลใหม่: ${r.newSkills.map((sk) => `<b>${sk.icon} ${sk.name}</b>`).join(', ')}
       <button class="small" data-a="go" data-v="skills">จัดสกิล</button></div>` : ''}
@@ -1327,7 +1354,7 @@ function renderCollection() {
   </div>
   <div class="card"><div class="row between"><b>สมุดมอนสเตอร์</b><span class="muted">${monsGot}/${mons.length}</span></div>
     <div class="coll" style="margin-top:12px">${mons.map((m) => S.bestiary[m.n]
-      ? `<div class="cell">${m.i}<small>${m.n}<br>×${fmt(S.bestiary[m.n])}</small></div>`
+      ? `<div class="cell">${monsterSVG(m.n, 44, m.i)}<small>${m.n}<br>×${fmt(S.bestiary[m.n])}</small></div>`
       : `<div class="cell no">❓<small>???</small></div>`).join('')}</div>
   </div>`;
 }
@@ -1428,7 +1455,7 @@ document.addEventListener('click', (ev) => {
       S.bag = S.bag.filter((x) => !sell.includes(x)); S.gold += g; save();
       toast(`ขาย ${sell.length} ชิ้น ได้ ${fmt(g)} 💰`); break;
     }
-    default: return;
+    default: if (!featureClick(a, v, el)) return;
   }
   render();
   if (['go', 'continue', 'leave', 'create', 'setdiff'].includes(a)) window.scrollTo(0, 0);

@@ -113,7 +113,8 @@ function stageHTML(zone, foe, isBoss, heroSvg) {
       <div class="fhptext" id="fhptext"></div>
     </div>
     <div class="unit hero-u" id="u-hero"><div class="ushadow"></div><div class="ubody" id="hero-body">${heroSvg}</div><div class="utags" id="htags"></div></div>
-    <div class="unit foe-u ${isBoss ? 'boss' : ''}" id="u-foe"><div class="ushadow"></div><div class="ubody foe-sprite" id="foe-body">${foe.i}</div></div>
+    <div class="unit foe-u ${isBoss ? 'boss' : ''}" id="u-foe"><div class="ushadow"></div><div class="ubody foe-sprite" id="foe-body">${typeof monsterSVG === 'function' ? monsterSVG(foe.n, isBoss ? 150 : 112, foe.i) : foe.i}</div></div>
+    <div class="unit pet-u" id="u-pet"></div>
     <div class="fx" id="fx"></div>
   </div>`;
 }
@@ -150,10 +151,27 @@ function stageUpdate(B) {
   document.getElementById('u-hero').classList.toggle('berserk', B.berserk > 0);
 }
 
-/* ---------- ตัวช่วยแอนิเมชัน ---------- */
+/* สัตว์เลี้ยงในฉาก */
+function stagePet(pet) {
+  const u = document.getElementById('u-pet'); if (!u) return;
+  const id = pet ? pet.id : '';
+  if (u.dataset.id === id) return;
+  u.dataset.id = id;
+  u.innerHTML = pet ? `<div class="ushadow"></div><div class="ubody pet-body" id="pet-body">${petSVG(pet.id, 52)}</div><div class="pet-lv">Lv.${pet.lv}</div>` : '';
+}
+
+/* ---------- ตัวช่วยแอนิเมชัน (ปรับตามความเร็วเกม x1/x2/x3) ---------- */
+const SPD = () => (typeof gameSpeed === 'function' ? gameSpeed() : 1);
 const canAnim = () => typeof Element !== 'undefined' && !!Element.prototype.animate;
-function anim(el, frames, opts) { if (el && canAnim()) return el.animate(frames, opts); return null; }
-function later(ms, fn) { if (!canAnim()) { fn(); return; } setTimeout(fn, ms); }
+function anim(el, frames, opts) {
+  if (!el || !canAnim()) return null;
+  const sp = SPD();
+  const o = typeof opts === 'number' ? { duration: opts } : { ...opts };
+  if (o.duration) o.duration /= sp;
+  if (o.delay) o.delay /= sp;
+  return el.animate(frames, o);
+}
+function later(ms, fn) { if (!canAnim()) { fn(); return; } setTimeout(fn, ms / SPD()); }
 
 function unitPos(id) {
   const st = document.getElementById('stage'), u = document.getElementById(id);
@@ -172,7 +190,7 @@ function spawn(cls, html, x, y) {
   fx.appendChild(d);
   return d;
 }
-function kill(el, ms) { if (el) setTimeout(() => el.remove(), ms); }
+function kill(el, ms) { if (el) setTimeout(() => el.remove(), ms / SPD()); }
 
 function popNum(target, text, cls) {
   const p = unitPos(target === 'hero' ? 'u-hero' : 'u-foe');
@@ -234,7 +252,7 @@ function projectile(kind, delay, onHit, big) {
     const dy = (b.y - a.y) + (Math.random() * 10 - 5);
     anim(d, [{ transform: 'translate(-50%,-50%) translate(0,0)' }, { transform: `translate(-50%,-50%) translate(${dx * 0.5}px,${dy * 0.5 - (kind === 'fire' ? 0 : 16)}px)` },
       { transform: `translate(-50%,-50%) translate(${dx}px,${dy}px)` }], { duration: 340, easing: 'linear' });
-    setTimeout(() => { d.remove(); onHit(); }, 330);
+    setTimeout(() => { d.remove(); onHit(); }, 330 / SPD());
   });
 }
 
@@ -345,6 +363,23 @@ function playOne(ev) {
       popNum('foe', `${ev.text}!`, 'warn');
       return 450;
     }
+    case 'pet': {
+      const pb = document.getElementById('u-pet');
+      if (ev.hits) {
+        anim(pb, [{ transform: 'translate(0,0)' }, { transform: 'translate(46px,-22px)', offset: .4 }, { transform: 'translate(0,0)' }], { duration: 480, easing: 'ease-out' });
+        later(200, () => {
+          const col = { fire: '#ff8a2a', poison: '#7dff6b', thunder: '#fff27a' }[ev.kind] || '#ffffff';
+          boom(col);
+          if (ev.kind === 'thunder') flash('#fff6a8');
+          ev.hits.forEach((h) => { popNum('foe', `-${h.dmg.toLocaleString('th-TH')}`, h.crit ? 'crit' : 'pet'); flinch('u-foe', h.crit); });
+        });
+        return 480;
+      }
+      anim(pb, [{ transform: 'translateY(0)' }, { transform: 'translateY(-14px)' }, { transform: 'translateY(0)' }], { duration: 360 });
+      aura(ev.kind === 'mana' ? 'mana' : 'heal');
+      later(120, () => popNum('hero', ev.text, ev.kind === 'mana' ? 'mana' : 'heal'));
+      return 420;
+    }
     case 'aura':
       aura(ev.kind);
       if (ev.text) later(150, () => popNum('hero', ev.text, ev.kind === 'buff' ? 'buff' : ev.kind === 'shield' || ev.kind === 'wind' ? 'shield' : ev.kind === 'mana' ? 'mana' : 'heal'));
@@ -406,14 +441,15 @@ function stagePlay(events) {
   if (!events || !events.length) return;
   const now = Date.now();
   let t = Math.max(0, stageQueueEnd - now);
+  const sp = SPD();
   for (const ev of events) {
     const at = t;
     if (!canAnim()) { playOne(ev); continue; }
     setTimeout(() => playOne(ev), at);
-    t += estimate(ev);
+    t += estimate(ev) / sp;
   }
   stageQueueEnd = now + t;
 }
 function estimate(ev) {
-  return { bolt: 520, meteor: 300 + ((ev.hits || []).length) * 200 + 100, stun: 450, melee: 600, proj: 380 + ((ev.hits || []).length - 1) * 120 + 120, aura: 450, num: 300, charge: 400, enrage: 500, foeAtk: 600, foeDie: 800, heroDie: 700, flee: 600 }[ev.a] || 0;
+  return { pet: ev.hits ? 480 : 420, bolt: 520, meteor: 300 + ((ev.hits || []).length) * 200 + 100, stun: 450, melee: 600, proj: 380 + ((ev.hits || []).length - 1) * 120 + 120, aura: 450, num: 300, charge: 400, enrage: 500, foeAtk: 600, foeDie: 800, heroDie: 700, flee: 600 }[ev.a] || 0;
 }
