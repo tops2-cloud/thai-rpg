@@ -51,8 +51,8 @@ const AURAS = [
   { id: 'mist', n: 'ฝูงเงา', icon: '👁️', img: 'auras/shadow.webp', fx: 'flicker', unlock: { adv: true }, desc: 'เงาตาเขียวรายล้อม' },
   { id: 'spiritwind', n: 'สายลมวิญญาณ', icon: '🌬️', img: 'auras/spirit.webp', fx: 'flicker', unlock: { gold: 40000 }, desc: 'สายลมสีฟ้าหมุนวนรอบตัว' },
   { id: 'supernova', n: 'ซูเปอร์โนวา', icon: '💥', img: 'auras/supernova.webp', fx: 'pulse', unlock: { gold: 80000 }, desc: 'ดาวระเบิดแสงทองเจิดจ้า' },
-  { id: 'goldstorm', n: 'พายุสายฟ้าทองคำ', icon: '⚡', img: 'auras/goldstorm.webp', fx: 'flicker', unlock: { level: 90 }, desc: 'สายฟ้าทองแตกกระจาย (ถึง Lv.90)' },
-  { id: 'runegod', n: 'เทพสายฟ้ารูน', icon: '🔱', img: 'auras/runegod.webp', fx: 'pulse', unlock: { boss: 'w2castle' }, desc: 'เทพแห่งสายฟ้ากับตรารูน (ล้มบอสสุดท้ายทวีปที่ 2)' },
+  { id: 'goldstorm', n: 'พายุสายฟ้าทองคำ', icon: '⚡', img: 'auras/goldstorm.webp', fx: 'flicker', h: 210, unlock: { level: 90 }, desc: 'สายฟ้าทองแตกกระจาย (ถึง Lv.90)' },
+  { id: 'runegod', n: 'เทพสายฟ้ารูน', icon: '🔱', img: 'auras/runegod.webp', fx: 'pulse', h: 210, unlock: { boss: 'w2castle' }, desc: 'เทพแห่งสายฟ้ากับตรารูน (ล้มบอสสุดท้ายทวีปที่ 2)' },
   { id: 'galaxy', n: 'หลุมดำจักรวาล', icon: '🌌', img: 'auras/void.webp', fx: 'spin', unlock: { advanced: true }, desc: 'หลุมดำหมุนวน' },
 ];
 
@@ -86,7 +86,7 @@ const curAura = () => (S && S.cos && S.cos.aura ? AURAS.find((x) => x.id === S.c
 /* ---------- วาดตัวละคร + สกิน + ออร่า (ออร่าอยู่ด้านหลัง) ---------- */
 function auraHTML(aura) {
   if (!aura) return '';
-  return `<img class="aura-layer au-${aura.fx || 'pulse'}" src="${aura.img}" alt="" aria-hidden="true">`;
+  return `<img class="aura-layer au-${aura.fx || 'pulse'}" src="${aura.img}" alt="" aria-hidden="true"${aura.h ? ` style="height:${aura.h}%"` : ''}>`;
 }
 function heroArt(cls, equip, size, adv, opt = {}) {
   const skin = opt.skin !== undefined ? opt.skin : (S && S.cls === cls ? curSkin() : SKINS[0]);
