@@ -239,21 +239,22 @@ h2 { margin: 6px 0; }
 @keyframes orbf { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
 
 /* ============ ฉากต่อสู้ 2D ============ */
-.stage { position: relative; height: 270px; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #000; isolation: isolate; }
+.stage { position: relative; aspect-ratio: 2.4 / 1; min-height: 150px; max-height: 300px; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #000; isolation: isolate; }
 .stage-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; }
-.foe-panel { position: absolute; top: 8px; right: 8px; left: 38%; z-index: 3; background: #0d0b16cc; border: 1px solid #ffffff22; border-radius: 12px; padding: 6px 8px; backdrop-filter: blur(4px); }
-.foe-panel .fname { font-family: 'Kanit'; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.foe-panel .bar { height: 8px; margin-top: 4px; }
+.stage-img { object-fit: cover; object-position: center bottom; }
+.foe-panel { margin: 0 0 6px; background: #0d0b16cc; border: 1px solid #ffffff22; border-radius: 12px; padding: 6px 8px; backdrop-filter: blur(4px); }
+.foe-panel .fname { font-family: 'Kanit'; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.foe-panel .bar { height: 7px; margin-top: 3px; }
 .fhptext { font-size: 11px; color: var(--muted); text-align: right; margin-top: 1px; }
 .ftags .tag, .utags .tag { font-size: 10px; padding: 1px 6px; margin: 0 0 0 3px; }
-.unit { position: absolute; bottom: 18px; z-index: 2; display: flex; flex-direction: column; align-items: center; }
-.hero-u { left: 6%; }
-.foe-u { right: 8%; }
+.unit { position: absolute; bottom: 7%; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+.hero-u { left: 9%; }
+.foe-u { right: 10%; }
 .ushadow { position: absolute; bottom: 2px; left: 50%; width: 70%; height: 10px; transform: translateX(-50%); background: radial-gradient(#000a, transparent 70%); }
 .hero-u .ubody { position: relative; }
 .utags { position: absolute; top: -6px; left: 0; display: flex; }
-.foe-sprite { font-size: 82px; line-height: 1; position: relative; padding-bottom: 8px; animation: foebob 1.8s ease-in-out infinite; filter: drop-shadow(0 4px 6px #0008); }
-.foe-u.boss .foe-sprite { font-size: 116px; filter: drop-shadow(0 0 16px #ff3b5c88); }
+.foe-sprite { font-size: 58px; line-height: 1; position: relative; padding-bottom: 8px; animation: foebob 1.8s ease-in-out infinite; filter: drop-shadow(0 4px 6px #0008); }
+.foe-u.boss .foe-sprite { font-size: 80px; filter: drop-shadow(0 0 16px #ff3b5c88); }
 .foe-u.boss .ushadow { width: 90%; height: 14px; }
 @keyframes foebob { 0%,100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-5px) scaleY(1.03); } }
 .foe-u.charging .foe-sprite { animation: foebob 1.8s ease-in-out infinite, chargeglow .7s ease-in-out infinite; }
@@ -261,19 +262,19 @@ h2 { margin: 6px 0; }
 @keyframes chargeglow { 0%,100% { filter: drop-shadow(0 0 4px #ff3b3b); } 50% { filter: drop-shadow(0 0 28px #ff3b3b) brightness(1.4); } }
 .fx { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
 .fx > * { position: absolute; }
-.dnum { font-family: 'Kanit'; font-weight: 700; font-size: 24px; color: #fff; -webkit-text-stroke: 1px #0008; text-shadow: 0 2px 4px #000; white-space: nowrap; transform: translate(-50%,0); }
-.dnum.crit { color: var(--gold); font-size: 32px; }
+.dnum { font-family: 'Kanit'; font-weight: 700; font-size: 21px; color: #fff; -webkit-text-stroke: 1px #0008; text-shadow: 0 2px 4px #000; white-space: nowrap; transform: translate(-50%,0); }
+.dnum.crit { color: var(--gold); font-size: 27px; }
 .dnum.hurt { color: #ff6b6b; }
 .dnum.heal { color: #7dff6b; } .dnum.buff { color: #ff8f6b; font-size: 20px; } .dnum.shield { color: #8fd0ff; font-size: 18px; }
 .dnum.poison { color: #b6ff6b; } .dnum.warn { color: #ff8fa1; font-size: 18px; }
-.slash { width: 110px; height: 110px; color: #fff; filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 12px #b884ff); transform: translate(-50%,-50%); }
-.slash.big { width: 150px; height: 150px; color: #ffe9a8; filter: drop-shadow(0 0 8px #ffcc4d) drop-shadow(0 0 16px #ff8a2a); }
+.slash { width: 84px; height: 84px; color: #fff; filter: drop-shadow(0 0 6px #fff) drop-shadow(0 0 12px #b884ff); transform: translate(-50%,-50%); }
+.slash.big { width: 116px; height: 116px; color: #ffe9a8; filter: drop-shadow(0 0 8px #ffcc4d) drop-shadow(0 0 16px #ff8a2a); }
 .slash.crit { color: #ffe066; }
 .slash svg { width: 100%; height: 100%; }
 .boom { width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle, #fff 0%, var(--c, #ff8a2a) 35%, transparent 70%); transform: translate(-50%,-50%); }
 .proj { transform: translate(-50%,-50%); }
 .fireball { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0%, #ffd23a 25%, #ff6a00 60%, #ff2a00aa 80%, transparent 82%); box-shadow: 0 0 18px #ff6a00, -14px 0 18px #ff6a0088; }
-.bubble { width: 120px; height: 150px; border-radius: 50%; border: 3px solid #8fd0ffcc; background: radial-gradient(circle at 35% 30%, #ffffff33, #4b8cef22 60%, transparent 70%); box-shadow: 0 0 20px #4b8cef88 inset, 0 0 14px #4b8cef88; transform: translate(-50%,-50%); }
+.bubble { width: 84px; height: 108px; border-radius: 50%; border: 3px solid #8fd0ffcc; background: radial-gradient(circle at 35% 30%, #ffffff33, #4b8cef22 60%, transparent 70%); box-shadow: 0 0 20px #4b8cef88 inset, 0 0 14px #4b8cef88; transform: translate(-50%,-50%); }
 .ring-fx { width: 90px; height: 26px; border-radius: 50%; border: 3px solid #ff5b3b; box-shadow: 0 0 14px #ff5b3b; transform: translate(-50%,-50%); }
 .spk { font-size: 16px; text-shadow: 0 0 6px currentColor; transform: translate(-50%,0); }
 .coin { font-size: 18px; transform: translate(-50%,-50%); }

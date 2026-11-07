@@ -105,15 +105,16 @@ const SCENE = {
 
 /* ---------- สร้างฉาก ---------- */
 function stageHTML(zone, foe, isBoss, heroSvg) {
-  return `<div class="stage" id="stage">
-    <svg class="stage-bg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMax slice">${(SCENE[zone.id] || SCENE.forest)()}</svg>
-    <div class="foe-panel">
+  return `<div class="foe-panel">
       <div class="row between"><b class="fname">${foe.i} ${foe.n}</b><span class="ftags" id="ftags"></span></div>
       <div class="bar hp"><i id="fhp"></i></div>
       <div class="fhptext" id="fhptext"></div>
     </div>
+    <div class="stage" id="stage">
+    <svg class="stage-bg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMax slice">${(SCENE[zone.id] || SCENE.forest)()}</svg>
+    <img class="stage-bg stage-img" src="bg/${zone.id}.webp" alt="" onerror="this.remove()">
     <div class="unit hero-u" id="u-hero"><div class="ushadow"></div><div class="ubody" id="hero-body">${heroSvg}</div><div class="utags" id="htags"></div></div>
-    <div class="unit foe-u ${isBoss ? 'boss' : ''}" id="u-foe"><div class="ushadow"></div><div class="ubody foe-sprite" id="foe-body">${typeof monsterSVG === 'function' ? monsterSVG(foe.n, isBoss ? 150 : 112, foe.i) : foe.i}</div></div>
+    <div class="unit foe-u ${isBoss ? 'boss' : ''}" id="u-foe"><div class="ushadow"></div><div class="ubody foe-sprite" id="foe-body">${typeof monsterSVG === 'function' ? monsterSVG(foe.n, isBoss ? 104 : 76, foe.i) : foe.i}</div></div>
     <div class="unit pet-u" id="u-pet"></div>
     <div class="fx" id="fx"></div>
   </div>`;
@@ -168,7 +169,7 @@ function stagePet(pet) {
   const id = pet ? pet.id : '';
   if (u.dataset.id === id) return;
   u.dataset.id = id;
-  u.innerHTML = pet ? `<div class="ushadow"></div><div class="ubody pet-body" id="pet-body">${petSVG(pet.id, 52)}</div><div class="pet-lv">Lv.${pet.lv}</div>` : '';
+  u.innerHTML = pet ? `<div class="ushadow"></div><div class="ubody pet-body" id="pet-body">${petSVG(pet.id, 38)}</div><div class="pet-lv">Lv.${pet.lv}</div>` : '';
 }
 
 /* ---------- ตัวช่วยแอนิเมชัน (ปรับตามความเร็วเกม x1/x2/x3) ---------- */
