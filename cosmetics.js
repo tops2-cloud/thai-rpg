@@ -6,7 +6,7 @@
    ============================================================ */
 
 /* ---------- ภาพตัวละครหลักของแต่ละคลาส [ปกติ, หลังเลื่อนขั้น] ---------- */
-const FACE_LEFT = new Set(['chars/archer.webp', 'chars/hunter.webp', 'skins/archer_black.webp', 'skins/assassin.webp', 'skins/aquatic.webp', 'skins/phantom.webp', 'skins/chimera.webp', 'skins/crystal.webp', 'skins/archmage.webp', 'skins/phantom.webp']); // ภาพที่หันซ้าย → กลับด้านในฉากต่อสู้
+const FACE_LEFT = new Set(['chars/archer.webp', 'chars/hunter.webp', 'skins/archer_black.webp', 'skins/assassin.webp', 'skins/aquatic.webp', 'skins/phantom.webp', 'skins/chimera.webp', 'skins/crystal.webp', 'skins/archmage.webp', 'skins/phantom.webp', 'skins/yak.webp']); // ภาพที่หันซ้าย → กลับด้านในฉากต่อสู้
 const HERO_IMG = {
   warrior: ['chars/warrior.webp', 'chars/holy.webp', 'chars/celestial_emperor.webp'],
   mage: ['chars/mage.webp', 'chars/sage.webp', 'chars/magic_deity.webp'],
@@ -35,6 +35,8 @@ const SKINS = [
   { id: 'phantom2', n: 'มนุษย์ล่องหนโปร่งใส', icon: '👻', img: 'skins/phantom.webp', unlock: { gold: 150000 }, desc: 'ร่างใสดั่งแก้ว มีดาบลอยรอบตัว' },
   { id: 'harlequin', n: 'ตัวตลกผู้ลวงโลก', icon: '🃏', img: 'skins/harlequin.webp', unlock: { gold: 250000 }, desc: 'ตัวตลกลายข้าวหลามตัด ถือคทาหัวตัวตลก' },
   { id: 'alien', n: 'เอเลี่ยนผู้พิชิตดวงดาว', icon: '👽', img: 'skins/alien.webp', unlock: { boss: 'w2castle' }, desc: 'ล้มอาร์คดีมอน (บอสสุดท้ายทวีปที่ 2)' },
+  { id: 'cosmic', n: 'ผู้พิทักษ์จักรวาล', icon: '🌌', img: 'skins/cosmic.webp', unlock: { gold: 300000 }, desc: 'ชุดดำเรืองรูน ผ้าคลุมกาแล็กซี' },
+  { id: 'yak', n: 'ยักษ์ทศกัณฐ์', icon: '👹', img: 'skins/yak.webp', giant: 1.5, unlock: { gold: 500000 }, desc: 'ยักษ์สี่กรถือกระบองทอง · ตัวใหญ่ขึ้น 1.5 เท่าในฉากต่อสู้' },
   { id: 'chimera', n: 'ไคเมราจักรกล', icon: '🦁', img: 'skins/chimera.webp', unlock: { advanced: true }, desc: 'สิงโตจักรกลมีปีก' },
 ];
 
@@ -98,7 +100,7 @@ function heroArt(cls, equip, size, adv, opt = {}) {
   const h = Math.round(size * 250 / 235);
   const tier3 = opt.tier3 !== undefined ? opt.tier3 : (typeof S !== 'undefined' && !!S && S.cls === cls && !!S.adv3);
   const src = skin && skin.img && skinFits(skin, cls) ? skin.img : HERO_IMG[cls][tier3 ? 2 : adv ? 1 : 0];
-  return `<div class="hero-art ${tier3 && src === HERO_IMG[cls][1] ? 'tier3' : ''}" style="height:${h}px;min-width:${Math.round(h * 0.55)}px">${auraHTML(aura)}<img class="skin-img ${FACE_LEFT.has(src) ? 'face-left' : ''}" src="${src}" alt="" style="${src === HERO_IMG[cls][2] ? `height:${Math.round(h * 1.3)}px;margin:${-Math.round(h * 0.3)}px ${-Math.round(h * 0.12)}px 0` : `height:${h}px`}"></div>`;
+  return `<div class="hero-art ${tier3 && src === HERO_IMG[cls][1] ? 'tier3' : ''}" style="height:${h}px;min-width:${Math.round(h * 0.55)}px">${auraHTML(aura)}<img class="skin-img ${FACE_LEFT.has(src) ? 'face-left' : ''} ${skin && skin.giant && src === skin.img ? 'giant' : ''}" src="${src}" alt="" style="${src === HERO_IMG[cls][2] ? `height:${Math.round(h * 1.3)}px;margin:${-Math.round(h * 0.3)}px ${-Math.round(h * 0.12)}px 0` : `height:${h}px`}"></div>`;
 }
 
 /* ---------- หน้าสกิน & ออร่า ---------- */
