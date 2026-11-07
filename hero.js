@@ -228,9 +228,9 @@ function heroBody(cls, C) {
 }
 
 /* ---------- ประกอบร่าง ---------- */
-function heroSVG(cls, equip = {}, size = 140, adv) {
+function heroSVG(cls, equip = {}, size = 140, adv, look) {
   if (adv === undefined) adv = typeof S !== 'undefined' && !!S && S.cls === cls && !!S.adv;
-  const C = adv ? HERO_LOOK_ADV[cls] : HERO_LOOK[cls];
+  const C = { ...(adv ? HERO_LOOK_ADV[cls] : HERO_LOOK[cls]), ...(look || {}) };
   const glove = cls === 'warrior' ? C.bodyD : C.skin;
   const head = equip.helmet ? headGear(equip.helmet, cls, C) : headDefault(cls, C);
   const h = Math.round(size * 250 / 235);

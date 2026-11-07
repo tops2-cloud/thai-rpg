@@ -307,6 +307,7 @@ function migrate(s) {
   if (!Array.isArray(s.loadout)) s.loadout = defaultLoadout(s.cls, s.lv);
   if (!s.skillLv) s.skillLv = {};
   migrateExtras(s);
+  migrateCosmetics(s);
   return s;
 }
 
@@ -327,6 +328,7 @@ function newGame(name, cls) {
     uid: 1, wins: 0, loadout: defaultLoadout(cls, 1), skillLv: {},
   };
   migrateExtras(S);
+  migrateCosmetics(S);
   const starter = { warrior: ['sword', 'ดาบฝึกหัด', '🗡️'], mage: ['staff', 'คทาฝึกหัด', '🪄'], archer: ['bow', 'ธนูฝึกหัด', '🏹'] }[cls];
   S.equip.weapon = finalizeItem({ slot: 'weapon', key: `${starter[0]}:common`, name: starter[1], icon: starter[2], rarity: 'common', tier: 1, stats: { atk: 3 } });
   S.collection[S.equip.weapon.key] = true;
@@ -988,7 +990,7 @@ function hud() {
 
 function nav() {
   const items = [['town', '🏘️', 'เมือง'], ['map', '🗺️', 'ผจญภัย'], ['bag', '🎒', 'กระเป๋า'], ['collection', '📖', 'สะสม']];
-  const sub = { advance: 'town', shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town' };
+  const sub = { cosmetics: 'town', advance: 'town', shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town' };
   return `<nav class="nav"><div class="in">${items.map(([v, i, n]) =>
     `<button data-a="go" data-v="${v}" class="${view === v || sub[view] === v ? 'on' : ''}"><span class="ico">${i}</span>${n}</button>`).join('')}</div></nav>`;
 }
@@ -1009,6 +1011,7 @@ function render() {
     else if (view === 'diff') html += renderDiff();
     else if (view === 'skills') html += renderSkills();
     else if (view === 'advance') html += renderAdvance();
+    else if (view === 'cosmetics') html += renderCosmetics();
     else if (view === 'pets') html += renderPets();
     else if (view === 'quests') html += renderQuests();
     else if (view === 'save') html += renderSave();
@@ -1044,7 +1047,7 @@ function renderCreate() {
       <div class="muted" style="margin-bottom:6px">ชื่อผู้กล้า</div>
       <input type="text" id="pname" maxlength="16" placeholder="เช่น ไอ้เข้ม" value="${esc(cs.name)}" />
     </div>
-    <div class="hero-stage">${heroSVG(cs.cls, { weapon: { key: { warrior: 'sword', mage: 'staff', archer: 'bow' }[cs.cls] + ':common', rarity: 'common' } }, 170, false)}</div>
+    <div class="hero-stage">${heroArt(cs.cls, { weapon: { key: { warrior: 'sword', mage: 'staff', archer: 'bow' }[cs.cls] + ':common', rarity: 'common' } }, 170, false, { skin: SKINS[0], aura: null })}</div>
     <div class="muted">เลือกอาชีพ</div>
     <div class="class-pick">
       ${Object.entries(CLASSES).map(([k, c]) => `
@@ -1077,6 +1080,7 @@ function renderTown() {
     <button data-a="go" data-v="forge"><span class="ico">⚒️</span>ช่างตีเหล็ก<span class="subtle">ตีบวกอุปกรณ์</span></button>
     <button data-a="go" data-v="skills"><span class="ico">📜</span>สกิล<span class="subtle">${S.loadout.filter(Boolean).length}/${skillSlots()} ช่อง · ปลดล็อก ${skillsOf(S.cls).filter(skillOpen).length}/${skillsOf(S.cls).length}</span></button>
     <button data-a="go" data-v="advance" class="${!S.adv && S.lv >= ADV_LV ? 'glow-btn' : ''}"><span class="ico">${S.adv ? ADV_CLASSES[S.cls].icon : S.lv >= ADV_LV ? '🌟' : '🔒'}</span>เลื่อนขั้นอาชีพ<span class="subtle">${S.adv ? ADV_CLASSES[S.cls].name : S.lv >= ADV_LV ? 'พร้อมแล้ว!' : `ปลดล็อก Lv.${ADV_LV}`}</span></button>
+    <button data-a="go" data-v="cosmetics"><span class="ico">👘</span>สกิน & ออร่า<span class="subtle">${curSkin().n}${curAura() ? ` · ${curAura().n}` : ''}</span></button>
     <button data-a="go" data-v="pets"><span class="ico">🐾</span>สัตว์เลี้ยง<span class="subtle">${curPet() ? `${petDef(S.pet).n} Lv.${curPet().lv}` : `${S.pets.length}/${PETS.length} ตัว`}</span></button>
     <button data-a="go" data-v="quests" class="${claimable() ? 'glow-btn' : ''}"><span class="ico">📋</span>ภารกิจ${claimable() ? ` <span class="badge">${claimable()}</span>` : ''}<span class="subtle">ประจำวัน & ความสำเร็จ</span></button>
     <button data-a="go" data-v="diff" class="${anyCleared() ? 'glow-btn' : ''}"><span class="ico">${anyCleared() ? '🎚️' : '🔒'}</span>ระดับความยาก<span class="subtle">${anyCleared() ? `ตอนนี้: ${d.name}` : 'ปลดล็อกเมื่อจบเกม'}</span></button>
@@ -1084,7 +1088,7 @@ function renderTown() {
   <div class="card" style="margin-top:12px">
     <h3 style="margin-top:0">สถานะ</h3>
     <div class="row" style="align-items:flex-start">
-    <div class="hero-stage small" data-a="go" data-v="bag">${heroSVG(S.cls, S.equip, 124)}</div>
+    <div class="hero-stage small" data-a="go" data-v="bag">${heroArt(S.cls, S.equip, 124)}</div>
     <div class="grid1 muted" style="flex:1">
       <div>⚔️ โจมตี: <b>${fmt(st.atk)}</b>${offWeapon() ? ` <span style="font-size:12px">+ ${fmt(offhandAtk(st) * OFFHAND_HIT_RATE)}</span>` : ''}</div><div>🛡️ ป้องกัน: <b>${fmt(st.def)}</b></div>
       <div>❤️ HP สูงสุด: <b>${fmt(st.hp)}</b></div><div>🎯 คริติคอล: <b>${st.crit}%</b></div>
@@ -1213,7 +1217,7 @@ function renderMap() {
 function renderBattleView() {
   if (app.dataset.bid !== String(B.id)) {
     app.innerHTML = `<div id="hudbox"></div>
-      ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroSVG(S.cls, S.equip, 150))}
+      ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroArt(S.cls, S.equip, 150))}
       <div class="log" id="blog"></div><div id="bact"></div>`;
     app.dataset.bid = String(B.id);
     stageQueueEnd = 0;
@@ -1306,9 +1310,9 @@ function renderAdvance() {
   let html = `<div class="row between"><h2>🌟 เลื่อนขั้นอาชีพ</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>`;
   html += `<div class="card adv-card">
     <div class="adv-compare">
-      <div>${heroSVG(S.cls, S.equip, 124, false)}<div><b>${c.icon} ${c.name}</b></div></div>
+      <div>${heroArt(S.cls, S.equip, 124, false)}<div><b>${c.icon} ${c.name}</b></div></div>
       <div class="arrow">➜</div>
-      <div>${heroSVG(S.cls, S.equip, 124, true)}<div><b class="gold">${a.icon} ${a.name}</b></div></div>
+      <div>${heroArt(S.cls, S.equip, 124, true)}<div><b class="gold">${a.icon} ${a.name}</b></div></div>
     </div>
     <div class="muted" style="margin-top:8px">${a.desc}</div></div>`;
   html += `<div class="card"><h3 style="margin-top:0">สิ่งที่ได้</h3>
@@ -1404,7 +1408,7 @@ function renderEquipBoard() {
   let html = `<div class="card equip-board">
     <div class="eb-col">${left.map(slotCell).join('')}</div>
     <div class="eb-mid">
-      <div class="eb-hero">${heroSVG(S.cls, S.equip, 150)}</div>
+      <div class="eb-hero">${heroArt(S.cls, S.equip, 150)}</div>
       <div class="eb-bottom">${slotCell('cape')}<button class="slot forge-slot" data-a="go" data-v="forge"><span class="si">⚒️</span><span class="sl">ตีบวก</span></button></div>
     </div>
     <div class="eb-col">${right.map(slotCell).join('')}</div>
@@ -1586,7 +1590,7 @@ document.addEventListener('click', (ev) => {
       S.bag = S.bag.filter((x) => !sell.includes(x)); S.gold += g; save();
       toast(`ขาย ${sell.length} ชิ้น ได้ ${fmt(g)} 💰`); break;
     }
-    default: if (!featureClick(a, v, el)) return;
+    default: if (!featureClick(a, v, el) && !cosClick(a, v, el)) return;
   }
   render();
   if (['go', 'continue', 'leave', 'create', 'setdiff'].includes(a)) window.scrollTo(0, 0);
