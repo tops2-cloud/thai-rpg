@@ -461,3 +461,4 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 #bact .skill-btn .sk-mp { font-size: 9px; }
 .pet-img { width: auto; max-width: none; display: block; filter: drop-shadow(0 2px 3px #0007); }
 .stage .pet-img { transform: scaleX(-1); }
+.mon-img { width: auto; max-width: none; display: block; filter: drop-shadow(0 3px 4px #0007); }

@@ -384,6 +384,8 @@ const MONSTER_ART = {
 
 /* ภาพมอนสเตอร์เป็น SVG — ถ้าไม่มีภาพจะใช้อีโมจิ */
 function monsterSVG(name, size, fallback) {
+  const img = typeof MONSTER_IMG !== 'undefined' && MONSTER_IMG[name];
+  if (img) return `<img class="mon-img" src="${img}" alt="${name}" style="height:${size}px">`;
   const f = MONSTER_ART[name];
   if (!f) return `<span style="font-size:${Math.round(size * 0.7)}px">${fallback || '❓'}</span>`;
   return `<svg class="mon-svg" viewBox="0 0 120 120" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" aria-label="${name}" style="overflow:visible">${f()}</svg>`;

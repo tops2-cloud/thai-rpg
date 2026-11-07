@@ -8,14 +8,14 @@
 /* ---------------- สัตว์เลี้ยง ---------------- */
 /* ได้จากบอสแต่ละด่าน (โอกาส 50% ต่อการล้มบอส จนกว่าจะได้) · เลเวลสูงสุด 10 */
 const PETS = [
-  { id: 'slime', zone: 'forest', n: 'น้องสไลม์', art: 'สไลม์', kind: 'heal', desc: (p) => `ฟื้น HP ${p}% ทุกเทิร์น`, pow: (lv) => 1.6 + lv * 0.26 },
-  { id: 'bat', zone: 'cave', n: 'ค้างคาวน้อย', art: 'ค้างคาวแวมไพร์', kind: 'drain', desc: (p) => `กัด ${p}% ของพลังโจมตี และดูดเลือดคืน`, pow: (lv) => 12 + lv * 2 },
+  { id: 'slime', zone: 'forest', n: 'น้องสไลม์', art: 'สไลม์พิษ', kind: 'heal', desc: (p) => `ฟื้น HP ${p}% ทุกเทิร์น`, pow: (lv) => 1.6 + lv * 0.26 },
+  { id: 'bat', zone: 'cave', n: 'แมงมุมผลึก', art: 'แมงมุมคริสตัล', kind: 'drain', desc: (p) => `กัด ${p}% ของพลังโจมตี และดูดเลือดคืน`, pow: (lv) => 12 + lv * 2 },
   { id: 'scorp', zone: 'desert', n: 'แมงป่องจิ๋ว', art: 'แมงป่องยักษ์', kind: 'poison', desc: (p) => `ต่อย ${p}% + ทำให้ติดพิษ`, pow: (lv) => 15 + lv * 2.5 },
-  { id: 'dragon', zone: 'volcano', n: 'มังกรน้อย', art: 'มังกรเพลิง', kind: 'fire', desc: (p) => `พ่นไฟ ${p}% ไม่สนเกราะ`, pow: (lv) => 28 + lv * 4 },
-  { id: 'frog', zone: 'swamp', n: 'กบเขียว', art: 'กบยักษ์', kind: 'mana', desc: (p) => `ฟื้น MP ${p}% ทุกเทิร์น`, pow: (lv) => 2.5 + lv * 0.35 },
-  { id: 'penguin', zone: 'ice', n: 'เพนกวินน้อย', art: 'เพนกวินนักรบ', kind: 'guard', desc: (p) => `ลดดาเมจที่ได้รับ ${p}% (ติดตัว)`, pow: (lv) => 4 + lv * 0.6 },
-  { id: 'crab', zone: 'sea', n: 'ปูน้อย', art: 'ปูเหล็ก', kind: 'attack', desc: (p) => `หนีบ ${p}% ของพลังโจมตี`, pow: (lv) => 28 + lv * 3.5 },
-  { id: 'crow', zone: 'sky', n: 'อีกาสายฟ้าน้อย', art: 'อีกาสายฟ้า', kind: 'thunder', desc: (p) => `สายฟ้า ${p}% + โอกาส 15% ทำให้มึน`, pow: (lv) => 22 + lv * 3 },
+  { id: 'dragon', zone: 'volcano', n: 'มังกรน้อย', art: 'ซาลาแมนเดอร์', kind: 'fire', desc: (p) => `พ่นไฟ ${p}% ไม่สนเกราะ`, pow: (lv) => 28 + lv * 4 },
+  { id: 'frog', zone: 'swamp', n: 'กบเขียว', art: 'มนุษย์คางคก', kind: 'mana', desc: (p) => `ฟื้น MP ${p}% ทุกเทิร์น`, pow: (lv) => 2.5 + lv * 0.35 },
+  { id: 'penguin', zone: 'ice', n: 'ฮูกน้อย', art: 'นกฮูกหิมะ', kind: 'guard', desc: (p) => `ลดดาเมจที่ได้รับ ${p}% (ติดตัว)`, pow: (lv) => 4 + lv * 0.6 },
+  { id: 'crab', zone: 'sea', n: 'หมึกน้อย', art: 'หมึกยักษ์', kind: 'attack', desc: (p) => `ฟาดหนวด ${p}% ของพลังโจมตี`, pow: (lv) => 28 + lv * 3.5 },
+  { id: 'crow', zone: 'sky', n: 'ฮาร์ปี้น้อย', art: 'ฮาร์ปี้', kind: 'thunder', desc: (p) => `สายฟ้า ${p}% + โอกาส 15% ทำให้มึน`, pow: (lv) => 22 + lv * 3 },
   { id: 'ghost', zone: 'spirit', n: 'ผีน้อย', art: 'วิญญาณร้าย', kind: 'dodge', desc: (p) => `โอกาส ${p}% หลบการโจมตี (ติดตัว)`, pow: (lv) => 3 + lv * 0.5 },
   { id: 'wolf', hunter: true, n: 'หมาป่าเทา', img: 'pets/wolf.webp', kind: 'bite', desc: (p) => `ขย้ำ ${p}% ของพลังโจมตี (คู่หูนักล่า)`, pow: (lv) => 36 + lv * 4.5 },
   { id: 'eagle', hunter: true, n: 'อินทรีทอง', img: 'pets/eagle.webp', kind: 'dive', desc: (p) => `โฉบ ${p}% คริง่าย (คู่หูนักล่า)`, pow: (lv) => 30 + lv * 4 },
@@ -46,7 +46,7 @@ function petAct(st) {
     case 'drain': { const r = hit(p); const a = Math.min(Math.round(r.dmg * 0.35), st.hp - S.hp); S.hp += Math.max(0, a); log(`🐾 ${d.n} กัด ${fmt(r.dmg)} ดาเมจ`); ev({ a: 'pet', kind: 'hit', hits: [r] }); break; }
     case 'poison': { const r = hit(p); if (!B.poison) { B.poison = 3; B.poisonDmg = Math.round(st.atk * 0.35 + e.maxHp * 0.015); } log(`🐾 ${d.n} ต่อย ${fmt(r.dmg)} ดาเมจ`); ev({ a: 'pet', kind: 'poison', hits: [r] }); break; }
     case 'fire': { const r = hit(p, { ignoreDef: true }); log(`🐾 ${d.n} พ่นไฟ ${fmt(r.dmg)} ดาเมจ`); ev({ a: 'pet', kind: 'fire', hits: [r] }); break; }
-    case 'attack': { const r = hit(p); log(`🐾 ${d.n} หนีบ ${fmt(r.dmg)} ดาเมจ`); ev({ a: 'pet', kind: 'hit', hits: [r] }); break; }
+    case 'attack': { const r = hit(p); log(`🐾 ${d.n} โจมตี ${fmt(r.dmg)} ดาเมจ`); ev({ a: 'pet', kind: 'hit', hits: [r] }); break; }
     case 'thunder': {
       const r = hit(p); log(`🐾 ${d.n} สายฟ้า ${fmt(r.dmg)} ดาเมจ`); ev({ a: 'pet', kind: 'thunder', hits: [r] });
       if (e.hp > 0 && Math.random() < 0.15 && !(B.isBoss && Math.random() < 0.5)) { B.stun = 1; B.charging = false; log(`💫 ${e.n} มึน!`); ev({ a: 'stun', text: 'มึน' }); }

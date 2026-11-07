@@ -124,47 +124,55 @@ const defaultLoadout = (cls, lv) => {
    ค่าพลังจริงคำนวณจากเลเวลพื้นที่ (ดู monsterBase) — ความยากที่สูงขึ้นจะบวกเลเวลเพิ่ม */
 const ZONES = [
   { id: 'forest', name: 'ป่าเขียวขจี', icon: '🌲', lv: 1, suffix: 'แห่งพงไพร', bg: 'linear-gradient(180deg,#1d3a2a,#13261c)',
-    mobs: [['สไลม์', '🟢', 0.75, 0.8, 0.7], ['หมาป่า', '🐺', 1, 1, 1], ['ก็อบลิน', '👺', 1.2, 1.1, 1.2]],
-    boss: ['ราชาก็อบลิน', '👹'],
+    mobs: [['ภูตพฤกษา', '🌳', 1.15, 0.95, 1.2], ['ภูตจิ๋ว', '🧚', 0.7, 1.1, 0.6], ['แมวมอส', '🐈', 0.9, 1, 0.9], ['ด้วงมอส', '🪲', 0.85, 0.95, 1.1], ['แมลงยักษ์', '🦟', 0.8, 1.15, 0.7], ['หุ่นไม้', '🪵', 1.2, 0.9, 1.3]],
+    boss: ['ราชาพฤกษา', '🌳'],
     unique: { slot: 'weapon', n: 'กระบองราชาก็อบลิน', i: '🏏', bonus: { crit: 3 } } },
   { id: 'cave', name: 'ถ้ำมืดมิด', icon: '🕳️', lv: 4, suffix: 'แห่งเงามืด', bg: 'linear-gradient(180deg,#25223a,#141221)',
-    mobs: [['ค้างคาวแวมไพร์', '🦇', 0.85, 1, 0.8], ['แมงมุมยักษ์', '🕷️', 1, 1.05, 1], ['โครงกระดูก', '💀', 1.15, 1.1, 1.2]],
-    boss: ['นาคาพิษ', '🐍'],
+    mobs: [['แมงมุมคริสตัล', '🕷️', 0.95, 1.1, 0.9], ['มนุษย์ถ้ำ', '🧌', 1.15, 1.05, 1], ['ผลึกมีชีวิต', '💎', 0.9, 0.9, 1.5], ['ทากผลึก', '🐌', 1.1, 0.85, 1.1], ['เห็ดเรืองแสง', '🍄', 0.8, 1.1, 0.8], ['หินจำแลง', '🪨', 1.1, 1, 1.4]],
+    boss: ['เนตรผลึก', '👁️'],
     unique: { slot: 'armor', n: 'เกล็ดนาคา', i: '🐉', bonus: { hpMul: 1.25 } } },
   { id: 'desert', name: 'ทะเลทรายร้อนระอุ', icon: '🏜️', lv: 7, suffix: 'แห่งผืนทราย', bg: 'linear-gradient(180deg,#5a4320,#2c1f0e)',
-    mobs: [['แมงป่องยักษ์', '🦂', 0.9, 1.1, 1.1], ['อูฐคลั่ง', '🐪', 1.2, 0.95, 0.9], ['มัมมี่', '🧟‍♂️', 1.1, 1.05, 1]],
+    mobs: [['ด้วงสการับ', '🪲', 0.9, 1, 1.2], ['มังกรทราย', '🐉', 1.1, 1.15, 1], ['พายุทราย', '🌪️', 0.85, 1.15, 0.7], ['แมงป่องยักษ์', '🦂', 0.9, 1.1, 1.1], ['มัมมี่', '🧟‍♂️', 1.1, 1.05, 1], ['กระบองเพชรคลั่ง', '🌵', 1.15, 0.95, 1.2]],
     boss: ['สฟิงซ์ทองคำ', '🦁'],
     unique: { slot: 'necklace', n: 'ดวงตาสฟิงซ์', i: '👁️', bonus: { crit: 6 } } },
   { id: 'volcano', name: 'ภูเขาไฟ', icon: '🌋', lv: 10, suffix: 'แห่งเพลิง', bg: 'linear-gradient(180deg,#4a1d14,#22100c)',
-    mobs: [['ภูตไฟ', '🔥', 0.85, 1.15, 0.8], ['โกเลมหิน', '🗿', 1.25, 0.95, 1.5], ['ซาลาแมนเดอร์', '🦎', 1, 1.1, 1]],
+    mobs: [['ภูตไฟ', '🔥', 0.85, 1.15, 0.8], ['ซาลาแมนเดอร์', '🦎', 1, 1.1, 1], ['โทรลลาวา', '👹', 1.2, 1.05, 1.1], ['ยักษ์ลาวา', '🗿', 1.3, 0.95, 1.4], ['ทากแมกมา', '🐌', 1, 0.9, 1.1], ['ลูกนกฟีนิกซ์', '🐦‍🔥', 0.75, 1.2, 0.7]],
     boss: ['มังกรเพลิง', '🐲'],
     unique: { slot: 'necklace', n: 'หัวใจมังกร', i: '❤️‍🔥', bonus: { atkAdd: 2 } } },
   { id: 'swamp', name: 'หนองน้ำพิษ', icon: '🐸', lv: 13, suffix: 'แห่งบึงพิษ', bg: 'linear-gradient(180deg,#24391c,#0f1a0b)',
-    mobs: [['กบยักษ์', '🐸', 1, 0.95, 0.9], ['จระเข้', '🐊', 1.25, 1.1, 1.3], ['ยุงพิษ', '🦟', 0.7, 1.2, 0.6]],
-    boss: ['แม่มดหนองน้ำ', '🧙‍♀️'],
+    mobs: [['มนุษย์คางคก', '🐸', 1, 0.95, 0.9], ['โกเลมหนองน้ำ', '🧌', 1.3, 1, 1.4], ['สไลม์พิษ', '🟢', 0.9, 1, 0.8], ['สไลม์เหลว', '🫠', 0.8, 1.05, 0.7], ['หนูกาฬโรค', '🐀', 0.75, 1.15, 0.7], ['งูพิษ', '🐍', 0.95, 1.2, 0.9]],
+    boss: ['ไฮดราพิษ', '🐉'],
     unique: { slot: 'weapon', n: 'คทาแม่มดหนองน้ำ', i: '🌿', bonus: { mp: 8 } } },
   { id: 'ice', name: 'ธารน้ำแข็ง', icon: '❄️', lv: 16, suffix: 'แห่งเหมันต์', bg: 'linear-gradient(180deg,#26445e,#101d2b)',
-    mobs: [['หมีขั้วโลก', '🐻‍❄️', 1.25, 1.05, 1.1], ['ตุ๊กตาหิมะคลั่ง', '☃️', 0.9, 1, 1.2], ['เพนกวินนักรบ', '🐧', 0.9, 1.1, 0.9]],
-    boss: ['แมมมอธน้ำแข็ง', '🦣'],
+    mobs: [['เยติ', '🦍', 1.25, 1.05, 1.1], ['ยักษ์น้ำแข็ง', '🧊', 1.3, 1.1, 1.2], ['ปีศาจหิมะ', '👹', 0.9, 1.15, 0.9], ['หมีฮูกน้ำแข็ง', '🦉', 1.1, 1, 1], ['นกฮูกหิมะ', '🦉', 0.75, 1.1, 0.7], ['โกเลมคริสตัล', '💎', 1.2, 0.9, 1.6]],
+    boss: ['ราชาน้ำแข็ง', '👑'],
     unique: { slot: 'armor', n: 'เกราะน้ำแข็งนิรันดร์', i: '🧊', bonus: { defMul: 1.2 } } },
   { id: 'sea', name: 'วิหารใต้สมุทร', icon: '🌊', lv: 19, suffix: 'แห่งห้วงสมุทร', bg: 'linear-gradient(180deg,#123b55,#081722)',
-    mobs: [['ฉลามคลั่ง', '🦈', 1.05, 1.2, 0.9], ['ปูเหล็ก', '🦀', 1, 0.95, 1.6], ['แมงกะพรุนไฟฟ้า', '🪼', 0.8, 1.15, 0.7]],
-    boss: ['คราเคน', '🐙'],
+    mobs: [['เงือก', '🧜‍♀️', 0.85, 1.1, 0.8], ['มังกรทะเล', '🐉', 1.15, 1.15, 1], ['ทหารสมุทร', '🔱', 1, 1.1, 1.1], ['หุ่นทองเหลือง', '🤖', 1.2, 0.95, 1.6], ['ภูตปะการัง', '🪸', 1, 0.95, 1.2], ['หมึกยักษ์', '🦑', 1.1, 1.1, 0.9]],
+    boss: ['เทพสมุทร', '🔱'],
     unique: { slot: 'weapon', n: 'ตรีศูลสมุทร', i: '🔱', bonus: { atkMul: 1.1 } } },
   { id: 'sky', name: 'เกาะลอยฟ้า', icon: '☁️', lv: 22, suffix: 'แห่งฟากฟ้า', bg: 'linear-gradient(180deg,#3d5b8f,#1a2640)',
-    mobs: [['ภูตลมพายุ', '🌪️', 0.9, 1.15, 0.8], ['อีกาสายฟ้า', '🐦‍⬛', 0.85, 1.2, 0.8], ['ยักษ์เมฆ', '⛈️', 1.35, 1, 1.2]],
+    mobs: [['วาฬฟ้า', '🐋', 1.35, 0.95, 1.1], ['ฮาร์ปี้', '🦅', 0.85, 1.2, 0.8], ['ภูตลม', '🌪️', 0.85, 1.15, 0.8], ['เมฆสายฟ้า', '⛈️', 1, 1.15, 0.9], ['ภูตอสนี', '⚡', 0.9, 1.25, 0.8], ['ฉลามเวหา', '🦈', 1.05, 1.2, 0.9]],
     boss: ['พญาครุฑ', '🦅'],
     unique: { slot: 'cape', n: 'ปีกพญาครุฑ', i: '🪽', bonus: { crit: 8 } } },
   { id: 'spirit', name: 'ดินแดนวิญญาณ', icon: '👻', lv: 25, suffix: 'แห่งยมโลก', bg: 'linear-gradient(180deg,#2d2140,#0e0916)',
-    mobs: [['วิญญาณร้าย', '👻', 0.85, 1.2, 0.7], ['ตุ๊กตาต้องสาป', '🪆', 1, 1.05, 1.1], ['อัศวินกระดูก', '☠️', 1.2, 1.1, 1.3]],
+    mobs: [['วิญญาณร้าย', '👻', 0.85, 1.2, 0.7], ['ภูตนำทาง', '👼', 0.9, 1.05, 0.9], ['หุ่นรูน', '🗿', 1.25, 1, 1.5], ['วิญญาณโบราณ', '🌀', 1, 1.15, 0.9], ['มังกรวิญญาณ', '🐉', 1.15, 1.15, 1], ['ผู้เดินแห่งความว่าง', '🕳️', 1, 1.2, 1]],
     boss: ['เจ้าแห่งยมโลก', '🧛'],
     unique: { slot: 'armor', n: 'ผ้าคลุมยมโลก', i: '🧥', bonus: { hpMul: 1.15, mp: 6 } } },
   { id: 'castle', name: 'ปราสาทจอมมาร', icon: '🏰', lv: 28, suffix: 'แห่งรัตติกาล', bg: 'linear-gradient(180deg,#2b1033,#12071a)',
-    mobs: [['อัศวินดำ', '🛡️', 1.1, 1, 1.3], ['ปีศาจ', '😈', 1, 1.1, 1], ['ลิช', '🧟', 0.95, 1.2, 0.9]],
-    boss: ['จอมมาร', '👿'],
+    mobs: [['ปีศาจ', '😈', 0.9, 1.1, 0.9], ['อินเฟอร์นัล', '👺', 1.15, 1.15, 1.1], ['ปีศาจขวานคู่', '🪓', 1, 1.2, 1], ['ปีศาจตรวน', '⛓️', 1.1, 1.05, 1.1], ['ปีศาจเขาโค้ง', '🐂', 1.25, 1.1, 1.2], ['อัศวินดำ', '🛡️', 1.1, 1, 1.4]],
+    boss: ['จอมมาร', '👿'], bossFinal: ['จอมมารร่างแท้', '🌌'], // ร่างแท้โผล่ในโหมดขั้นสูง
     unique: { slot: 'weapon', n: 'ดาบสังหารมาร', i: '⚔️', bonus: { atkMul: 1.25, crit: 10 } } },
 ];
 const FINAL_ZONE = ZONES.length - 1;
+/* ภาพมอนสเตอร์: mon/<zone>_<ลำดับ>.webp, บอส mon/<zone>_boss.webp */
+const MONSTER_IMG = {};
+ZONES.forEach((z) => {
+  z.mobs.forEach((m, i) => { MONSTER_IMG[m[0]] = `mon/${z.id}_${i}.webp`; });
+  MONSTER_IMG[z.boss[0]] = `mon/${z.id}_boss.webp`;
+  if (z.bossFinal) MONSTER_IMG[z.bossFinal[0]] = `mon/${z.id}_final.webp`;
+});
+const bossOf = (z) => (z.bossFinal && S && S.diff === 'advanced' ? z.bossFinal : z.boss);
 
 const DIFFS = {
   normal: { name: 'ปกติ', icon: '🟢', off: 0, mul: { hp: 1, atk: 1, def: 1 }, tierAdd: 0, stars: '', minR: 0, maxR: 3, bossMinR: 2, reward: 1, enrage: 0, eCrit: 0,
@@ -602,7 +610,8 @@ function startBattle(zi, isBoss) {
   const d = D();
   let e;
   if (isBoss) {
-    e = { n: zone.boss[0], i: zone.boss[1], maxHp: mb.hp * 7, atk: mb.atk * 1.6, def: mb.def * 1.3, exp: mb.exp * 8, gold: mb.gold * 10 };
+    const bs = bossOf(zone);
+    e = { n: bs[0], i: bs[1], maxHp: mb.hp * 7, atk: mb.atk * 1.6, def: mb.def * 1.3, exp: mb.exp * 8, gold: mb.gold * 10 };
   } else {
     const t = pick(zone.mobs), v = rand(0.9, 1.1);
     e = { n: t[0], i: t[1], maxHp: mb.hp * t[2] * v, atk: mb.atk * t[3] * v, def: mb.def * t[4], exp: mb.exp * v * (t[2] + t[3]) / 2, gold: mb.gold * v };
@@ -1202,7 +1211,7 @@ function renderMap() {
       <div class="ico">${open ? z.icon : '🔒'}</div>
       <div class="info">
         <h3><span class="muted">${i + 1}.</span> ${z.name} <span class="muted">Lv.${zoneLevel(i)}+</span></h3>
-        ${open ? `<div class="muted">บอส: ${z.boss[1]} ${z.boss[0]} ${beaten ? '✅' : ''}</div>
+        ${open ? `<div class="muted">บอส: ${bossOf(z)[1]} ${bossOf(z)[0]} ${beaten ? '✅' : ''}</div>
           <div class="row" style="margin-top:8px;flex-wrap:wrap">
             <button class="small primary" data-a="hunt" data-v="${i}">⚔️ ล่ามอนสเตอร์</button>
             <button class="small danger" data-a="boss" data-v="${i}" ${bossOpen ? '' : 'disabled'}>👑 ท้าบอส ${bossOpen ? '' : `(${kills}/${BOSS_UNLOCK_KILLS})`}</button>
@@ -1476,7 +1485,7 @@ const collectionCount = () => collectionEntries().filter((e) => S.collection[e.k
 function renderCollection() {
   const entries = collectionEntries();
   const got = collectionCount();
-  const mons = ZONES.flatMap((z) => [...z.mobs.map((m) => ({ n: m[0], i: m[1] })), { n: z.boss[0], i: z.boss[1] }]);
+  const mons = ZONES.flatMap((z) => [...z.mobs.map((m) => ({ n: m[0], i: m[1] })), { n: z.boss[0], i: z.boss[1] }, ...(z.bossFinal ? [{ n: z.bossFinal[0], i: z.bossFinal[1] }] : [])]);
   const monsGot = mons.filter((m) => S.bestiary[m.n]).length;
   return `<h2>📖 สมุดสะสม</h2>
   <div class="card"><div class="row between"><b>ไอเทม</b><span class="muted">${got}/${entries.length} (${Math.round((got / entries.length) * 100)}%)</span></div>
