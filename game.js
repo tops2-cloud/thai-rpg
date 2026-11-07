@@ -1281,7 +1281,7 @@ function renderMap() {
 function renderBattleView() {
   if (app.dataset.bid !== String(B.id)) {
     app.innerHTML = `<div id="hudbox"></div>
-      ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroArt(S.cls, S.equip, 84))}
+      ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroArt(S.cls, S.equip, 70))}
       <div class="log" id="blog"></div><div id="bact"></div>`;
     app.dataset.bid = String(B.id);
     stageQueueEnd = 0;
