@@ -304,12 +304,15 @@ function autoStep() {
     if (!B.manaShield && can('manashield') && S.hp < st.hp * 0.7) return use('manashield');
     if (!B.ironwall && can('ironwall') && S.hp < st.hp * 0.6) return use('ironwall');
     if (!B.divine && can('divineshield') && S.hp < st.hp * 0.7) return use('divineshield');
+    if (!B.avatar && can('emperor')) return use('emperor');
+    if (!B.manaShield && can('astral') && S.hp < st.hp * 0.8) return use('astral');
+    if (!B.focus && can('godeye')) return use('godeye');
     if (!B.avatar && can('avatar')) return use('avatar');
     for (const [id, k] of [['warcry', 'atkUp'], ['berserk', 'berserk'], ['focus', 'focus']]) if (!B[k] && can(id)) return use(id);
   }
   if (!B.poison && can('poison') && B.isBoss) return use('poison');
   if (!B.slow && can('icebolt') && B.isBoss) return use('icebolt');
-  for (const id of ['apocalypse', 'thousand', 'judgment', 'arcanenova', 'phoenix', 'holystrike', 'blizzard', 'windarrow', 'earthsplit', 'meteor', 'lightning', 'arrowstorm', 'snipe', 'whirl', 'slash', 'fireball', 'aimshot', 'volley']) if (can(id) && S.mp - skillCost(id) >= st.mp * 0.15) return use(id);
+  for (const id of ['genesis', 'starfall', 'heavenblade', 'apocalypse', 'thousand', 'judgment', 'arcanenova', 'phoenix', 'holystrike', 'blizzard', 'windarrow', 'earthsplit', 'meteor', 'lightning', 'arrowstorm', 'snipe', 'whirl', 'slash', 'fireball', 'aimshot', 'volley']) if (can(id) && S.mp - skillCost(id) >= st.mp * 0.15) return use(id);
   return playerAct('attack');
 }
 

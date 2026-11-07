@@ -346,13 +346,13 @@ function makeLegendPreview(L, tier) {
 
 /* ---------------- สลับอาชีพ (เลเวลแยกของแต่ละอาชีพ) ---------------- */
 function classSnapshot() {
-  return { lv: S.lv, exp: S.exp, adv: !!S.adv, loadout: S.loadout.slice(), skin: S.cos ? S.cos.skin : 'default' };
+  return { lv: S.lv, exp: S.exp, adv: !!S.adv, adv3: !!S.adv3, loadout: S.loadout.slice(), skin: S.cos ? S.cos.skin : 'default' };
 }
 function switchClass(to) {
   if (!CLASSES[to] || to === S.cls) return;
   S.classes[S.cls] = classSnapshot();
   const c = S.classes[to] || { lv: 1, exp: 0, adv: false, loadout: defaultLoadout(to, 1), skin: 'default' };
-  S.cls = to; S.lv = c.lv; S.exp = c.exp; S.adv = c.adv; S.loadout = c.loadout.slice();
+  S.cls = to; S.lv = c.lv; S.exp = c.exp; S.adv = c.adv; S.adv3 = !!c.adv3; S.loadout = c.loadout.slice();
   if (S.cos) S.cos.skin = SKINS.some((x) => x.id === c.skin && skinFits(x, to)) ? c.skin : 'default';
   if (S.pet && !petUsable(petDef(S.pet))) { const p = S.pets.find((x) => petUsable(petDef(x.id))); S.pet = p ? p.id : null; }
   S.classes[to] = classSnapshot();
@@ -369,9 +369,9 @@ function renderClasses() {
   html += Object.entries(CLASSES).map(([id, c]) => {
     const s = S.classes[id];
     const on = id === S.cls;
-    const nm = s && s.adv ? `${ADV_CLASSES[id].icon} ${ADV_CLASSES[id].name}` : `${c.icon} ${c.name}`;
+    const nm = s && s.adv3 ? `${ADV3_CLASSES[id].icon} ${ADV3_CLASSES[id].name}` : s && s.adv ? `${ADV_CLASSES[id].icon} ${ADV_CLASSES[id].name}` : `${c.icon} ${c.name}`;
     return `<div class="card class-card ${on ? 'on' : ''}">
-      <div class="cc-art">${heroArt(id, {}, 84, s ? s.adv : false, { skin: SKINS[0], aura: null })}</div>
+      <div class="cc-art">${heroArt(id, {}, 84, s ? s.adv : false, { skin: SKINS[0], aura: null, tier3: s ? !!s.adv3 : false })}</div>
       <div style="flex:1"><b>${nm}</b>
         <div class="muted" style="font-size:13px">${s ? `Lv.${s.lv}${s.lv < 200 ? ` · EXP ${fmt(s.exp)}/${fmt(expNeed(s.lv))}` : ''}` : 'ยังไม่เคยเล่น · เริ่ม Lv.1'}</div>
         ${on ? '<span class="tag">กำลังใช้</span>' : `<button class="small primary" style="margin-top:6px" data-a="swcls" data-v="${id}">สลับเป็นอาชีพนี้</button>`}

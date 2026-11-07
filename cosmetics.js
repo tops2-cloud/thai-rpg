@@ -86,7 +86,8 @@ function heroArt(cls, equip, size, adv, opt = {}) {
   if (adv === undefined) adv = typeof S !== 'undefined' && !!S && S.cls === cls && !!S.adv;
   const h = Math.round(size * 250 / 235);
   const src = skin && skin.img && skinFits(skin, cls) ? skin.img : HERO_IMG[cls][adv ? 1 : 0];
-  return `<div class="hero-art" style="height:${h}px;min-width:${Math.round(h * 0.55)}px">${auraHTML(aura)}<img class="skin-img ${FACE_LEFT.has(src) ? 'face-left' : ''}" src="${src}" alt="" style="height:${h}px"></div>`;
+  const tier3 = opt.tier3 !== undefined ? opt.tier3 : (typeof S !== 'undefined' && !!S && S.cls === cls && !!S.adv3);
+  return `<div class="hero-art ${tier3 ? 'tier3' : ''}" style="height:${h}px;min-width:${Math.round(h * 0.55)}px">${auraHTML(aura)}<img class="skin-img ${FACE_LEFT.has(src) ? 'face-left' : ''}" src="${src}" alt="" style="height:${h}px"></div>`;
 }
 
 /* ---------- หน้าสกิน & ออร่า ---------- */
