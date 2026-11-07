@@ -31,6 +31,10 @@ const SKINS = [
   { id: 'aquatic', cls: 'archer', n: 'อสูรใต้สมุทร', icon: '🐟', img: 'skins/aquatic.webp', unlock: { boss: 'sea' }, desc: 'มนุษย์ปลาถือธนูปะการัง' },
   { id: 'phantom', cls: 'archer', n: 'ภูตพรางกาย', icon: '👤', img: 'skins/phantom.webp', unlock: { boss: 'spirit' }, desc: 'นักฆ่าผ้าคลุมเงา มีดเรืองแสง' },
   // ทุกคลาส
+  // สกินพรีเมียม (ทุกคลาส)
+  { id: 'phantom2', n: 'มนุษย์ล่องหนโปร่งใส', icon: '👻', img: 'skins/phantom.webp', unlock: { gold: 150000 }, desc: 'ร่างใสดั่งแก้ว มีดาบลอยรอบตัว' },
+  { id: 'harlequin', n: 'ตัวตลกผู้ลวงโลก', icon: '🃏', img: 'skins/harlequin.webp', unlock: { gold: 250000 }, desc: 'ตัวตลกลายข้าวหลามตัด ถือคทาหัวตัวตลก' },
+  { id: 'alien', n: 'เอเลี่ยนผู้พิชิตดวงดาว', icon: '👽', img: 'skins/alien.webp', unlock: { boss: 'w2castle' }, desc: 'ล้มอาร์คดีมอน (บอสสุดท้ายทวีปที่ 2)' },
   { id: 'chimera', n: 'ไคเมราจักรกล', icon: '🦁', img: 'skins/chimera.webp', unlock: { advanced: true }, desc: 'สิงโตจักรกลมีปีก' },
 ];
 
