@@ -26,8 +26,14 @@ function renderWorldMap() {
   }).join('');
   const [tx, ty] = MAP_POS.tower;
   const tpin = `<button class="map-pin tower ${mapSel === 'tower' ? 'on' : ''}" style="left:${tx}%;top:${ty}%" data-a="mapsel" data-v="tower"><span class="pi">🗼</span><b>หอคอย 100 ชั้น</b></button>`;
-  return `<div class="row between"><h2>🗺️ แผนที่โลก</h2><span class="diff-badge d-${S.diff}">${d.icon} ${d.name}</span></div>
-    <div class="worldmap"><img src="bg/worldmap.webp" alt="แผนที่โลก">${pins}${tpin}</div>
+  const menu = diffMenu ? `<div class="diff-menu">${DIFF_ORDER.map((k) => {
+    const x = DIFFS[k], lock = diffLocked(k);
+    return `<button class="d-${k} ${S.diff === k ? 'on' : ''}" data-a="setdiff" data-v="${k}" ${lock ? 'disabled' : ''}>
+      <b>${lock ? '🔒' : x.icon} ${x.name}${S.clearedDiffs[k] ? ' 🏆' : ''}</b><span class="subtle">${lock ? diffLockText(k) : `มอนสเตอร์ Lv.${ZONES[0].lv + x.off}+ · รางวัล ×${x.reward}`}</span></button>`;
+  }).join('')}</div>` : '';
+  return `<h2>🗺️ แผนที่โลก</h2>
+    <div class="map-wrap"><div class="worldmap"><img src="bg/worldmap.webp" alt="แผนที่โลก">${pins}${tpin}</div>
+      <button class="map-diff d-${S.diff}" data-a="diffmenu">${d.icon} ${d.name} ▾</button>${menu}</div>
     <div class="muted" style="font-size:12px;margin:6px 2px 10px">แตะที่แผนที่เพื่อเลือกด่าน · 🗼 ตรงกลางคือหอคอย</div>
     ${mapSel === 'tower' ? renderTowerPanel() : zoneCard(mapSel)}`;
 }
@@ -270,7 +276,8 @@ function migrateTower(s) {
 
 function towerClick(a, v, el) {
   switch (a) {
-    case 'mapsel': mapSel = v === 'tower' ? 'tower' : +v; return true;
+    case 'diffmenu': diffMenu = !diffMenu; return true;
+    case 'mapsel': diffMenu = false; mapSel = v === 'tower' ? 'tower' : +v; return true;
     case 'towerd': if (towerOpen(v)) { S.towerD = v; towerPick = null; save(); } return true;
     case 'tpick': { const max = Math.min(TOWER_FLOORS, (S.tower[S.towerD] || 0) + 1); towerPick = clamp((towerPick || max) + +v, 1, max); return true; }
     case 'tower': startTower(S.towerD, +v); return 'battle';

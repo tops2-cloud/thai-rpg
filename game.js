@@ -172,7 +172,7 @@ ZONES.forEach((z) => {
   MONSTER_IMG[z.boss[0]] = `mon/${z.id}_boss.webp`;
   if (z.bossFinal) MONSTER_IMG[z.bossFinal[0]] = `mon/${z.id}_final.webp`;
 });
-const bossOf = (z) => (z.bossFinal && S && S.diff === 'advanced' ? z.bossFinal : z.boss);
+const bossOf = (z) => (z.bossFinal && S && (S.diff === 'advanced' || S.diff === 'nightmare') ? z.bossFinal : z.boss);
 
 const DIFFS = {
   normal: { name: 'ปกติ', icon: '🟢', off: 0, mul: { hp: 1, atk: 1, def: 1 }, tierAdd: 0, stars: '', minR: 0, maxR: 3, bossMinR: 2, reward: 1, enrage: 0, eCrit: 0,
@@ -181,8 +181,12 @@ const DIFFS = {
     desc: 'มอนสเตอร์ +28 เลเวล · บอสคลั่งเมื่อเลือดต่ำ · ดรอประดับเทพนิยาย' },
   advanced: { name: 'ขั้นสูง', icon: '🔴', off: 56, mul: { hp: 2.2, atk: 2.25, def: 1.3 }, tierAdd: 20, stars: '★★', minR: 2, maxR: 5, bossMinR: 4, reward: 1.6, enrage: 0.5, eCrit: 10,
     desc: 'มอนสเตอร์ +56 เลเวล · บอสคลั่งเร็ว · ดรอประดับเทพเจ้า' },
+  nightmare: { name: 'ฝันร้าย', icon: '🟣', off: 84, mul: { hp: 2.9, atk: 2.8, def: 1.45 }, tierAdd: 30, stars: '★★★', minR: 3, maxR: 5, bossMinR: 5, reward: 2.1, enrage: 0.6, eCrit: 15,
+    desc: 'มอนสเตอร์ +84 เลเวล · บอสคลั่งตั้งแต่เลือด 60% · ดรอปขั้นต่ำเทพนิยาย บอสดรอปเทพเจ้าแน่นอน', need: 'advanced' },
 };
-const DIFF_ORDER = ['normal', 'hard', 'advanced'];
+const DIFF_ORDER = ['normal', 'hard', 'advanced', 'nightmare'];
+const diffLocked = (k) => k !== 'normal' && (DIFFS[k].need ? !S.clearedDiffs[DIFFS[k].need] : !S.clearedDiffs.normal);
+const diffLockText = (k) => (DIFFS[k].need ? `จบโหมด${DIFFS[DIFFS[k].need].name}ก่อน` : 'จบโหมดปกติก่อน');
 
 const RARITY = [
   { id: 'common', name: 'ธรรมดา', m: 1.0, w: 60, cost: 1 },
@@ -255,6 +259,7 @@ let forgeSel = null;
 let forgeUseCharm = false;
 let forgeFx = null;
 let busy = false;
+let diffMenu = false; // เมนูเลือกความยากบนแผนที่
 let battleSeq = 0;
 const ev = (o) => { if (B) B.events.push(o); };
 const offWeapon = () => (S.equip.offhand && S.equip.offhand.slot === 'weapon' ? S.equip.offhand : null);
@@ -393,7 +398,7 @@ function rollRarity(min = 0, max = 3) {
   return min;
 }
 
-const tierSuffix = (tier) => ZONES[(tier - 1) % ZONES.length].suffix + ['', '★', '★★'][Math.min(2, Math.floor((tier - 1) / ZONES.length))];
+const tierSuffix = (tier) => ZONES[(tier - 1) % ZONES.length].suffix + ['', '★', '★★', '★★★'][Math.min(3, Math.floor((tier - 1) / ZONES.length))];
 
 /* สูตรค่าพลังของอุปกรณ์แต่ละประเภท — ค่าแรกคือค่าหลัก (ใช้ตอนตีบวก) */
 function slotStats(cat, b, t, roll, rm, ri) {
@@ -459,7 +464,7 @@ function makeUnique(zone, tier) {
   if (b.atkAdd) st.atk = (st.atk || 0) + tier * b.atkAdd * 2.6;
   if (b.mp) st.mp = (st.mp || 0) + tier * b.mp;
   for (const k in st) st[k] = Math.round(st[k]);
-  const stars = ['', ' ★', ' ★★'][Math.min(2, Math.floor((tier - 1) / ZONES.length))];
+  const stars = ['', ' ★', ' ★★', ' ★★★'][Math.min(3, Math.floor((tier - 1) / ZONES.length))];
   return finalizeItem({ slot: u.slot, key: `u:${zone.id}`, name: u.n + stars, icon: u.i, rarity: 'unique', tier, stats: st });
 }
 
@@ -963,7 +968,7 @@ function usePotion(k, inBattle) {
 }
 
 function setDifficulty(k) {
-  if (!DIFFS[k] || (k !== 'normal' && !S.clearedDiffs.normal)) return;
+  if (!DIFFS[k] || diffLocked(k)) return;
   S.diff = k;
   P();
   const st = stats(); S.hp = st.hp; S.mp = st.mp;
@@ -1088,7 +1093,7 @@ function renderTown() {
   const full = S.hp >= st.hp && S.mp >= st.mp;
   const d = D();
   const msg = S.clearedDiffs[S.diff]
-    ? `🎉 คุณโค่นจอมมารในโหมด${d.name}แล้ว! ${S.diff === 'advanced' ? 'คุณคือตำนานที่แท้จริง' : 'ลองท้าทายความยากที่สูงขึ้นดูสิ'}`
+    ? `🎉 คุณโค่นจอมมารในโหมด${d.name}แล้ว! ${S.diff === 'nightmare' ? 'ฝันร้ายก็หยุดคุณไม่ได้!' : S.diff === 'advanced' ? 'คุณคือตำนานที่แท้จริง' : 'ลองท้าทายความยากที่สูงขึ้นดูสิ'}`
     : 'จอมมารกำลังคุกคามแผ่นดิน... ผู้กล้า จงออกเดินทาง!';
   return `<div class="card"><h2 style="margin-top:0">🏘️ หมู่บ้านเริ่มต้น</h2>
     <div class="muted">${msg}</div></div>
@@ -1104,7 +1109,6 @@ function renderTown() {
     <button data-a="go" data-v="cosmetics"><span class="ico">👘</span>สกิน & ออร่า<span class="subtle">${curSkin().n}${curAura() ? ` · ${curAura().n}` : ''}</span></button>
     <button data-a="go" data-v="pets"><span class="ico">🐾</span>สัตว์เลี้ยง<span class="subtle">${curPet() ? `${petDef(S.pet).n} Lv.${curPet().lv}` : `${S.pets.length}/${PETS.length} ตัว`}</span></button>
     <button data-a="go" data-v="quests" class="${claimable() ? 'glow-btn' : ''}"><span class="ico">📋</span>ภารกิจ${claimable() ? ` <span class="badge">${claimable()}</span>` : ''}<span class="subtle">ประจำวัน & ความสำเร็จ</span></button>
-    <button data-a="go" data-v="diff" class="${anyCleared() ? 'glow-btn' : ''}"><span class="ico">${anyCleared() ? '🎚️' : '🔒'}</span>ระดับความยาก<span class="subtle">${anyCleared() ? `ตอนนี้: ${d.name}` : 'ปลดล็อกเมื่อจบเกม'}</span></button>
   </div>
   <div class="card" style="margin-top:12px">
     <h3 style="margin-top:0">สถานะ</h3>
@@ -1198,7 +1202,7 @@ function renderDiff() {
   html += `<div class="card muted" style="font-size:14px">เปลี่ยนความยากได้ตลอด เลเวล ทอง และไอเทมติดตัวไปด้วย ส่วนความคืบหน้าด่านแยกกันในแต่ละโหมด</div>`;
   html += DIFF_ORDER.map((k) => {
     const d = DIFFS[k];
-    const locked = k !== 'normal' && !S.clearedDiffs.normal;
+    const locked = diffLocked(k);
     const prog = S.prog[k] ? ZONES.filter((z) => S.prog[k].bossWins[z.id]).length : 0;
     const cur = S.diff === k;
     return `<div class="card diff-card d-${k} ${cur ? 'cur' : ''} ${locked ? 'locked' : ''}">
@@ -1384,8 +1388,8 @@ function battleResult() {
   </div>`).join('');
   let ending = '';
   if (r.ending) {
-    const nextOpts = DIFF_ORDER.filter((k) => k !== S.diff);
-    const title = { normal: 'คุณโค่นจอมมารได้แล้ว!', hard: 'พิชิตโหมดยากสำเร็จ!', advanced: 'พิชิตโหมดขั้นสูง — ตำนานที่แท้จริง!' }[r.ending];
+    const nextOpts = DIFF_ORDER.filter((k) => k !== S.diff && !diffLocked(k));
+    const title = { normal: 'คุณโค่นจอมมารได้แล้ว!', hard: 'พิชิตโหมดยากสำเร็จ!', advanced: 'พิชิตโหมดขั้นสูง — ตำนานที่แท้จริง! ปลดล็อกโหมดฝันร้าย', nightmare: 'พิชิตโหมดฝันร้าย — ไม่มีใครเทียบได้อีกแล้ว!' }[r.ending];
     ending = `<div class="card ending" style="text-align:center"><div class="big">🎉</div><h2>${title}</h2>
       <div class="muted">ขอบคุณที่เล่นนะ ผู้กล้า ${esc(S.name)}! เลือกความยากเพื่อผจญภัยต่อ (เลเวลและไอเทมติดตัวไปด้วย)</div>
       <div class="diff-pick">${nextOpts.map((k) => `<button class="d-${k}" data-a="setdiff" data-v="${k}">${DIFFS[k].icon} ${DIFFS[k].name}<span class="subtle">Lv.${ZONES[0].lv + DIFFS[k].off}+</span></button>`).join('')}
@@ -1570,10 +1574,10 @@ document.addEventListener('click', (ev) => {
     case 'charm': forgeUseCharm = el.checked; return;
     case 'forge': forge(findItem(forgeSel)); break;
     case 'setdiff': {
-      if (v === S.diff) { B = null; view = 'town'; break; }
+      if (v === S.diff) { diffMenu = false; if (view !== 'map') { B = null; view = 'town'; } break; }
       const d = DIFFS[v];
       if (!confirm(`เปลี่ยนเป็นโหมด${d.name}? (มอนสเตอร์เริ่มที่ Lv.${ZONES[0].lv + d.off})`)) return;
-      setDifficulty(v); B = null; busy = false; view = 'map'; break;
+      setDifficulty(v); B = null; busy = false; view = 'map'; diffMenu = false; mapSel = null; break;
     }
     case 'hunt': startBattle(+v, false); return;
     case 'boss': startBattle(+v, true); return;

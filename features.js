@@ -143,6 +143,7 @@ const ACH = [
   { id: 'cN', n: 'ผู้กล้าแห่งแผ่นดิน', d: 'จบเกมโหมดปกติ', v: () => (S.clearedDiffs.normal ? 1 : 0), need: 1, gold: 5000, elixir: 3 },
   { id: 'cH', n: 'ผู้กล้าผู้ไม่ย่อท้อ', d: 'จบเกมโหมดยาก', v: () => (S.clearedDiffs.hard ? 1 : 0), need: 1, gold: 30000, charm: 5 },
   { id: 'cA', n: 'ตำนานที่แท้จริง', d: 'จบเกมโหมดขั้นสูง', v: () => (S.clearedDiffs.advanced ? 1 : 0), need: 1, gold: 100000, charm: 10 },
+  { id: 'cN', n: 'ผู้พิชิตฝันร้าย', d: 'จบเกมโหมดฝันร้าย', v: () => (S.clearedDiffs.nightmare ? 1 : 0), need: 1, gold: 300000, charm: 20 },
   { id: 'l10', n: 'เติบโต', d: 'ถึง Lv.10', v: () => S.lv, need: 10, gold: 300 },
   { id: 'l30', n: 'นักรบเก๋า', d: 'ถึง Lv.30', v: () => S.lv, need: 30, gold: 3000 },
   { id: 'l51', n: 'สองมือสองอาวุธ', d: 'ถึง Lv.51', v: () => S.lv, need: 51, gold: 10000, charm: 2 },
