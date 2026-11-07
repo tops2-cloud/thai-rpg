@@ -518,10 +518,10 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .d-nightmare.diff-badge { border-color: #b05bff; color: #d9a8ff; }
 .diff-card.d-nightmare { border-left-color: #b05bff; }
 .diff-pick .d-nightmare { background: linear-gradient(180deg,#8a3fd6,#5a1fa0); border-color: #b05bff; }
-.map-diff { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); z-index: 4; padding: 3px 10px; font-size: 12px; white-space: nowrap; border-radius: 999px; background: #1f1a30ee; border: 2px solid #4bd16a; box-shadow: 0 2px 8px #000a; }
+.map-diff { position: absolute; top: 10.5%; left: 50%; transform: translateX(-50%); z-index: 4; padding: 1px 8px; font-size: 10px; border-width: 1.5px !important; white-space: nowrap; border-radius: 999px; background: #1f1a30ee; border: 2px solid #4bd16a; box-shadow: 0 2px 8px #000a; }
 .map-diff.d-hard { border-color: #ff9a3d; } .map-diff.d-advanced { border-color: #ff3b5c; } .map-diff.d-nightmare { border-color: #b05bff; }
-.diff-menu { position: absolute; top: 36px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; flex-direction: column; gap: 5px; width: 210px; background: #14111ff2; border: 1px solid var(--line); border-radius: 12px; padding: 6px; box-shadow: 0 6px 20px #000c; }
-.diff-menu button { text-align: left; padding: 6px 9px; font-size: 13px; border-left: 4px solid #4bd16a; }
+.diff-menu { position: absolute; top: calc(10.5% + 22px); left: 50%; transform: translateX(-50%); z-index: 5; display: flex; flex-direction: column; gap: 5px; width: 180px; background: #14111ff2; border: 1px solid var(--line); border-radius: 12px; padding: 6px; box-shadow: 0 6px 20px #000c; }
+.diff-menu button { text-align: left; padding: 4px 8px; font-size: 12px; border-left: 4px solid #4bd16a; }
 .diff-menu button.d-hard { border-left-color: #ff9a3d; } .diff-menu button.d-advanced { border-left-color: #ff3b5c; } .diff-menu button.d-nightmare { border-left-color: #b05bff; }
 .diff-menu button.on { background: #3a2b62; }
 .diff-menu .subtle { font-size: 10px; }
