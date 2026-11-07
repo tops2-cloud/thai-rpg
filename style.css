@@ -408,29 +408,17 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 /* ===== สกิน & ออร่า (ออร่าอยู่หลังตัวละคร) ===== */
 .hero-art { position: relative; display: inline-block; flex: 0 0 auto; }
 .hero-art > .hero-svg, .hero-art > .skin-img { position: relative; z-index: 1; display: block; }
-.skin-img { object-fit: contain; }
-.aura-layer { position: absolute; z-index: 0; left: -38%; top: -30%; width: 176%; height: 160%; overflow: visible; pointer-events: none; }
-.aura-layer * { transform-box: view-box; }
-.au-pulse { animation: auPulse 2.2s ease-in-out infinite; }
-@keyframes auPulse { 0%,100% { transform: scale(.94); } 50% { transform: scale(1.05); } }
-.au-pulse { transform-origin: 100px 110px; }
-.au-flame { animation: auFlame .7s ease-in-out infinite alternate; }
-@keyframes auFlame { from { transform: scale(1, .92); opacity: .7; } to { transform: scale(.94, 1.1); opacity: 1; } }
-.au-rise { animation: auRise 2.6s linear infinite; }
-@keyframes auRise { from { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(-170px); opacity: 0; } }
-.au-spin { animation: auSpin 6s linear infinite; }
-.au-spin-slow { animation: auSpin 14s linear infinite; }
-@keyframes auSpin { to { transform: rotate(360deg); } }
-.au-zap { opacity: 0; animation: auZap 1.25s steps(1) infinite; }
-@keyframes auZap { 0% { opacity: 1; } 12% { opacity: 0; } 18% { opacity: 1; } 26%,100% { opacity: 0; } }
-.au-flat { transform: scaleY(.3); transform-origin: 100px 190px; }
-.au-flap { animation: auFlap 2.4s ease-in-out infinite; }
-@keyframes auFlap { 0%,100% { transform: scale(1, 1); } 50% { transform: scale(.88, 1.04); } }
-.au-drift { animation: auDrift 5s ease-in-out infinite alternate; }
-@keyframes auDrift { from { transform: translate(-6px, 4px); } to { transform: translate(8px, -8px); } }
-.au-blink { animation: auBlink 3.2s ease-in-out infinite; }
-@keyframes auBlink { 0%,40%,100% { opacity: 0; } 50%,85% { opacity: 1; } 88% { opacity: .1; } 92% { opacity: 1; } }
-.au-twinkle { animation: twinkle 1.8s ease-in-out infinite; }
+.skin-img { object-fit: contain; width: auto; max-width: none; filter: drop-shadow(0 3px 4px #0007); }
+.hero-art > .skin-img { margin: 0 auto; }
+.stage .hero-art .skin-img { transform: scaleX(-1); }
+.hero-u .hero-art { animation: idle 2s ease-in-out infinite; }
+.aura-layer { position: absolute; z-index: 0; left: 50%; top: 46%; height: 135%; width: auto; aspect-ratio: 1; transform: translate(-50%,-50%); pointer-events: none; max-width: none; }
+.au-pulse { animation: auPulse 2.6s ease-in-out infinite; }
+@keyframes auPulse { 0%,100% { transform: translate(-50%,-50%) scale(.96); opacity: .85; } 50% { transform: translate(-50%,-50%) scale(1.04); opacity: 1; } }
+.au-spin { animation: auSpin 14s linear infinite; }
+@keyframes auSpin { from { transform: translate(-50%,-50%) rotate(0); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+.au-flicker { animation: auFlick 1.1s ease-in-out infinite alternate; transform-origin: 50% 90%; }
+@keyframes auFlick { from { transform: translate(-50%,-50%) scale(1,.97); opacity: .85; } to { transform: translate(-50%,-50%) scale(1.03,1.05); opacity: 1; } }
 .cos-preview { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; overflow: hidden; }
 .cos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .cos-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 8px 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; overflow: hidden; }
@@ -440,7 +428,7 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .cos-card > *:not(.cos-prev) { position: relative; z-index: 2; }
 .cos-prev-big { height: 250px; width: 100%; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; border-radius: 12px; }
 .cos-preview > .muted { position: relative; z-index: 2; }
-@media (prefers-reduced-motion: reduce) { .au-pulse, .au-flame, .au-rise, .au-spin, .au-spin-slow, .au-zap, .au-flap, .au-drift, .au-blink, .au-twinkle { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .au-pulse, .au-spin, .au-flicker { animation: none !important; } }
 
 .cos-prev { position: relative; cursor: pointer; }
 .try-hint { position: absolute; top: 6px; right: 8px; font-size: 11px; background: #0d0b16cc; border-radius: 99px; padding: 1px 7px; z-index: 3; }
@@ -471,3 +459,5 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 #bact .skill-btn .sk-ico { font-size: 19px; }
 #bact .skill-btn .sk-nm { font-size: 11px; }
 #bact .skill-btn .sk-mp { font-size: 9px; }
+.pet-img { width: auto; max-width: none; display: block; filter: drop-shadow(0 2px 3px #0007); }
+.stage .pet-img { transform: scaleX(-1); }

@@ -1297,6 +1297,7 @@ function renderSkills() {
 function advanceClass() {
   if (S.adv || S.lv < ADV_LV) return;
   S.adv = true;
+  if (typeof grantHunterPets === 'function') { grantHunterPets(S); if (S.cls === 'archer') S.pet = 'wolf'; }
   while (S.loadout.length < 5) S.loadout.push(null);
   for (const sk of skillsOf(S.cls)) if (sk.adv && sk.lv <= S.lv && !S.loadout.includes(sk.id)) { const i = S.loadout.indexOf(null); if (i >= 0) S.loadout[i] = sk.id; }
   const st = stats(); S.hp = st.hp; S.mp = st.mp;

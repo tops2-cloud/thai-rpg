@@ -17,14 +17,23 @@ const PETS = [
   { id: 'crab', zone: 'sea', n: 'ปูน้อย', art: 'ปูเหล็ก', kind: 'attack', desc: (p) => `หนีบ ${p}% ของพลังโจมตี`, pow: (lv) => 28 + lv * 3.5 },
   { id: 'crow', zone: 'sky', n: 'อีกาสายฟ้าน้อย', art: 'อีกาสายฟ้า', kind: 'thunder', desc: (p) => `สายฟ้า ${p}% + โอกาส 15% ทำให้มึน`, pow: (lv) => 22 + lv * 3 },
   { id: 'ghost', zone: 'spirit', n: 'ผีน้อย', art: 'วิญญาณร้าย', kind: 'dodge', desc: (p) => `โอกาส ${p}% หลบการโจมตี (ติดตัว)`, pow: (lv) => 3 + lv * 0.5 },
+  { id: 'wolf', hunter: true, n: 'หมาป่าเทา', img: 'pets/wolf.webp', kind: 'bite', desc: (p) => `ขย้ำ ${p}% ของพลังโจมตี (คู่หูนักล่า)`, pow: (lv) => 36 + lv * 4.5 },
+  { id: 'eagle', hunter: true, n: 'อินทรีทอง', img: 'pets/eagle.webp', kind: 'dive', desc: (p) => `โฉบ ${p}% คริง่าย (คู่หูนักล่า)`, pow: (lv) => 30 + lv * 4 },
   { id: 'imp', zone: 'castle', n: 'ปีศาจจิ๋ว', art: 'ปีศาจ', kind: 'crit', desc: (p) => `แทงสามง่าม ${p}% (คริง่าย)`, pow: (lv) => 35 + lv * 4.5 },
 ];
 const PET_MAX_LV = 10;
 const petDef = (id) => PETS.find((p) => p.id === id);
 const petExpNeed = (lv) => 8 + lv * 6;
-const curPet = () => (S && S.pet ? S.pets.find((p) => p.id === S.pet) : null);
+const isHunter = () => !!S && S.cls === 'archer' && !!S.adv;
+const petUsable = (d) => !d.hunter || isHunter();
+const curPet = () => (S && S.pet && petUsable(petDef(S.pet) || {}) ? S.pets.find((p) => p.id === S.pet) : null);
+/* นักล่าสายลมได้หมาป่ากับอินทรีเป็นคู่หู */
+function grantHunterPets(s) {
+  if (!(s.cls === 'archer' && s.adv)) return;
+  for (const id of ['wolf', 'eagle']) if (!s.pets.some((p) => p.id === id)) s.pets.push({ id, lv: 1, exp: 0 });
+}
 const petPow = (pet) => Math.round(petDef(pet.id).pow(pet.lv) * 10) / 10;
-const petSVG = (id, size) => monsterSVG(petDef(id).art, size);
+const petSVG = (id, size) => { const d = petDef(id); return d.img ? `<img class="pet-img" src="${d.img}" alt="${d.n}" style="height:${size}px">` : monsterSVG(d.art, size); };
 
 /* สัตว์เลี้ยงลงมือหลังผู้เล่น (ชนิดติดตัว guard/dodge ไม่ลงมือ) */
 function petAct(st) {
@@ -43,6 +52,8 @@ function petAct(st) {
       if (e.hp > 0 && Math.random() < 0.15 && !(B.isBoss && Math.random() < 0.5)) { B.stun = 1; B.charging = false; log(`💫 ${e.n} มึน!`); ev({ a: 'stun', text: 'มึน' }); }
       break;
     }
+    case 'bite': { const r = hit(p); log(`🐾 ${d.n} ขย้ำ ${fmt(r.dmg)} ดาเมจ`); ev({ a: 'pet', kind: 'hit', hits: [r] }); break; }
+    case 'dive': { const r = hit(p, { crit: 40 }); log(`🐾 ${d.n} โฉบ ${fmt(r.dmg)} ดาเมจ${r.crit ? ' คริ!' : ''}`); ev({ a: 'pet', kind: 'hit', hits: [r] }); break; }
     case 'crit': { const r = hit(p, { crit: 45 }); log(`🐾 ${d.n} แทง ${fmt(r.dmg)} ดาเมจ${r.crit ? ' คริ!' : ''}`); ev({ a: 'pet', kind: 'hit', hits: [r] }); break; }
     default: return;
   }
@@ -62,9 +73,10 @@ function renderPets() {
   const owned = S.pets.length;
   let html = `<div class="row between"><h2>🐾 สัตว์เลี้ยง</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>
     <div class="muted" style="font-size:14px;margin-bottom:10px">มีแล้ว ${owned}/${PETS.length} ตัว · ได้จากการล้มบอส (โอกาส 50%) · พาไปด้วยได้ 1 ตัว ได้ EXP ทุกครั้งที่ชนะ</div>`;
-  html += `<div class="pet-grid">${PETS.map((d) => {
+  html += `<div class="pet-grid">${[...PETS].sort((a, b) => (isHunter() ? (b.hunter ? 1 : 0) - (a.hunter ? 1 : 0) : 0)).map((d) => {
     const pet = S.pets.find((p) => p.id === d.id);
     const z = ZONES.find((x) => x.id === d.zone);
+    if (d.hunter && !isHunter()) return `<div class="pet-card locked"><div class="pet-art">${petSVG(d.id, 64)}</div><b>${d.n}</b><div class="muted" style="font-size:12px">🔒 เฉพาะนักล่าสายลม (นักธนูเลื่อนขั้น)</div></div>`;
     if (!pet) return `<div class="pet-card locked"><div class="pet-art">${monsterSVG(d.art, 64)}</div><b>???</b><div class="muted" style="font-size:12px">ได้จากบอส ${z.boss[0]}</div></div>`;
     const on = S.pet === d.id;
     return `<div class="pet-card ${on ? 'on' : ''}">
@@ -324,6 +336,7 @@ const installButton = () => (installPrompt && !isStandalone() ? '<button class="
 function migrateExtras(s) {
   if (!s.pets) s.pets = [];
   if (s.pet === undefined) s.pet = null;
+  grantHunterPets(s);
   if (!s.track) s.track = { kills: s.wins || 0, bossKills: Object.values(s.prog || {}).reduce((a, p) => a + Object.values(p.bossWins || {}).reduce((x, y) => x + y, 0), 0) };
   if (!s.ach) s.ach = {};
   if (!s.settings) s.settings = {};
