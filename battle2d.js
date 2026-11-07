@@ -110,7 +110,7 @@ function stageHTML(zone, foe, isBoss, heroSvg) {
     <img class="stage-bg stage-img" src="bg/${zone.id}.webp" alt="" onerror="this.remove()">
     <div class="unit hero-u" id="u-hero"><div class="ushadow"></div><div class="ubody" id="hero-body">${heroSvg}</div><div class="utags" id="htags"></div>
       <div class="ubars"><div class="mbar hp"><i id="hhp"></i><span id="hhptext"></span></div><div class="mbar mp"><i id="hmp"></i></div></div></div>
-    <div class="unit foe-u ${isBoss ? 'boss' : ''}" id="u-foe"><div class="ushadow"></div><div class="ubody foe-sprite" id="foe-body">${typeof monsterSVG === 'function' ? monsterSVG(foe.n, isBoss ? 104 : 76, foe.i) : foe.i}</div><div class="utags ftags" id="ftags"></div>
+    <div class="unit foe-u ${isBoss ? 'boss' : ''}" id="u-foe"><div class="ushadow"></div><div class="ubody foe-sprite" id="foe-body">${typeof monsterSVG === 'function' ? monsterSVG(foe.n, isBoss ? 86 : 62, foe.i) : foe.i}</div><div class="utags ftags" id="ftags"></div>
       <div class="ubars"><div class="uname">${isBoss ? '👑 ' : ''}${foe.n}</div><div class="mbar hp"><i id="fhp"></i><span id="fhptext"></span></div></div></div>
     <div class="unit pet-u" id="u-pet"></div>
     <div class="fx" id="fx"></div>
@@ -171,7 +171,7 @@ function stagePet(pet) {
   const id = pet ? pet.id : '';
   if (u.dataset.id === id) return;
   u.dataset.id = id;
-  u.innerHTML = pet ? `<div class="ushadow"></div><div class="ubody pet-body" id="pet-body">${petSVG(pet.id, 38)}</div><div class="pet-lv">Lv.${pet.lv}</div>` : '';
+  u.innerHTML = pet ? `<div class="ushadow"></div><div class="ubody pet-body" id="pet-body">${petSVG(pet.id, 30)}</div><div class="pet-lv">Lv.${pet.lv}</div>` : '';
 }
 
 /* ---------- ตัวช่วยแอนิเมชัน (ปรับตามความเร็วเกม x1/x2/x3) ---------- */

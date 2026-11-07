@@ -192,7 +192,7 @@ const RARITY = [
   { id: 'mythic', name: 'เทพนิยาย', m: 3.4, w: 0.8, cost: 3 },
   { id: 'divine', name: 'เทพเจ้า', m: 4.4, w: 0.3, cost: 4 },
 ];
-const RARITY_ORDER = { unique: 0, divine: 1, mythic: 2, legend: 3, epic: 4, rare: 5, common: 6 };
+const RARITY_ORDER = { legendary: -1, unique: 0, divine: 1, mythic: 2, legend: 3, epic: 4, rare: 5, common: 6 };
 
 /* m = ตัวคูณโจมตี, c = ตัวคูณคริ, mp = ให้ MP, minTier = ระดับไอเทมขั้นต่ำที่จะดรอป (อาวุธระดับสูง)
    h2 = อาวุธสองมือ (แรงกว่า ×1.4 · ก่อน Lv.51 ใช้มือซ้ายไม่ได้) */
@@ -316,6 +316,7 @@ function migrate(s) {
   if (!s.skillLv) s.skillLv = {};
   migrateExtras(s);
   migrateCosmetics(s);
+  migrateTower(s);
   return s;
 }
 
@@ -337,6 +338,7 @@ function newGame(name, cls) {
   };
   migrateExtras(S);
   migrateCosmetics(S);
+  migrateTower(S);
   const starter = { warrior: ['sword', 'ดาบฝึกหัด', '🗡️'], mage: ['staff', 'คทาฝึกหัด', '🪄'], archer: ['bow', 'ธนูฝึกหัด', '🏹'] }[cls];
   S.equip.weapon = finalizeItem({ slot: 'weapon', key: `${starter[0]}:common`, name: starter[1], icon: starter[2], rarity: 'common', tier: 1, stats: { atk: 3 } });
   S.collection[S.equip.weapon.key] = true;
@@ -496,7 +498,7 @@ function addItem(it) {
   return isNew;
 }
 
-const rarityName = (id) => id === 'unique' ? 'ไอเทมบอส' : RARITY.find((r) => r.id === id).name;
+const rarityName = (id) => id === 'unique' ? 'ไอเทมบอส' : id === 'legendary' ? 'เลเจนดารี' : RARITY.find((r) => r.id === id).name;
 const statText = (st) => Object.entries(st).map(([k, v]) => `${STAT_NAME[k]} +${v}`).join(' · ');
 const itemName = (it) => `${it.plus ? `<b class="plus">+${it.plus}</b> ` : ''}${esc(it.name)}`;
 const itemNameText = (it) => `${it.plus ? `+${it.plus} ` : ''}${it.name}`;
@@ -570,7 +572,7 @@ function equipItem(it, target) {
 
 /* ---------------- ตีบวก ---------------- */
 
-const rarityCost = (r) => (r === 'unique' ? 2.5 : RARITY.find((x) => x.id === r).cost);
+const rarityCost = (r) => (r === 'unique' ? 2.5 : r === 'legendary' ? 5 : RARITY.find((x) => x.id === r).cost);
 const forgeCost = (it) => Math.round((15 + it.tier * 12) * rarityCost(it.rarity) * (1 + it.plus * 0.55));
 const charmPrice = () => 100 + maxTier() * 40;
 
@@ -603,27 +605,31 @@ function forge(it) {
 
 /* ---------------- การต่อสู้ ---------------- */
 
-function startBattle(zi, isBoss) {
+function startBattle(zi, isBoss, opt = null) {
   const zone = ZONES[zi];
   const Z = zoneLevel(zi);
   const mb = monsterBase(Z);
   const d = D();
   let e;
-  if (isBoss) {
+  if (opt && opt.e) e = opt.e; // หอคอย: ค่าพลังคำนวณมาแล้ว
+  else if (isBoss) {
     const bs = bossOf(zone);
     e = { n: bs[0], i: bs[1], maxHp: mb.hp * 7, atk: mb.atk * 1.6, def: mb.def * 1.3, exp: mb.exp * 8, gold: mb.gold * 10 };
   } else {
     const t = pick(zone.mobs), v = rand(0.9, 1.1);
     e = { n: t[0], i: t[1], maxHp: mb.hp * t[2] * v, atk: mb.atk * t[3] * v, def: mb.def * t[4], exp: mb.exp * v * (t[2] + t[3]) / 2, gold: mb.gold * v };
   }
-  e.maxHp *= d.mul.hp; e.atk *= d.mul.atk; e.def *= d.mul.def;
-  e.exp *= d.reward; e.gold *= d.reward;
-  for (const k of ['maxHp', 'atk', 'def', 'exp', 'gold']) e[k] = Math.round(e[k]);
-  e.hp = e.maxHp;
-  e.lv = Z;
+  if (!(opt && opt.e)) {
+    e.maxHp *= d.mul.hp; e.atk *= d.mul.atk; e.def *= d.mul.def;
+    e.exp *= d.reward; e.gold *= d.reward;
+    for (const k of ['maxHp', 'atk', 'def', 'exp', 'gold']) e[k] = Math.round(e[k]);
+    e.hp = e.maxHp;
+    e.lv = Z;
+  }
   B = {
     id: ++battleSeq, events: [],
-    zi, isBoss, e, log: [`${e.i} ${e.n} ปรากฏตัว!`],
+    zi, isBoss, e, tower: opt && opt.tower ? opt.tower : null,
+    log: [opt && opt.tower ? `🗼 ชั้น ${opt.tower.floor}: ${e.i} ${e.n} ปรากฏตัว!` : `${e.i} ${e.n} ปรากฏตัว!`],
     eTurns: 0, charging: false, defending: false, enraged: false,
     atkUp: 0, berserk: 0, focus: 0, ironwall: 0, manaShield: 0, evade: false,
     stun: 0, slow: 0, poison: 0, poisonDmg: 0,
@@ -801,7 +807,7 @@ function enemyTurn() {
   if (!B || B.result) return;
   const e = B.e;
   const st = stats();
-  const d = D();
+  const d = B.tower ? DIFFS[TOWER_DIFFS[B.tower.d].world] : D();
 
   if (B.poison > 0) {
     e.hp = Math.max(0, e.hp - B.poisonDmg);
@@ -875,8 +881,10 @@ function victory() {
   S.wins++;
   S.bestiary[e.n] = (S.bestiary[e.n] || 0) + 1;
 
-  if (B.isBoss) {
+  if (B.tower) towerWin(rewards);
+  else if (B.isBoss) {
     const first = !P().bossWins[z.id];
+    if (Math.random() < 0.06) fragDrop(rewards, 1);
     P().bossWins[z.id] = (P().bossWins[z.id] || 0) + 1;
     if (first || Math.random() < 0.25) rewards.items.push(makeUnique(z, tier));
     rewards.items.push(makeGear(tier, d.bossMinR, d.maxR));
@@ -999,7 +1007,7 @@ function hud() {
 
 function nav() {
   const items = [['town', '🏘️', 'เมือง'], ['map', '🗺️', 'ผจญภัย'], ['bag', '🎒', 'กระเป๋า'], ['collection', '📖', 'สะสม']];
-  const sub = { cosmetics: 'town', advance: 'town', shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town' };
+  const sub = { legend: 'town', classes: 'town', cosmetics: 'town', advance: 'town', shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town' };
   return `<nav class="nav"><div class="in">${items.map(([v, i, n]) =>
     `<button data-a="go" data-v="${v}" class="${view === v || sub[view] === v ? 'on' : ''}"><span class="ico">${i}</span>${n}</button>`).join('')}</div></nav>`;
 }
@@ -1024,7 +1032,9 @@ function render() {
     else if (view === 'pets') html += renderPets();
     else if (view === 'quests') html += renderQuests();
     else if (view === 'save') html += renderSave();
-    else if (view === 'map') html += renderMap();
+    else if (view === 'map') html += renderWorldMap();
+    else if (view === 'legend') html += renderLegend();
+    else if (view === 'classes') html += renderClasses();
     else if (view === 'bag') html += renderBag();
     else if (view === 'collection') html += renderCollection();
     if (view !== 'battle') html += nav();
@@ -1089,6 +1099,8 @@ function renderTown() {
     <button data-a="go" data-v="forge"><span class="ico">⚒️</span>ช่างตีเหล็ก<span class="subtle">ตีบวกอุปกรณ์</span></button>
     <button data-a="go" data-v="skills"><span class="ico">📜</span>สกิล<span class="subtle">${S.loadout.filter(Boolean).length}/${skillSlots()} ช่อง · ปลดล็อก ${skillsOf(S.cls).filter(skillOpen).length}/${skillsOf(S.cls).length}</span></button>
     <button data-a="go" data-v="advance" class="${!S.adv && S.lv >= ADV_LV ? 'glow-btn' : ''}"><span class="ico">${S.adv ? ADV_CLASSES[S.cls].icon : S.lv >= ADV_LV ? '🌟' : '🔒'}</span>เลื่อนขั้นอาชีพ<span class="subtle">${S.adv ? ADV_CLASSES[S.cls].name : S.lv >= ADV_LV ? 'พร้อมแล้ว!' : `ปลดล็อก Lv.${ADV_LV}`}</span></button>
+    <button data-a="go" data-v="classes"><span class="ico">🔄</span>สลับอาชีพ<span class="subtle">${Object.entries(S.classes).filter(([k]) => k !== S.cls).map(([k, c]) => `${CLASSES[k].icon}Lv.${c.lv}`).join(' ') || 'เลเวลแยกแต่ละอาชีพ'}</span></button>
+    <button data-a="go" data-v="legend" class="${LEGENDS.some((L) => (S.frags[L.id] || 0) >= LEGEND_NEED) ? 'glow-btn' : ''}"><span class="ico">🌟</span>เลเจนดารี<span class="subtle">💠 เศษ ${Object.values(S.frags).reduce((a, b) => a + b, 0)} ชิ้น</span></button>
     <button data-a="go" data-v="cosmetics"><span class="ico">👘</span>สกิน & ออร่า<span class="subtle">${curSkin().n}${curAura() ? ` · ${curAura().n}` : ''}</span></button>
     <button data-a="go" data-v="pets"><span class="ico">🐾</span>สัตว์เลี้ยง<span class="subtle">${curPet() ? `${petDef(S.pet).n} Lv.${curPet().lv}` : `${S.pets.length}/${PETS.length} ตัว`}</span></button>
     <button data-a="go" data-v="quests" class="${claimable() ? 'glow-btn' : ''}"><span class="ico">📋</span>ภารกิจ${claimable() ? ` <span class="badge">${claimable()}</span>` : ''}<span class="subtle">ประจำวัน & ความสำเร็จ</span></button>
@@ -1226,7 +1238,7 @@ function renderMap() {
 function renderBattleView() {
   if (app.dataset.bid !== String(B.id)) {
     app.innerHTML = `<div id="hudbox"></div>
-      ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroArt(S.cls, S.equip, 100))}
+      ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroArt(S.cls, S.equip, 84))}
       <div class="log" id="blog"></div><div id="bact"></div>`;
     app.dataset.bid = String(B.id);
     stageQueueEnd = 0;
@@ -1356,6 +1368,7 @@ function setSkill(id) {
 
 function battleResult() {
   if (B.result === 'fled') {
+    if (B.tower) return `<div class="actions"><button class="primary" data-a="tower" data-v="${B.tower.floor}">🗼 สู้ชั้น ${B.tower.floor} ใหม่</button><button data-a="leave">🏘️ กลับเมือง</button></div>`;
     return `<div class="actions"><button class="primary" data-a="hunt" data-v="${B.zi}">⚔️ หาศัตรูใหม่</button><button data-a="leave">🏘️ กลับเมือง</button></div>`;
   }
   if (B.result === 'lose') {
@@ -1382,7 +1395,7 @@ function battleResult() {
     <h3 style="margin-top:0">🏆 ชัยชนะ!</h3>
     <div>✨ +${fmt(r.exp)} EXP &nbsp; <span class="gold">💰 +${fmt(r.gold)}</span></div>
     ${r.levels ? `<div class="up" style="font-family:Kanit;font-size:18px;margin-top:6px">⬆️ เลเวลอัพ! ตอนนี้ Lv.${S.lv} (ฟื้นฟูเต็ม)</div>` : ''}
-    ${extrasResultHTML(r)}
+    ${extrasResultHTML(r)}${fragResultHTML(r)}
     ${r.advUnlock ? `<div class="new-skill">🌟 Lv.${ADV_LV}! เลื่อนขั้นเป็น<b>${ADV_CLASSES[S.cls].name}</b>ได้แล้ว <button class="small primary" data-a="go" data-v="advance">ไปเลื่อนขั้น</button></div>` : ''}
     ${r.dualUnlock ? `<div class="new-skill">⚔️⚔️ Lv.${DUAL_LV}! ปลดล็อกใส่อาวุธสองมือได้ทั้ง 2 มือ <button class="small" data-a="go" data-v="bag">ไปจัดอุปกรณ์</button></div>` : ''}
     ${r.newSkills && r.newSkills.length ? `<div class="new-skill">📜 ปลดล็อกสกิลใหม่: ${r.newSkills.map((sk) => `<b>${sk.icon} ${sk.name}</b>`).join(', ')}
@@ -1393,7 +1406,10 @@ function battleResult() {
     ${r.newItems ? `<div class="muted" style="margin-top:6px">📖 บันทึกไอเทมใหม่ลงสมุดสะสม ${r.newItems} ชิ้น</div>` : ''}
   </div>
   ${ending}
-  ${ending ? '' : `<div class="actions">
+  ${B.tower ? `<div class="actions">
+    ${B.tower.floor < TOWER_FLOORS ? `<button class="primary" data-a="tnext">⬆️ ขึ้นชั้น ${B.tower.floor + 1}</button>` : ''}
+    <button class="${B.tower.floor >= TOWER_FLOORS ? 'primary full' : ''}" data-a="go" data-v="map">🗺️ กลับแผนที่</button>
+  </div>` : ending ? '' : `<div class="actions">
     ${B.isBoss ? '' : `<button class="primary" data-a="hunt" data-v="${B.zi}">⚔️ สู้ต่อ</button>`}
     ${B.isBoss && B.zi < FINAL_ZONE ? `<button class="primary" data-a="go" data-v="map">🗺️ ไปด่านต่อไป</button>` : ''}
     <button class="${B.isBoss && B.zi === FINAL_ZONE ? 'primary full' : ''}" data-a="leave">🏘️ กลับเมือง</button>
@@ -1477,6 +1493,7 @@ function collectionEntries() {
   for (const slot of Object.keys(GEAR)) for (const b of GEAR[slot]) for (const r of RARITY)
     out.push({ key: `${b.k}:${r.id}`, icon: b.i, name: `${b.n} ${r.name}`, rarity: r.id });
   for (const z of ZONES) out.push({ key: `u:${z.id}`, icon: z.unique.i, name: z.unique.n, rarity: 'unique' });
+  for (const L of LEGENDS) out.push({ key: `${L.kind}:legendary`, icon: L.i, name: L.n, rarity: 'legendary' });
   return out;
 }
 const collectionTotal = () => collectionEntries().length;
@@ -1600,10 +1617,10 @@ document.addEventListener('click', (ev) => {
       S.bag = S.bag.filter((x) => !sell.includes(x)); S.gold += g; save();
       toast(`ขาย ${sell.length} ชิ้น ได้ ${fmt(g)} 💰`); break;
     }
-    default: if (!featureClick(a, v, el) && !cosClick(a, v, el)) return;
+    default: if (!featureClick(a, v, el) && !cosClick(a, v, el) && !towerClick(a, v, el)) return;
   }
   render();
-  if (['go', 'continue', 'leave', 'create', 'setdiff'].includes(a)) window.scrollTo(0, 0);
+  if (['go', 'continue', 'leave', 'create', 'setdiff', 'tower', 'tnext'].includes(a)) window.scrollTo(0, 0);
 });
 
 render();

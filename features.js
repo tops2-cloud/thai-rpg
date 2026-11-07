@@ -272,11 +272,11 @@ function scheduleAuto() {
   clearTimeout(autoTimer); autoTimer = null;
   if (!S || !S.settings.auto || view !== 'battle' || !B) return;
   if (B.result) {
-    if (B.result === 'win' && !B.isBoss && S.settings.chain && !B.rewards.ending) {
+    if (B.result === 'win' && (!B.isBoss || B.tower) && S.settings.chain && !B.rewards.ending && !(B.tower && B.tower.floor >= TOWER_FLOORS)) {
       const st = stats();
       if (S.hp / st.hp * 100 < S.settings.stopHp) { stopAuto(`🤖 หยุดออโต้: HP ต่ำกว่า ${S.settings.stopHp}%`); render(); return; }
-      const zi = B.zi;
-      autoTimer = setTimeout(() => { if (S.settings.auto && view === 'battle' && B && B.result) startBattle(zi, false); }, 1100 / gameSpeed());
+      const zi = B.zi, tw = B.tower;
+      autoTimer = setTimeout(() => { if (S.settings.auto && view === 'battle' && B && B.result) { if (tw) startTower(tw.d, tw.floor + 1); else startBattle(zi, false); } }, 1100 / gameSpeed());
     } else if (B.result === 'lose') stopAuto('🤖 หยุดออโต้: พ่ายแพ้');
     return;
   }

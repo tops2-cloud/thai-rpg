@@ -5,7 +5,7 @@
    ส่วนที่เปลี่ยนตามอุปกรณ์: หัว (หมวก) + อาวุธมือขวา + ของมือซ้าย
    ============================================================ */
 
-const RARITY_COLOR = { common: '#c9c3dc', rare: '#4ba3ff', epic: '#c06bff', legend: '#ffad33', mythic: '#2ee6c8', divine: '#fff27a', unique: '#ff5b8a' };
+const RARITY_COLOR = { legendary: '#ff5e2e', common: '#c9c3dc', rare: '#4ba3ff', epic: '#c06bff', legend: '#ffad33', mythic: '#2ee6c8', divine: '#fff27a', unique: '#ff5b8a' };
 const OL = '#3d3d42';
 const L = `stroke="${OL}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"`;
 const L3 = `stroke="${OL}" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"`;
