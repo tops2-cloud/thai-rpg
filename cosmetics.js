@@ -49,6 +49,10 @@ const AURAS = [
   { id: 'water', n: 'วงเวทวารี', icon: '💧', img: 'auras/water.webp', fx: 'spin', unlock: { boss: 'sea' }, desc: 'วงเวทแห่งสายน้ำ' },
   { id: 'wings', n: 'แสงศักดิ์สิทธิ์', icon: '✝️', img: 'auras/holy.webp', fx: 'pulse', unlock: { normal: true }, desc: 'แสงไม้กางเขนเจิดจ้า' },
   { id: 'mist', n: 'ฝูงเงา', icon: '👁️', img: 'auras/shadow.webp', fx: 'flicker', unlock: { adv: true }, desc: 'เงาตาเขียวรายล้อม' },
+  { id: 'spiritwind', n: 'สายลมวิญญาณ', icon: '🌬️', img: 'auras/spirit.webp', fx: 'flicker', unlock: { gold: 40000 }, desc: 'สายลมสีฟ้าหมุนวนรอบตัว' },
+  { id: 'supernova', n: 'ซูเปอร์โนวา', icon: '💥', img: 'auras/supernova.webp', fx: 'pulse', unlock: { gold: 80000 }, desc: 'ดาวระเบิดแสงทองเจิดจ้า' },
+  { id: 'goldstorm', n: 'พายุสายฟ้าทองคำ', icon: '⚡', img: 'auras/goldstorm.webp', fx: 'flicker', unlock: { level: 90 }, desc: 'สายฟ้าทองแตกกระจาย (ถึง Lv.90)' },
+  { id: 'runegod', n: 'เทพสายฟ้ารูน', icon: '🔱', img: 'auras/runegod.webp', fx: 'pulse', unlock: { boss: 'w2castle' }, desc: 'เทพแห่งสายฟ้ากับตรารูน (ล้มบอสสุดท้ายทวีปที่ 2)' },
   { id: 'galaxy', n: 'หลุมดำจักรวาล', icon: '🌌', img: 'auras/void.webp', fx: 'spin', unlock: { advanced: true }, desc: 'หลุมดำหมุนวน' },
 ];
 
