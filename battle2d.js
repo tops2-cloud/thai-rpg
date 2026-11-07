@@ -105,16 +105,13 @@ const SCENE = {
 
 /* ---------- สร้างฉาก ---------- */
 function stageHTML(zone, foe, isBoss, heroSvg) {
-  return `<div class="foe-panel">
-      <div class="row between"><b class="fname">${foe.i} ${foe.n}</b><span class="ftags" id="ftags"></span></div>
-      <div class="bar hp"><i id="fhp"></i></div>
-      <div class="fhptext" id="fhptext"></div>
-    </div>
-    <div class="stage" id="stage">
+  return `<div class="stage" id="stage">
     <svg class="stage-bg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMax slice">${(SCENE[zone.id] || SCENE.forest)()}</svg>
     <img class="stage-bg stage-img" src="bg/${zone.id}.webp" alt="" onerror="this.remove()">
-    <div class="unit hero-u" id="u-hero"><div class="ushadow"></div><div class="ubody" id="hero-body">${heroSvg}</div><div class="utags" id="htags"></div></div>
-    <div class="unit foe-u ${isBoss ? 'boss' : ''}" id="u-foe"><div class="ushadow"></div><div class="ubody foe-sprite" id="foe-body">${typeof monsterSVG === 'function' ? monsterSVG(foe.n, isBoss ? 104 : 76, foe.i) : foe.i}</div></div>
+    <div class="unit hero-u" id="u-hero"><div class="ushadow"></div><div class="ubody" id="hero-body">${heroSvg}</div><div class="utags" id="htags"></div>
+      <div class="ubars"><div class="mbar hp"><i id="hhp"></i><span id="hhptext"></span></div><div class="mbar mp"><i id="hmp"></i></div></div></div>
+    <div class="unit foe-u ${isBoss ? 'boss' : ''}" id="u-foe"><div class="ushadow"></div><div class="ubody foe-sprite" id="foe-body">${typeof monsterSVG === 'function' ? monsterSVG(foe.n, isBoss ? 104 : 76, foe.i) : foe.i}</div><div class="utags ftags" id="ftags"></div>
+      <div class="ubars"><div class="uname">${isBoss ? '👑 ' : ''}${foe.n}</div><div class="mbar hp"><i id="fhp"></i><span id="fhptext"></span></div></div></div>
     <div class="unit pet-u" id="u-pet"></div>
     <div class="fx" id="fx"></div>
   </div>`;
@@ -126,15 +123,20 @@ function stageUpdate(B) {
   if (!$('stage')) return;
   const e = B.e;
   $('fhp').style.width = `${Math.max(0, (e.hp / e.maxHp) * 100)}%`;
-  $('fhptext').textContent = `${Math.max(0, e.hp).toLocaleString('th-TH')}/${e.maxHp.toLocaleString('th-TH')}`;
+  $('fhptext').textContent = `${Math.max(0, e.hp).toLocaleString('th-TH')}`;
   const ft = [`<span class="tag">Lv.${e.lv}</span>`];
-  if (B.isBoss) ft.push('<span class="tag warn">👑</span>');
-  if (B.enraged) ft.push('<span class="tag warn">😡 คลั่ง</span>');
+  if (B.enraged) ft.push('<span class="tag warn">😡</span>');
   if (B.charging) ft.push('<span class="tag warn">⚠️ ชาร์จ</span>');
   if (B.poison) ft.push(`<span class="tag">☠️${B.poison}</span>`);
-  $('ftags').innerHTML = ft.join('');
   if (B.slow) ft.push(`<span class="tag">🧊${B.slow}</span>`);
   if (B.stun) ft.push('<span class="tag warn">💫</span>');
+  $('ftags').innerHTML = ft.join('');
+  if (typeof stats === 'function' && $('hhp')) {
+    const st = stats();
+    $('hhp').style.width = `${Math.max(0, Math.min(1, S.hp / st.hp)) * 100}%`;
+    $('hmp').style.width = `${Math.max(0, Math.min(1, S.mp / st.mp)) * 100}%`;
+    $('hhptext').textContent = `${Math.max(0, S.hp).toLocaleString('th-TH')}`;
+  }
   const ht = [];
   if (B.atkUp) ht.push(`<span class="tag">📣${B.atkUp}</span>`);
   if (B.berserk) ht.push(`<span class="tag">😤${B.berserk}</span>`);

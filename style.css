@@ -247,7 +247,7 @@ h2 { margin: 6px 0; }
 .foe-panel .bar { height: 7px; margin-top: 3px; }
 .fhptext { font-size: 11px; color: var(--muted); text-align: right; margin-top: 1px; }
 .ftags .tag, .utags .tag { font-size: 10px; padding: 1px 6px; margin: 0 0 0 3px; }
-.unit { position: absolute; bottom: 7%; z-index: 2; display: flex; flex-direction: column; align-items: center; }
+.unit { position: absolute; bottom: 15%; z-index: 2; display: flex; flex-direction: column; align-items: center; }
 .hero-u { left: 9%; }
 .foe-u { right: 10%; }
 .ushadow { position: absolute; bottom: 2px; left: 50%; width: 70%; height: 10px; transform: translateX(-50%); background: radial-gradient(#000a, transparent 70%); }
@@ -445,3 +445,16 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .cos-prev { position: relative; cursor: pointer; }
 .try-hint { position: absolute; top: 6px; right: 8px; font-size: 11px; background: #0d0b16cc; border-radius: 99px; padding: 1px 7px; z-index: 3; }
 .try-label { font-size: 13px; display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; position: relative; z-index: 2; }
+
+/* หลอดเลือดใต้เท้า + เส้น EXP */
+.ubars { position: absolute; top: calc(100% + 1px); left: 50%; transform: translateX(-50%); width: 64px; display: flex; flex-direction: column; gap: 2px; align-items: stretch; pointer-events: none; }
+.foe-u.boss .ubars { width: 84px; }
+.mbar { position: relative; height: 5px; background: #0d0b16dd; border-radius: 3px; overflow: visible; box-shadow: 0 0 0 1px #000a; }
+.mbar > i { display: block; height: 100%; border-radius: 3px; transition: width .35s; }
+.mbar.hp > i { background: linear-gradient(90deg, #c22f45, var(--hp)); }
+.mbar.mp { height: 3px; } .mbar.mp > i { background: linear-gradient(90deg, #2f63c2, var(--mp)); }
+.mbar > span { position: absolute; right: -2px; top: 50%; transform: translate(100%, -50%); font-size: 9px; line-height: 1; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; }
+.uname { font-size: 9px; line-height: 1.1; text-align: center; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.foe-u .utags { left: auto; right: 0; }
+.exp-line { position: relative; height: 3px; margin-top: 8px; background: #0d0b16; border-radius: 2px; }
+.exp-line > i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, #5aa82f, var(--exp)); transition: width .35s; }
