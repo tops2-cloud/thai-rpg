@@ -7,7 +7,7 @@
 /* ---------------- โลก (ทวีป) ---------------- */
 // เพิ่มทวีปใหม่: ใส่ใน WORLDS แล้วเพิ่มด่านใน ZONES (game.js) โดยใส่ world: '<id>' และ pos: [ซ้าย%, บน%] บนภาพแผนที่
 const WORLDS = [
-  { id: 'w1', n: 'ทวีปแรก', icon: '🌍', map: 'bg/worldmap.webp', tower: [50, 46] },
+  { id: 'w1', n: 'ทวีปแรก', icon: '🌍', map: 'bg/worldmap.webp', tower: [50, 44], wb: [50, 63] },
   { id: 'w2', n: 'ทวีปที่ 2: ดินแดนใหม่', icon: '🌌', map: 'bg/worldmap2.webp', need: 'w1', wb: [50, 43] },
 ];
 // ตำแหน่งหมุดของทวีปแรก (เปอร์เซ็นต์ ซ้าย, บน)
@@ -16,35 +16,43 @@ const MAP_POS = {
   ice: [88, 56], sea: [86, 21], sky: [67, 19], spirit: [70, 46], castle: [63, 78],
 };
 /* บอสโลก (กลางทวีปที่ 2) */
-const WORLD_BOSS = { n: 'เทพแห่งความว่างเปล่า', i: '👁️', img: 'mon/worldboss.webp', lv: 62, gate: 'w2castle', scene: 'spirit' };
-const wbOpen = () => !!P().bossWins[WORLD_BOSS.gate];
-function startWB() {
-  if (!wbOpen()) return;
-  const d = D(), Z = WORLD_BOSS.lv + d.off, mb = monsterBase(Z);
-  const e = { n: WORLD_BOSS.n, i: WORLD_BOSS.i, maxHp: mb.hp * 20 * d.mul.hp, atk: mb.atk * 1.8 * d.mul.atk, def: mb.def * 1.4 * d.mul.def, exp: mb.exp * 25 * d.reward, gold: mb.gold * 30 * d.reward };
+// บอสโลกของแต่ละทวีป — frag = เศษเลเจนดารีขั้นต่ำต่อการชนะ (+1 ต่อระดับความยาก), legend = โอกาสได้อุปกรณ์เลเจนดารี (ครั้งแรกได้แน่นอน)
+const WORLD_BOSSES = {
+  w1: { n: 'ราชันย์โครงกระดูกมรณะ', i: '💀', img: 'mon/worldboss1.webp', lv: 32, gate: 'castle', icon: '💀', frag: 2, legend: 0.05, hp: 16 },
+  w2: { n: 'เทพแห่งความว่างเปล่า', i: '👁️', img: 'mon/worldboss.webp', lv: 62, gate: 'w2castle', icon: '👁️', frag: 3, legend: 0.1, hp: 20 },
+};
+const WORLD_BOSS = WORLD_BOSSES.w2; // เผื่อโค้ดเก่า
+const isWorldBoss = (name) => Object.values(WORLD_BOSSES).some((x) => x.n === name);
+const wbKey = (wid) => (wid === 'w2' ? S.diff : `${wid}:${S.diff}`); // ทวีป 2 ใช้คีย์เดิม (เซฟเก่าไม่หาย)
+const wbOpen = (wid = S.world) => !!WORLD_BOSSES[wid] && !!P().bossWins[WORLD_BOSSES[wid].gate];
+function startWB(wid = S.world) {
+  const W = WORLD_BOSSES[wid];
+  if (!W || !wbOpen(wid)) return;
+  const d = D(), Z = W.lv + d.off, mb = monsterBase(Z);
+  const e = { n: W.n, i: W.i, maxHp: mb.hp * W.hp * d.mul.hp, atk: mb.atk * 1.8 * d.mul.atk, def: mb.def * 1.4 * d.mul.def, exp: mb.exp * 25 * d.reward, gold: mb.gold * 30 * d.reward };
   for (const k of ['maxHp', 'atk', 'def', 'exp', 'gold']) e[k] = Math.round(e[k]);
   e.hp = e.maxHp; e.lv = Z;
-  startBattle(ZONES.findIndex((z) => z.id === WORLD_BOSS.gate), true, { e, wb: true });
+  startBattle(ZONES.findIndex((z) => z.id === W.gate), true, { e, wb: wid });
 }
 function wbWin(rewards) {
-  const d = D();
+  const d = D(), wid = B.wb, W = WORLD_BOSSES[wid];
   S.wbKills = S.wbKills || {};
-  const first = !S.wbKills[S.diff];
-  S.wbKills[S.diff] = (S.wbKills[S.diff] || 0) + 1;
+  const k = wbKey(wid), first = !S.wbKills[k];
+  S.wbKills[k] = (S.wbKills[k] || 0) + 1;
   rewards.wb = true;
   rewards.items.push(makeGear(maxTier(), d.bossMinR, d.maxR));
-  fragDrop(rewards, 3 + DIFF_ORDER.indexOf(S.diff));
-  if (first || Math.random() < 0.1) rewards.items.push(makeLegend(pick(LEGENDS)));
+  fragDrop(rewards, W.frag + DIFF_ORDER.indexOf(S.diff));
+  if (first || Math.random() < W.legend) rewards.items.push(makeLegend(pick(LEGENDS)));
   S.charms += 2; rewards.charm = 2;
 }
-function wbPanel() {
-  const d = D(), open = wbOpen(), kills = (S.wbKills || {})[S.diff] || 0;
+function wbPanel(wid = S.world) {
+  const W = WORLD_BOSSES[wid], d = D(), open = wbOpen(wid), kills = (S.wbKills || {})[wbKey(wid)] || 0;
   return `<div class="card wb-card">
-    <div class="wb-art">${monsterSVG(WORLD_BOSS.n, 150, WORLD_BOSS.i)}</div>
-    <h3 style="margin:4px 0">👁️ บอสโลก: ${WORLD_BOSS.n}</h3>
-    <div class="muted" style="font-size:13px">Lv.${WORLD_BOSS.lv + d.off} · HP มหาศาล · ล้มแล้วกี่ครั้ง (โหมด${d.name}): ${kills}</div>
-    <div style="font-size:13px;margin:6px 0">รางวัล: 💠 เศษเลเจนดารี ${3 + DIFF_ORDER.indexOf(S.diff)} ชิ้น · อุปกรณ์บอส · 🧿×2 · โอกาส 10% ได้อุปกรณ์เลเจนดารี (ครั้งแรกได้แน่นอน)</div>
-    ${open ? '<button class="primary" style="width:100%" data-a="wbfight">⚔️ ท้าบอสโลก</button>' : `<div class="muted">🔒 ต้องล้ม ${ZONES.find((z) => z.id === WORLD_BOSS.gate).boss[0]} (บอสด่าน 10) ในโหมดนี้ก่อน</div>`}
+    <div class="wb-art">${monsterSVG(W.n, 150, W.i)}</div>
+    <h3 style="margin:4px 0">${W.icon} บอสโลก: ${W.n}</h3>
+    <div class="muted" style="font-size:13px">Lv.${W.lv + d.off} · HP มหาศาล · ล้มแล้วกี่ครั้ง (โหมด${d.name}): ${kills}</div>
+    <div style="font-size:13px;margin:6px 0">รางวัล: 💠 เศษเลเจนดารี ${W.frag + DIFF_ORDER.indexOf(S.diff)} ชิ้น · อุปกรณ์บอส · 🧿×2 · โอกาส ${Math.round(W.legend * 100)}% ได้อุปกรณ์เลเจนดารี (ครั้งแรกได้แน่นอน)</div>
+    ${open ? '<button class="primary" style="width:100%" data-a="wbfight">⚔️ ท้าบอสโลก</button>' : `<div class="muted">🔒 ต้องล้ม ${ZONES.find((z) => z.id === W.gate).boss[0]} (บอสด่าน 10) ในโหมดนี้ก่อน</div>`}
   </div>`;
 }
 const hasNextZone = (zi) => { const l = worldZoneIdx(zoneWorld(ZONES[zi])); return l.indexOf(zi) < l.length - 1; };
@@ -89,12 +97,12 @@ function renderWorldMap() {
     return `<button class="map-pin ${open ? '' : 'locked'} ${mapSel === i ? 'on' : ''} ${i === top && !beaten ? 'cur' : ''}" style="left:${x}%;top:${y}%" data-a="mapsel" data-v="${i}">
       <span class="pi">${open ? z.icon : '🔒'}</span>${beaten ? '<i class="pk">✓</i>' : ''}<b>${z.name}</b></button>`;
   }).join('');
-  const wpin = w.wb ? `<button class="map-pin tower wb ${mapSel === 'wb' ? 'on' : ''} ${wbOpen() ? '' : 'locked'}" style="left:${w.wb[0]}%;top:${w.wb[1]}%" data-a="mapsel" data-v="wb"><span class="pi">${wbOpen() ? '👁️' : '🔒'}</span><b>บอสโลก</b></button>` : '';
+  const wpin = w.wb ? `<button class="map-pin tower wb ${mapSel === 'wb' ? 'on' : ''} ${wbOpen() ? '' : 'locked'}" style="left:${w.wb[0]}%;top:${w.wb[1]}%" data-a="mapsel" data-v="wb"><span class="pi">${wbOpen() ? WORLD_BOSSES[w.id].icon : '🔒'}</span><b>บอสโลก</b></button>` : '';
   const tpin = w.tower ? `<button class="map-pin tower ${mapSel === 'tower' ? 'on' : ''}" style="left:${w.tower[0]}%;top:${w.tower[1]}%" data-a="mapsel" data-v="tower"><span class="pi">🗼</span><b>หอคอย 100 ชั้น</b></button>` : '';
   return `<h2>🗺️ แผนที่โลก</h2>${tabs}
     <div class="map-wrap"><div class="worldmap"><img src="${w.map}" alt="แผนที่${w.n}">${pins}${tpin}${wpin}</div>
       <button class="map-diff d-${S.diff}" data-a="diffmenu">${d.icon} ${d.name} ▾</button>${menu}</div>
-    <div class="muted" style="font-size:12px;margin:6px 2px 10px">แตะที่แผนที่เพื่อเลือกด่าน${w.tower ? ' · 🗼 ตรงกลางคือหอคอย' : ''}${w.wb ? ' · 👁️ ตรงกลางคือบอสโลก' : ''}</div>
+    <div class="muted" style="font-size:12px;margin:6px 2px 10px">แตะที่แผนที่เพื่อเลือกด่าน${w.tower ? ' · 🗼 ตรงกลางคือหอคอย' : ''}${w.wb ? ` · ${WORLD_BOSSES[w.id].icon} บอสโลก` : ''}</div>
     ${mapSel === 'tower' ? renderTowerPanel() : mapSel === 'wb' ? wbPanel() : zoneCard(mapSel)}`;
 }
 
@@ -375,7 +383,7 @@ function towerClick(a, v, el) {
     case 'townmenu': townMenu = !townMenu; return true;
     case 'town': { const tw = townDef(v); if (townUnlocked(tw)) { S.town = tw.id; S.world = tw.world; mapSel = null; townMenu = false; save(); toast(`${tw.icon} มาถึง${tw.n}`); } return true; }
     case 'mapsel': diffMenu = false; mapSel = v === 'tower' || v === 'wb' ? v : +v; return true;
-    case 'wbfight': startWB(); return 'battle';
+    case 'wbfight': startWB(B && B.wb ? B.wb : S.world); return 'battle';
     case 'towerd': if (towerOpen(v)) { S.towerD = v; towerPick = null; save(); } return true;
     case 'tpick': { const max = Math.min(TOWER_FLOORS, (S.tower[S.towerD] || 0) + 1); towerPick = clamp((towerPick || max) + +v, 1, max); return true; }
     case 'tower': startTower(S.towerD, +v); return 'battle';

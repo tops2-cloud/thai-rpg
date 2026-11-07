@@ -203,7 +203,7 @@ ZONES.forEach((z) => {
   MONSTER_IMG[z.boss[0]] = `mon/${z.id}_boss.webp`;
   if (z.bossFinal) MONSTER_IMG[z.bossFinal[0]] = `mon/${z.id}_final.webp`;
 });
-MONSTER_IMG[WORLD_BOSS.n] = WORLD_BOSS.img;
+Object.values(WORLD_BOSSES).forEach((w) => { MONSTER_IMG[w.n] = w.img; });
 const bossOf = (z) => (z.bossFinal && S && (S.diff === 'advanced' || S.diff === 'nightmare') ? z.bossFinal : z.boss);
 
 const DIFFS = {
@@ -669,7 +669,7 @@ function startBattle(zi, isBoss, opt = null) {
   }
   B = {
     id: ++battleSeq, events: [],
-    zi, isBoss, e, tower: opt && opt.tower ? opt.tower : null, wb: !!(opt && opt.wb),
+    zi, isBoss, e, tower: opt && opt.tower ? opt.tower : null, wb: opt && opt.wb ? opt.wb : null,
     log: [opt && opt.tower ? `🗼 ชั้น ${opt.tower.floor}: ${e.i} ${e.n} ปรากฏตัว!` : `${e.i} ${e.n} ปรากฏตัว!`],
     eTurns: 0, charging: false, defending: false, enraged: false,
     atkUp: 0, berserk: 0, focus: 0, ironwall: 0, manaShield: 0, evade: false,
@@ -1459,7 +1459,7 @@ function battleResult() {
     ${r.newItems ? `<div class="muted" style="margin-top:6px">📖 บันทึกไอเทมใหม่ลงสมุดสะสม ${r.newItems} ชิ้น</div>` : ''}
   </div>
   ${ending}
-  ${B.wb ? `<div class="actions"><button class="primary" data-a="wbfight">👁️ ท้าอีกครั้ง</button><button data-a="go" data-v="map">🗺️ กลับแผนที่</button></div>`
+  ${B.wb ? `<div class="actions"><button class="primary" data-a="wbfight">${WORLD_BOSSES[B.wb].icon} ท้าอีกครั้ง</button><button data-a="go" data-v="map">🗺️ กลับแผนที่</button></div>`
   : B.tower ? `<div class="actions">
     ${B.tower.floor < TOWER_FLOORS ? `<button class="primary" data-a="tnext">⬆️ ขึ้นชั้น ${B.tower.floor + 1}</button>` : ''}
     <button class="${B.tower.floor >= TOWER_FLOORS ? 'primary full' : ''}" data-a="go" data-v="map">🗺️ กลับแผนที่</button>

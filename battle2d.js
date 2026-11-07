@@ -105,7 +105,7 @@ const SCENE = {
 
 /* ---------- สร้างฉาก ---------- */
 function stageHTML(zone, foe, isBoss, heroSvg) {
-  const isWB = typeof WORLD_BOSS !== 'undefined' && foe.n === WORLD_BOSS.n;
+  const isWB = typeof isWorldBoss === 'function' && isWorldBoss(foe.n);
   return `<div class="stage ${isWB ? 'wb-stage' : ''}" id="stage">
     <svg class="stage-bg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMax slice">${(SCENE[zone.scene || zone.id] || SCENE.forest)()}</svg>
     <img class="stage-bg stage-img" src="bg/${zone.scene || zone.id}.webp" alt="" onerror="this.remove()">
