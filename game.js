@@ -1109,6 +1109,8 @@ function bar(cls, cur, max, label) {
 }
 
 function hud() {
+  // หน้าเมือง: แสดงแค่ชื่อกับทอง
+  if (view === 'town') return `<div class="hud hud-mini"><div class="row between"><div class="name">${classIcon()} ${esc(S.name)}</div><span class="gold">💰 ${fmt(S.gold)}</span></div></div>`;
   const st = stats();
   const c = CLASSES[S.cls];
   const d = D();
