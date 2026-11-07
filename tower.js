@@ -26,7 +26,7 @@ const isWorldBoss = (name) => Object.values(WORLD_BOSSES).some((x) => x.n === na
 
 /* ---------------- 🏛️ หอคอยรวมบอส (แมพ 2) ----------------
    ไต่ล้มบอสทุกตัวของทั้ง 2 แมพ + บอสโลก แล้วจบด้วย Final Boss · HP ไม่ฟื้นระหว่างชั้น */
-const RUSH_FINAL = { n: 'ราชันย์แห่งจุดจบ', i: '🌑', img: 'mon/castle_final.webp', lv: 72, hp: 30, atk: 2.1 }; // ภาพชั่วคราว รอดีไซน์ Final Boss
+const RUSH_FINAL = { n: 'ราชันย์แห่งจุดจบ', i: '🌑', img: 'mon/final_boss.webp', lv: 72, hp: 30, atk: 2.1 };
 function rushList() {
   const out = [];
   for (const wid of ['w1', 'w2']) {
