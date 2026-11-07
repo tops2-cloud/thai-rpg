@@ -1282,14 +1282,24 @@ function renderBattleView() {
   if (app.dataset.bid !== String(B.id)) {
     app.innerHTML = `<div id="hudbox"></div>
       ${stageHTML(ZONES[B.zi], B.e, B.isBoss, heroArt(S.cls, S.equip, 70))}
-      <div class="log" id="blog"></div><div id="bact"></div>`;
+      <div class="log" id="blog" hidden></div><div id="bact"></div><div id="bresult"></div>`;
     app.dataset.bid = String(B.id);
     stageQueueEnd = 0;
   }
   document.getElementById('hudbox').innerHTML = hud();
   stageUpdate(B);
   document.getElementById('blog').innerHTML = B.log.slice(0, 12).map((l) => `<div>${l}</div>`).join('');
-  document.getElementById('bact').innerHTML = battleToolbar() + (B.result ? battleResult() : battleActions());
+  document.getElementById('bact').innerHTML = battleToolbar() + (B.result ? '' : battleActions());
+  // ผลการต่อสู้: หน้าต่างกลางจอ (ไม่มีข้อความบรรยายการโจมตี จอจะได้ไม่ขยับ)
+  const br = document.getElementById('bresult');
+  const key = B.result ? `${B.id}:${B.result}` : '';
+  if (br.dataset.k !== key) {
+    br.dataset.k = key;
+    // ออโต้ล่าต่อเนื่อง: ไม่เด้งหน้าต่าง แค่แจ้งสั้นๆ (หยุดออโต้เมื่อไหร่ หน้าต่างจะขึ้นตามปกติ)
+    const chaining = B.result === 'win' && S.settings.auto && S.settings.chain && (!B.isBoss || B.tower) && !B.rewards.ending && !B.rewards.items.length && !B.rewards.levels && !(B.rewards.frags || []).length;
+    if (chaining) { br.innerHTML = ''; toast(`🏆 +${fmt(B.rewards.exp)} EXP · 💰 +${fmt(B.rewards.gold)}`); }
+    else br.innerHTML = B.result ? `<div class="result-modal ${B.result}"><div class="rm-box">${battleResult()}</div></div>` : '';
+  }
   stagePet(curPet());
   const evs = B.events; B.events = [];
   stagePlay(evs);
