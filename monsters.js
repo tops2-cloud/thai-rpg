@@ -384,6 +384,8 @@ const MONSTER_ART = {
 
 /* ภาพมอนสเตอร์เป็น SVG — ถ้าไม่มีภาพจะใช้อีโมจิ */
 /* ภาพมอนสเตอร์ที่หันขวา — กลับด้านในฉากต่อสู้ให้หันหาผู้กล้า (ปกติภาพหันซ้าย/หันหน้าตรง) */
+/* บอสตัวใหญ่พิเศษ: แสดงเต็มฉาก ปีก/หางด้านขวาล้นขอบได้ */
+const HUGE_MON = new Set(['mon/volcano_boss.webp']);
 const MON_FACE_RIGHT = new Set(['forest_4', 'sea_1', 'sky_5', 'spirit_4', 'volcano_4', 'volcano_5', 'w2castle_5', 'w2cave_2', 'w2cave_5', 'w2desert_5', 'w2forest_3', 'w2sea_1', 'w2volcano_4', 'worldboss', 'worldboss1'].map((n) => `mon/${n}.webp`));
 function monsterSVG(name, size, fallback) {
   const img = typeof MONSTER_IMG !== 'undefined' && MONSTER_IMG[name];

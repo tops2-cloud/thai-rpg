@@ -616,3 +616,10 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .equip-board { position: relative; isolation: isolate; overflow: hidden; }
 .equip-board .eb-hero { position: relative; z-index: 1; }
 .equip-board .eb-col, .equip-board .eb-bottom { position: relative; z-index: 2; }
+
+/* บอสตัวใหญ่ (เช่น มังกรเพลิง): สูงเกือบเต็มฉาก ปีกขวาและหางล้นขอบได้ */
+.foe-u.huge { right: -20%; bottom: 15%; }
+.foe-u.huge .mon-img { height: min(31vw, 180px) !important; }
+.foe-u.huge .foe-sprite { padding-bottom: 0; }
+.foe-u.huge .ubars { left: 30%; }
+.foe-u.huge .utags { top: 18%; right: auto; left: 2%; }
