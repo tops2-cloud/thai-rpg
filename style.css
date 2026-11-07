@@ -412,7 +412,7 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .hero-art > .skin-img { margin: 0 auto; }
 .stage .hero-art .skin-img.face-left { transform: scaleX(-1); }
 .hero-u .hero-art { animation: idle 2s ease-in-out infinite; }
-.aura-layer { position: absolute; z-index: 0; left: 50%; top: 46%; height: 135%; width: auto; aspect-ratio: 1; transform: translate(-50%,-50%); pointer-events: none; max-width: none; }
+.aura-layer { position: absolute; z-index: 0; left: 50%; top: 47%; height: 150%; width: auto; transform: translate(-50%,-50%); pointer-events: none; max-width: none; }
 .au-pulse { animation: auPulse 2.6s ease-in-out infinite; }
 @keyframes auPulse { 0%,100% { transform: translate(-50%,-50%) scale(.96); opacity: .85; } 50% { transform: translate(-50%,-50%) scale(1.04); opacity: 1; } }
 .au-spin { animation: auSpin 90s linear infinite; }
