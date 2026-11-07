@@ -18,8 +18,8 @@ const MAP_POS = {
 /* บอสโลก (กลางทวีปที่ 2) */
 // บอสโลกของแต่ละทวีป — frag = เศษเลเจนดารีขั้นต่ำต่อการชนะ (+1 ต่อระดับความยาก), legend = โอกาสได้อุปกรณ์เลเจนดารี (ครั้งแรกได้แน่นอน)
 const WORLD_BOSSES = {
-  w1: { n: 'ราชันย์โครงกระดูกมรณะ', i: '💀', img: 'mon/worldboss1.webp', lv: 32, gate: 'castle', icon: '💀', frag: 2, legend: 0.05, hp: 16 },
-  w2: { n: 'เทพแห่งความว่างเปล่า', i: '👁️', img: 'mon/worldboss.webp', lv: 62, gate: 'w2castle', icon: '👁️', frag: 3, legend: 0.1, hp: 20 },
+  w1: { n: 'ราชันย์โครงกระดูกมรณะ', i: '💀', img: 'mon/worldboss1.webp', bg: 'bg/wb1.webp', lv: 32, gate: 'castle', icon: '💀', frag: 2, legend: 0.05, hp: 16 },
+  w2: { n: 'เทพแห่งความว่างเปล่า', i: '👁️', img: 'mon/worldboss.webp', bg: 'bg/wb2.webp', lv: 62, gate: 'w2castle', icon: '👁️', frag: 3, legend: 0.1, hp: 20 },
 };
 const WORLD_BOSS = WORLD_BOSSES.w2; // เผื่อโค้ดเก่า
 const isWorldBoss = (name) => Object.values(WORLD_BOSSES).some((x) => x.n === name);
