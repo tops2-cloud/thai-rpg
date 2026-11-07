@@ -1051,9 +1051,8 @@ function render() {
 function renderTitle() {
   const has = !!load();
   return `<div class="title-screen">
-    <div class="logo">⚔️</div>
     <h1>ตำนานผู้กล้า</h1>
-    <div class="muted">RPG ผจญภัยแบบเทิร์นเบส • 10 ด่าน 10 บอส • ตีบวกอาวุธ • 3 ระดับความยาก</div>
+    <div class="muted">RPG ผจญภัยแบบเทิร์นเบส • 10 ด่าน • หอคอย 100 ชั้น • 4 ระดับความยาก</div>
     <div class="stack">
       ${has ? '<button class="primary" data-a="continue">▶ เล่นต่อ</button>' : ''}
       <button class="${has ? '' : 'primary'}" data-a="newgame">✨ เริ่มเกมใหม่</button>
