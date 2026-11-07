@@ -8,9 +8,9 @@
 /* ---------- ภาพตัวละครหลักของแต่ละคลาส [ปกติ, หลังเลื่อนขั้น] ---------- */
 const FACE_LEFT = new Set(['chars/archer.webp', 'chars/hunter.webp', 'skins/archer_black.webp', 'skins/assassin.webp', 'skins/aquatic.webp', 'skins/phantom.webp', 'skins/chimera.webp', 'skins/crystal.webp', 'skins/archmage.webp']); // ภาพที่หันซ้าย → กลับด้านในฉากต่อสู้
 const HERO_IMG = {
-  warrior: ['chars/warrior.webp', 'chars/holy.webp'],
-  mage: ['chars/mage.webp', 'chars/sage.webp'],
-  archer: ['chars/archer.webp', 'chars/hunter.webp'],
+  warrior: ['chars/warrior.webp', 'chars/holy.webp', 'chars/celestial_emperor.webp'],
+  mage: ['chars/mage.webp', 'chars/sage.webp', 'chars/magic_deity.webp'],
+  archer: ['chars/archer.webp', 'chars/hunter.webp', 'chars/wind_goddess.webp'],
 };
 
 /* ---------- สกิน (ภาพเต็มตัว แทนตัวละคร) — cls = ใช้ได้เฉพาะคลาสนั้น ---------- */
@@ -85,9 +85,9 @@ function heroArt(cls, equip, size, adv, opt = {}) {
   const aura = opt.aura !== undefined ? opt.aura : (S && S.cls === cls ? curAura() : null);
   if (adv === undefined) adv = typeof S !== 'undefined' && !!S && S.cls === cls && !!S.adv;
   const h = Math.round(size * 250 / 235);
-  const src = skin && skin.img && skinFits(skin, cls) ? skin.img : HERO_IMG[cls][adv ? 1 : 0];
   const tier3 = opt.tier3 !== undefined ? opt.tier3 : (typeof S !== 'undefined' && !!S && S.cls === cls && !!S.adv3);
-  return `<div class="hero-art ${tier3 ? 'tier3' : ''}" style="height:${h}px;min-width:${Math.round(h * 0.55)}px">${auraHTML(aura)}<img class="skin-img ${FACE_LEFT.has(src) ? 'face-left' : ''}" src="${src}" alt="" style="height:${h}px"></div>`;
+  const src = skin && skin.img && skinFits(skin, cls) ? skin.img : HERO_IMG[cls][tier3 ? 2 : adv ? 1 : 0];
+  return `<div class="hero-art ${tier3 && src === HERO_IMG[cls][1] ? 'tier3' : ''}" style="height:${h}px;min-width:${Math.round(h * 0.55)}px">${auraHTML(aura)}<img class="skin-img ${FACE_LEFT.has(src) ? 'face-left' : ''}" src="${src}" alt="" style="${src === HERO_IMG[cls][2] ? `height:${Math.round(h * 1.3)}px;margin:${-Math.round(h * 0.3)}px ${-Math.round(h * 0.12)}px 0` : `height:${h}px`}"></div>`;
 }
 
 /* ---------- หน้าสกิน & ออร่า ---------- */
