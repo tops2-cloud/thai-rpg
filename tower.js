@@ -61,12 +61,27 @@ const zoneWorld = (z) => z.world || 'w1';
 const worldZoneIdx = (wid) => ZONES.map((z, i) => (zoneWorld(z) === wid ? i : -1)).filter((i) => i >= 0);
 const zonePos = (z) => z.pos || MAP_POS[z.id] || [50, 50];
 /* ทวีปเปิดเมื่อ: มีด่านแล้ว + ล้มบอสสุดท้ายของทวีปก่อนหน้า (ในความยากที่เล่นอยู่) */
+/* จบทวีปในความยากนั้นแล้วหรือยัง (ล้มบอสด่านสุดท้ายของทวีป) */
+function worldCleared(wid, diff) {
+  if (wid === 'w1' && S.clearedDiffs && S.clearedDiffs[diff]) return true;
+  const l = worldZoneIdx(wid), p = S.prog && S.prog[diff];
+  return !!(l.length && p && p.bossWins && p.bossWins[ZONES[l[l.length - 1]].id]);
+}
+/* ทวีปเปิดเมื่อจบทวีปก่อนหน้าในโหมดปกติ */
 function worldUnlocked(wid) {
   const w = worldDef(wid);
   if (!w.need) return true;
   if (!worldZoneIdx(wid).length) return false;
-  const prev = worldZoneIdx(w.need);
-  return !!P().bossWins[ZONES[prev[prev.length - 1]].id];
+  return worldCleared(w.need, 'normal');
+}
+/* แต่ละทวีปจำความยากของตัวเอง */
+function setWorld(wid) {
+  if (!S.diffBy) S.diffBy = {};
+  S.diffBy[S.world] = S.diff;
+  S.world = wid;
+  S.diff = S.diffBy[wid] || 'normal';
+  if (diffLocked(S.diff)) S.diff = 'normal';
+  P();
 }
 const worldReady = (wid) => worldZoneIdx(wid).length > 0 && !!worldDef(wid).map;
 
@@ -75,6 +90,7 @@ let mapSel = null;
 function topZone(wid = S.world) { const list = worldZoneIdx(wid); let t = list[0]; list.forEach((i) => { if (zoneUnlocked(i)) t = i; }); return t; }
 
 function renderWorldMap() {
+  if (diffLocked(S.diff)) { S.diff = 'normal'; S.diffBy[S.world] = 'normal'; }
   const d = D();
   const w = worldDef(S.world);
   const tabs = WORLDS.length > 1 ? `<div class="world-tabs">${WORLDS.map((x) => {
@@ -84,7 +100,7 @@ function renderWorldMap() {
   const menu = diffMenu ? `<div class="diff-menu">${DIFF_ORDER.map((k) => {
     const x = DIFFS[k], lock = diffLocked(k);
     return `<button class="d-${k} ${S.diff === k ? 'on' : ''}" data-a="setdiff" data-v="${k}" ${lock ? 'disabled' : ''}>
-      <b>${lock ? '🔒' : x.icon} ${x.name}${S.clearedDiffs[k] ? ' 🏆' : ''}</b><span class="subtle">${lock ? diffLockText(k) : `มอนสเตอร์ Lv.${ZONES[0].lv + x.off}+ · รางวัล ×${x.reward}`}</span></button>`;
+      <b>${lock ? '🔒' : x.icon} ${x.name}${worldCleared(S.world, k) ? ' 🏆' : ''}</b><span class="subtle">${lock ? diffLockText(k) : `มอนสเตอร์ Lv.${ZONES[worldZoneIdx(S.world)[0]].lv + x.off}+ · รางวัล ×${x.reward}`}</span></button>`;
   }).join('')}</div>` : '';
   if (!worldReady(w.id)) return `<h2>🗺️ แผนที่โลก</h2>${tabs}<div class="card muted">🚧 ${w.n} กำลังสร้าง เร็วๆ นี้!</div>`;
   const list = worldZoneIdx(w.id);
@@ -372,6 +388,7 @@ function migrateTower(s) {
   if (!s.classes) s.classes = {};
   if (!s.town || !TOWNS.some((x) => x.id === s.town)) s.town = 'start';
   if (!s.world || !WORLDS.some((x) => x.id === s.world)) s.world = 'w1';
+  if (!s.diffBy) s.diffBy = { [s.world]: s.diff };
   if (!s.classes[s.cls]) s.classes[s.cls] = { lv: s.lv, exp: s.exp, adv: !!s.adv, loadout: (s.loadout || []).slice(), skin: s.cos ? s.cos.skin : 'default' };
   return s;
 }
@@ -379,9 +396,9 @@ function migrateTower(s) {
 function towerClick(a, v, el) {
   switch (a) {
     case 'diffmenu': diffMenu = !diffMenu; return true;
-    case 'world': if (worldReady(v) && worldUnlocked(v)) { S.world = v; mapSel = null; diffMenu = false; save(); } return true;
+    case 'world': if (worldReady(v) && worldUnlocked(v)) { setWorld(v); mapSel = null; diffMenu = false; save(); } return true;
     case 'townmenu': townMenu = !townMenu; return true;
-    case 'town': { const tw = townDef(v); if (townUnlocked(tw)) { S.town = tw.id; S.world = tw.world; mapSel = null; townMenu = false; save(); toast(`${tw.icon} มาถึง${tw.n}`); } return true; }
+    case 'town': { const tw = townDef(v); if (townUnlocked(tw)) { S.town = tw.id; setWorld(tw.world); mapSel = null; townMenu = false; save(); toast(`${tw.icon} มาถึง${tw.n}`); } return true; }
     case 'mapsel': diffMenu = false; mapSel = v === 'tower' || v === 'wb' ? v : +v; return true;
     case 'wbfight': startWB(B && B.wb ? B.wb : S.world); return 'battle';
     case 'towerd': if (towerOpen(v)) { S.towerD = v; towerPick = null; save(); } return true;

@@ -217,8 +217,9 @@ const DIFFS = {
     desc: 'มอนสเตอร์ +84 เลเวล · บอสคลั่งตั้งแต่เลือด 60% · ดรอปขั้นต่ำเทพนิยาย บอสดรอปเทพเจ้าแน่นอน', need: 'advanced' },
 };
 const DIFF_ORDER = ['normal', 'hard', 'advanced', 'nightmare'];
-const diffLocked = (k) => k !== 'normal' && (DIFFS[k].need ? !S.clearedDiffs[DIFFS[k].need] : !S.clearedDiffs.normal);
-const diffLockText = (k) => (DIFFS[k].need ? `จบโหมด${DIFFS[DIFFS[k].need].name}ก่อน` : 'จบโหมดปกติก่อน');
+/* ความยากล็อกแยกตามทวีป: ต้องจบทวีปนั้นในโหมดก่อนหน้าก่อน */
+const diffLocked = (k, wid = S.world) => k !== 'normal' && !worldCleared(wid, DIFFS[k].need || 'normal');
+const diffLockText = (k, wid = S.world) => `จบ${worldDef(wid).n}โหมด${DIFFS[DIFFS[k].need || 'normal'].name}ก่อน`;
 
 const RARITY = [
   { id: 'common', name: 'ธรรมดา', m: 1.0, w: 60, cost: 1 },
@@ -932,6 +933,7 @@ function victory() {
     rewards.items.push(makeGear(tier, d.bossMinR, d.maxR));
     if (Math.random() < 0.5) { S.charms++; rewards.charm = 1; }
     if (B.zi === FINAL_ZONE && !S.clearedDiffs[S.diff]) { S.clearedDiffs[S.diff] = true; rewards.ending = S.diff; }
+    else if (first && zoneWorld(z) !== 'w1' && !hasNextZone(B.zi)) { rewards.ending = S.diff; rewards.endWorld = zoneWorld(z); }
   } else {
     P().zoneKills[z.id] = (P().zoneKills[z.id] || 0) + 1;
     if (Math.random() < 0.28) rewards.items.push(makeGear(tier, d.minR, d.maxR));
@@ -1007,6 +1009,7 @@ function usePotion(k, inBattle) {
 function setDifficulty(k) {
   if (!DIFFS[k] || diffLocked(k)) return;
   S.diff = k;
+  S.diffBy[S.world] = k;
   P();
   const st = stats(); S.hp = st.hp; S.mp = st.mp;
   save();
@@ -1438,10 +1441,11 @@ function battleResult() {
   let ending = '';
   if (r.ending) {
     const nextOpts = DIFF_ORDER.filter((k) => k !== S.diff && !diffLocked(k));
-    const title = { normal: 'คุณโค่นจอมมารได้แล้ว!', hard: 'พิชิตโหมดยากสำเร็จ!', advanced: 'พิชิตโหมดขั้นสูง — ตำนานที่แท้จริง! ปลดล็อกโหมดฝันร้าย', nightmare: 'พิชิตโหมดฝันร้าย — ไม่มีใครเทียบได้อีกแล้ว!' }[r.ending];
+    let title = { normal: 'คุณโค่นจอมมารได้แล้ว!', hard: 'พิชิตโหมดยากสำเร็จ!', advanced: 'พิชิตโหมดขั้นสูง — ตำนานที่แท้จริง! ปลดล็อกโหมดฝันร้าย', nightmare: 'พิชิตโหมดฝันร้าย — ไม่มีใครเทียบได้อีกแล้ว!' }[r.ending];
+    if (r.endWorld) title = `พิชิต${worldDef(r.endWorld).n} โหมด${DIFFS[r.ending].name}!${DIFF_ORDER[DIFF_ORDER.indexOf(r.ending) + 1] ? ' ปลดล็อกความยากถัดไปแล้ว' : ''}`;
     ending = `<div class="card ending" style="text-align:center"><div class="big">🎉</div><h2>${title}</h2>
       <div class="muted">ขอบคุณที่เล่นนะ ผู้กล้า ${esc(S.name)}! เลือกความยากเพื่อผจญภัยต่อ (เลเวลและไอเทมติดตัวไปด้วย)</div>
-      <div class="diff-pick">${nextOpts.map((k) => `<button class="d-${k}" data-a="setdiff" data-v="${k}">${DIFFS[k].icon} ${DIFFS[k].name}<span class="subtle">Lv.${ZONES[0].lv + DIFFS[k].off}+</span></button>`).join('')}
+      <div class="diff-pick">${nextOpts.map((k) => `<button class="d-${k}" data-a="setdiff" data-v="${k}">${DIFFS[k].icon} ${DIFFS[k].name}<span class="subtle">Lv.${ZONES[worldZoneIdx(S.world)[0]].lv + DIFFS[k].off}+</span></button>`).join('')}
         <button data-a="leave">อยู่โหมด${DIFFS[S.diff].name}ต่อ</button></div></div>`;
   }
   return `<div class="card">
@@ -1582,7 +1586,7 @@ document.addEventListener('click', (ev) => {
   const a = el.dataset.a, v = el.dataset.v;
 
   switch (a) {
-    case 'go': if (v === 'map' && view === 'town') S.world = curTown().world; townMenu = false; view = v; B = null; busy = false; forgeFx = null; skillSlotSel = null; if (typeof cosTry !== 'undefined') cosTry = null; break;
+    case 'go': if (v === 'map' && view === 'town') setWorld(curTown().world); townMenu = false; view = v; B = null; busy = false; forgeFx = null; skillSlotSel = null; if (typeof cosTry !== 'undefined') cosTry = null; break;
     case 'continue': S = load(); view = 'town'; break;
     case 'newgame':
       if (load() && !confirm('มีเซฟเก่าอยู่ เริ่มใหม่จะลบเซฟเดิม ตกลงไหม?')) return;
