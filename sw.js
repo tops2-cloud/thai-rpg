@@ -1,7 +1,7 @@
 /* Service worker: เล่นได้แม้ไม่มีเน็ต
    ไฟล์เกม = ดึงจากเน็ตก่อน (ได้เวอร์ชันล่าสุดเสมอ) ถ้าออฟไลน์ใช้ของที่เก็บไว้ */
-const CACHE = 'thai-rpg-v17';
-const CORE = ['./', 'index.html', 'style.css', 'hero.js', 'monsters.js', 'battle2d.js', 'features.js', 'cosmetics.js', 'tower.js', 'game.js', 'bg/worldmap.webp', ...['forest','cave','desert','volcano','swamp','ice','sea','sky','spirit','castle'].map((z) => `bg/${z}.webp`),
+const CACHE = 'thai-rpg-v18';
+const CORE = ['./', 'index.html', 'style.css', 'hero.js', 'monsters.js', 'battle2d.js', 'features.js', 'cosmetics.js', 'tower.js', 'game.js', 'bg/worldmap.webp', 'bg/worldmap2.webp', ...['forest','cave','desert','volcano','swamp','ice','sea','sky','spirit','castle'].map((z) => `bg/${z}.webp`),
   'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (e) => {

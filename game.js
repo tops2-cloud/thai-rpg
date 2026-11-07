@@ -163,8 +163,39 @@ const ZONES = [
     mobs: [['ปีศาจ', '😈', 0.9, 1.1, 0.9], ['อินเฟอร์นัล', '👺', 1.15, 1.15, 1.1], ['ปีศาจขวานคู่', '🪓', 1, 1.2, 1], ['ปีศาจตรวน', '⛓️', 1.1, 1.05, 1.1], ['ปีศาจเขาโค้ง', '🐂', 1.25, 1.1, 1.2], ['อัศวินดำ', '🛡️', 1.1, 1, 1.4]],
     boss: ['จอมมาร', '👿'], bossFinal: ['จอมมารร่างแท้', '🌌'], // ร่างแท้โผล่ในโหมดขั้นสูง
     unique: { slot: 'weapon', n: 'ดาบสังหารมาร', i: '⚔️', bonus: { atkMul: 1.25, crit: 10 } } },
+  /* ===================== ทวีปที่ 2: ดินแดนใหม่ ===================== */
+  { id: 'w2forest', world: 'w2', scene: 'forest', pos: [25, 26], name: 'ป่าภูตพฤกษา', icon: '🌳', lv: 31, suffix: 'แห่งพฤกษาโบราณ',
+    mobs: [['ภูตใบไม้', '🧚', 0.8, 1.1, 0.8], ['ต้นเห็ดมีชีวิต', '🍄', 1.15, 0.95, 1.2], ['ยักษ์มอส', '🧌', 1.3, 1.05, 1.3], ['จิ้งจอกมอส', '🦊', 0.9, 1.1, 0.9], ['แมลงปอเรืองแสง', '🪰', 0.75, 1.2, 0.7], ['หมึกพฤกษา', '🐙', 1.05, 1.05, 1]],
+    boss: ['ราชาเอนท์', '🌳'], unique: { slot: 'weapon', kind: 'staff', n: 'คทาพฤกษาโบราณ', i: '🌿', bonus: { mp: 10, hpMul: 1.1 } } },
+  { id: 'w2cave', world: 'w2', scene: 'cave', pos: [13.5, 51], name: 'ถ้ำอาเทเรียน', icon: '💎', lv: 34, suffix: 'แห่งผลึกลึก',
+    mobs: [['แมงมุมอเมทิสต์', '🕷️', 0.95, 1.15, 0.9], ['โกเลมไพลิน', '💎', 1.3, 0.95, 1.5], ['ทากอัญมณี', '🐌', 1.05, 0.9, 1.2], ['ผลึกออโรรา', '🔮', 0.9, 1.1, 1.4], ['ลูกแก้วมืด', '🌑', 0.85, 1.2, 0.8], ['งูผลึก', '🐍', 1, 1.15, 1]],
+    boss: ['เนตรผลึกมรณะ', '👁️'], unique: { slot: 'helmet', kind: 'circlet', n: 'มงกุฎเนตรผลึก', i: '👁️', bonus: { crit: 8 } } },
+  { id: 'w2desert', world: 'w2', scene: 'desert', pos: [21, 77], name: 'ทะเลทรายวังวน', icon: '🌪️', lv: 37, suffix: 'แห่งวังวนทราย',
+    mobs: [['ปูทรายยักษ์', '🦀', 1, 1, 1.4], ['กระบองเพชรยักษ์', '🌵', 1.2, 0.95, 1.2], ['ด้วงอัญมณี', '🪲', 0.9, 1.05, 1.3], ['สิงโตทราย', '🦁', 1.1, 1.15, 1], ['มัมมี่โบราณ', '🧟', 1.1, 1.05, 1], ['ไฮยีนาทะเลทราย', '🐕', 0.85, 1.2, 0.8]],
+    boss: ['สฟิงซ์จอมทัพ', '🦁'], unique: { slot: 'weapon', kind: 'sword', n: 'ดาบฟาโรห์', i: '🗡️', bonus: { atkMul: 1.12, crit: 5 } } },
+  { id: 'w2volcano', world: 'w2', scene: 'volcano', pos: [39, 78], name: 'ยอดปล่องภูเขาไฟ', icon: '🌋', lv: 40, suffix: 'แห่งปล่องเพลิง',
+    mobs: [['ซาลาแมนเดอร์ลาวา', '🦎', 1, 1.1, 1], ['ภูตลาวาเดือด', '🌋', 1.05, 1.15, 0.9], ['ภูตเปลวเพลิง', '🔥', 0.8, 1.2, 0.7], ['โกเลมแมกมา', '🗿', 1.3, 0.95, 1.5], ['ฟีนิกซ์เพลิง', '🐦‍🔥', 0.85, 1.2, 0.8], ['มังกรลาวาน้อย', '🐉', 1.1, 1.15, 1]],
+    boss: ['มังกรปล่องภูเขาไฟ', '🐲'], unique: { slot: 'armor', kind: 'plate', n: 'เกราะเกล็ดมังกรเพลิง', i: '🐉', bonus: { defMul: 1.2 } } },
+  { id: 'w2swamp', world: 'w2', scene: 'swamp', pos: [83, 77], name: 'บึงโรคระบาด', icon: '☠️', lv: 43, suffix: 'แห่งบึงระบาด',
+    mobs: [['ยักษ์หนองบึง', '🧌', 1.3, 1, 1.3], ['สไลม์ตาเดียว', '👁️', 0.9, 1.05, 0.8], ['หนูหนองน้ำ', '🐀', 0.75, 1.15, 0.7], ['งูหนองน้ำ', '🐍', 0.95, 1.2, 0.9], ['โกเลมตะไคร่', '🪨', 1.2, 1, 1.4], ['บัวกินคน', '🪷', 1, 1.1, 1]],
+    boss: ['ไฮดราราชาโรคระบาด', '🐉'], unique: { slot: 'ring', kind: 'ring', n: 'แหวนพิษไฮดรา', i: '💍', bonus: { atkAdd: 2 } } },
+  { id: 'w2ice', world: 'w2', scene: 'ice', pos: [89, 55], name: 'ทุนดราน้ำแข็ง', icon: '🏔️', lv: 46, suffix: 'แห่งทุนดรา',
+    mobs: [['เยติน้อย', '🦍', 1.1, 1.05, 1.1], ['นกฮูกน้ำแข็ง', '🦉', 0.8, 1.15, 0.8], ['ยักษ์ธารน้ำแข็ง', '🧊', 1.3, 1.1, 1.3], ['ภูตหิมะ', '👻', 0.85, 1.15, 0.8], ['หมีขาวยักษ์', '🐻‍❄️', 1.25, 1.1, 1.1], ['แมมมอธ', '🦣', 1.35, 1, 1.3]],
+    boss: ['ราชายักษ์น้ำแข็ง', '🥶'], unique: { slot: 'offhand', kind: 'shield', n: 'โล่บัลลังก์น้ำแข็ง', i: '🛡️', bonus: { defMul: 1.25 } } },
+  { id: 'w2sea', world: 'w2', scene: 'sea', pos: [87, 22], name: 'วิหารจมสมุทร', icon: '🔱', lv: 49, suffix: 'แห่งสมุทรลึก',
+    mobs: [['เงือกสาว', '🧜‍♀️', 0.85, 1.1, 0.8], ['มังกรทะเลน้อย', '🐉', 1.1, 1.15, 1], ['ทหารปลาหมอทะเล', '🔱', 1.05, 1.1, 1.2], ['กระเบนราหู', '🐟', 1, 1.1, 0.9], ['ปลาหมึกฟ้า', '🐙', 1.1, 1.1, 0.9], ['หมึกกล้วยยักษ์', '🦑', 1, 1.15, 0.9]],
+    boss: ['โพไซดอน', '🔱'], unique: { slot: 'weapon', kind: 'ngao', n: 'ตรีศูลโพไซดอน', i: '🔱', bonus: { atkMul: 1.15 } } },
+  { id: 'w2sky', world: 'w2', scene: 'sky', pos: [67, 22], name: 'หมู่เกาะสวรรค์', icon: '🏝️', lv: 52, suffix: 'แห่งสรวงสวรรค์',
+    mobs: [['นกน้ำแข็งฟ้า', '🕊️', 0.85, 1.15, 0.8], ['อินทรีพายุ', '🦅', 0.9, 1.2, 0.8], ['นกสายฟ้า', '⚡', 0.8, 1.25, 0.7], ['ภูตเมฆ', '☁️', 1.1, 1, 1.1], ['อินทรีทองคำ', '🦅', 1, 1.15, 1], ['การ์กอยล์ฟ้า', '🗿', 1.2, 1.05, 1.4]],
+    boss: ['เอเธอร์ร็อค', '🦚'], unique: { slot: 'cape', kind: 'cape', n: 'ปีกเอเธอร์', i: '🪽', bonus: { crit: 10 } } },
+  { id: 'w2spirit', world: 'w2', scene: 'spirit', pos: [71, 46], name: 'ยอดผาคริสตัลออโรรา', icon: '🌈', lv: 55, suffix: 'แห่งแสงออโรรา',
+    mobs: [['ผีน้ำแข็ง', '👻', 0.85, 1.2, 0.7], ['โล่รูนมีชีวิต', '🛡️', 1.2, 0.95, 1.6], ['วิญญาณม่วง', '🦇', 0.9, 1.2, 0.8], ['หลุมดำจิ๋ว', '🕳️', 1, 1.2, 1], ['ผู้พิทักษ์วิญญาณ', '👼', 1.15, 1.05, 1.1], ['วังวนมิติ', '🌀', 1, 1.15, 1]],
+    boss: ['วิญญาณพลังบริสุทธิ์', '✨'], unique: { slot: 'necklace', kind: 'amulet', n: 'สร้อยพลังบริสุทธิ์', i: '💫', bonus: { mp: 10, crit: 6 } } },
+  { id: 'w2castle', world: 'w2', scene: 'castle', pos: [63, 71], name: 'ป้อมนรกออบซิเดียน', icon: '🏯', lv: 58, suffix: 'แห่งออบซิเดียน',
+    mobs: [['ปีศาจแดง', '👹', 1, 1.1, 1], ['ปีศาจเพลิง', '😈', 0.95, 1.2, 0.9], ['อัศวินนรก', '🛡️', 1.25, 1.05, 1.4], ['จอมเวทนรก', '🧙', 0.9, 1.25, 0.8], ['จอมเวทมืด', '🧙‍♂️', 0.9, 1.2, 0.9], ['หมานรก', '🐺', 1, 1.15, 0.9]],
+    boss: ['อาร์คดีมอน', '😈'], unique: { slot: 'weapon', kind: 'sword', n: 'ดาบบัลลังก์ออบซิเดียน', i: '⚔️', bonus: { atkMul: 1.3, crit: 12 } } },
 ];
-const FINAL_ZONE = ZONES.length - 1;
+const FINAL_ZONE = ZONES.findIndex((z) => z.id === 'castle'); // บอสสุดท้ายของทวีปแรก = จบเกมของโหมดนั้น
 /* ภาพมอนสเตอร์: mon/<zone>_<ลำดับ>.webp, บอส mon/<zone>_boss.webp */
 const MONSTER_IMG = {};
 ZONES.forEach((z) => {
@@ -172,6 +203,7 @@ ZONES.forEach((z) => {
   MONSTER_IMG[z.boss[0]] = `mon/${z.id}_boss.webp`;
   if (z.bossFinal) MONSTER_IMG[z.bossFinal[0]] = `mon/${z.id}_final.webp`;
 });
+MONSTER_IMG[WORLD_BOSS.n] = WORLD_BOSS.img;
 const bossOf = (z) => (z.bossFinal && S && (S.diff === 'advanced' || S.diff === 'nightmare') ? z.bossFinal : z.boss);
 
 const DIFFS = {
@@ -458,7 +490,7 @@ function makeGear(tier, minR, maxR, forceSlot) {
 
 function makeUnique(zone, tier) {
   const u = zone.unique, b = u.bonus || {};
-  const kind = { forest: 'sword', swamp: 'staff', sea: 'ngao', castle: 'sword', cave: 'plate', ice: 'plate', spirit: 'robe', desert: 'amulet', volcano: 'amulet', sky: 'cape' }[zone.id];
+  const kind = u.kind || { forest: 'sword', swamp: 'staff', sea: 'ngao', castle: 'sword', cave: 'plate', ice: 'plate', spirit: 'robe', desert: 'amulet', volcano: 'amulet', sky: 'cape' }[zone.id];
   const baseDef = (GEAR[u.slot] || []).find((g) => g.k === kind) || { k: kind };
   const st = slotStats(u.slot, { ...baseDef, h2: TWO_HAND.has(`u:${zone.id}`) }, tier, () => 2.9, 2.6, 3);
   if (b.atkMul && st.atk) st.atk *= b.atkMul;
@@ -637,7 +669,7 @@ function startBattle(zi, isBoss, opt = null) {
   }
   B = {
     id: ++battleSeq, events: [],
-    zi, isBoss, e, tower: opt && opt.tower ? opt.tower : null,
+    zi, isBoss, e, tower: opt && opt.tower ? opt.tower : null, wb: !!(opt && opt.wb),
     log: [opt && opt.tower ? `🗼 ชั้น ${opt.tower.floor}: ${e.i} ${e.n} ปรากฏตัว!` : `${e.i} ${e.n} ปรากฏตัว!`],
     eTurns: 0, charging: false, defending: false, enraged: false,
     atkUp: 0, berserk: 0, focus: 0, ironwall: 0, manaShield: 0, evade: false,
@@ -891,6 +923,7 @@ function victory() {
   S.bestiary[e.n] = (S.bestiary[e.n] || 0) + 1;
 
   if (B.tower) towerWin(rewards);
+  else if (B.wb) wbWin(rewards);
   else if (B.isBoss) {
     const first = !P().bossWins[z.id];
     if (Math.random() < 0.06) fragDrop(rewards, 1);
@@ -1416,13 +1449,14 @@ function battleResult() {
     ${r.newItems ? `<div class="muted" style="margin-top:6px">📖 บันทึกไอเทมใหม่ลงสมุดสะสม ${r.newItems} ชิ้น</div>` : ''}
   </div>
   ${ending}
-  ${B.tower ? `<div class="actions">
+  ${B.wb ? `<div class="actions"><button class="primary" data-a="wbfight">👁️ ท้าอีกครั้ง</button><button data-a="go" data-v="map">🗺️ กลับแผนที่</button></div>`
+  : B.tower ? `<div class="actions">
     ${B.tower.floor < TOWER_FLOORS ? `<button class="primary" data-a="tnext">⬆️ ขึ้นชั้น ${B.tower.floor + 1}</button>` : ''}
     <button class="${B.tower.floor >= TOWER_FLOORS ? 'primary full' : ''}" data-a="go" data-v="map">🗺️ กลับแผนที่</button>
   </div>` : ending ? '' : `<div class="actions">
     ${B.isBoss ? '' : `<button class="primary" data-a="hunt" data-v="${B.zi}">⚔️ สู้ต่อ</button>`}
-    ${B.isBoss && B.zi < FINAL_ZONE ? `<button class="primary" data-a="go" data-v="map">🗺️ ไปด่านต่อไป</button>` : ''}
-    <button class="${B.isBoss && B.zi === FINAL_ZONE ? 'primary full' : ''}" data-a="leave">🏘️ กลับเมือง</button>
+    ${B.isBoss && hasNextZone(B.zi) ? `<button class="primary" data-a="go" data-v="map">🗺️ ไปด่านต่อไป</button>` : ''}
+    <button class="${B.isBoss && !hasNextZone(B.zi) ? 'primary full' : ''}" data-a="leave">🏘️ กลับเมือง</button>
   </div>`}`;
 }
 
@@ -1630,7 +1664,7 @@ document.addEventListener('click', (ev) => {
     default: if (!featureClick(a, v, el) && !cosClick(a, v, el) && !towerClick(a, v, el)) return;
   }
   render();
-  if (['go', 'continue', 'leave', 'create', 'setdiff', 'tower', 'tnext'].includes(a)) window.scrollTo(0, 0);
+  if (['go', 'continue', 'leave', 'create', 'setdiff', 'tower', 'tnext', 'wbfight'].includes(a)) window.scrollTo(0, 0);
 });
 
 render();

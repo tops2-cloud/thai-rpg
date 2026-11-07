@@ -106,11 +106,11 @@ const SCENE = {
 /* ---------- สร้างฉาก ---------- */
 function stageHTML(zone, foe, isBoss, heroSvg) {
   return `<div class="stage" id="stage">
-    <svg class="stage-bg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMax slice">${(SCENE[zone.id] || SCENE.forest)()}</svg>
-    <img class="stage-bg stage-img" src="bg/${zone.id}.webp" alt="" onerror="this.remove()">
+    <svg class="stage-bg" viewBox="0 0 400 240" preserveAspectRatio="xMidYMax slice">${(SCENE[zone.scene || zone.id] || SCENE.forest)()}</svg>
+    <img class="stage-bg stage-img" src="bg/${zone.scene || zone.id}.webp" alt="" onerror="this.remove()">
     <div class="unit hero-u" id="u-hero"><div class="ushadow"></div><div class="ubody" id="hero-body">${heroSvg}</div><div class="utags" id="htags"></div>
       <div class="ubars"><div class="mbar hp"><i id="hhp"></i><span id="hhptext"></span></div><div class="mbar mp"><i id="hmp"></i></div></div></div>
-    <div class="unit foe-u ${isBoss ? 'boss' : ''}" id="u-foe"><div class="ushadow"></div><div class="ubody foe-sprite" id="foe-body">${typeof monsterSVG === 'function' ? monsterSVG(foe.n, isBoss ? 86 : 62, foe.i) : foe.i}</div><div class="utags ftags" id="ftags"></div>
+    <div class="unit foe-u ${isBoss ? 'boss' : ''}" id="u-foe"><div class="ushadow"></div><div class="ubody foe-sprite" id="foe-body">${typeof monsterSVG === 'function' ? monsterSVG(foe.n, typeof WORLD_BOSS !== 'undefined' && foe.n === WORLD_BOSS.n ? 120 : isBoss ? 86 : 62, foe.i) : foe.i}</div><div class="utags ftags" id="ftags"></div>
       <div class="ubars"><div class="uname">${isBoss ? '👑 ' : ''}${foe.n}</div><div class="mbar hp"><i id="fhp"></i><span id="fhptext"></span></div></div></div>
     <div class="unit pet-u" id="u-pet"></div>
     <div class="fx" id="fx"></div>
