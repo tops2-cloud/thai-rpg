@@ -1117,7 +1117,7 @@ function hud() {
   return `<div class="hud">
     <div class="row between">
       <div class="name">${classIcon()} ${esc(S.name)} <span class="muted">Lv.${S.lv} ${className()}</span></div>
-      <div class="row" style="gap:10px"><span class="diff-badge d-${S.diff}">${d.icon} ${d.name}</span><span class="gold">💰 ${fmt(S.gold)}</span></div>
+      <div class="row" style="gap:10px">${view === 'bag' ? '' : `<span class="diff-badge d-${S.diff}">${d.icon} ${d.name}</span>`}<span class="gold">💰 ${fmt(S.gold)}</span></div>
     </div>
     ${view === 'battle' ? `<div class="exp-line" title="EXP ${fmt(S.exp)}/${fmt(expNeed(S.lv))}"><i style="width:${Math.min(100, (S.exp / expNeed(S.lv)) * 100)}%"></i></div>` : `<div class="bars">
       ${bar('hp', S.hp, st.hp, `HP ${fmt(S.hp)}/${fmt(st.hp)}`)}
