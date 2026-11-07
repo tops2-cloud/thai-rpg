@@ -369,7 +369,11 @@ function stats() {
 }
 
 const expNeed = (lv) => Math.round(15 * Math.pow(lv, 1.6));
-const zoneUnlocked = (i) => i === 0 || (!!P().bossWins[ZONES[i - 1].id] && zoneUnlocked(i - 1));
+function zoneUnlocked(i) {
+  const list = worldZoneIdx(zoneWorld(ZONES[i])), k = list.indexOf(i);
+  if (k === 0) return worldUnlocked(zoneWorld(ZONES[i]));
+  return !!P().bossWins[ZONES[list[k - 1]].id] && zoneUnlocked(list[k - 1]);
+}
 const zoneLevel = (zi) => ZONES[zi].lv + D().off;
 const zoneTier = (zi) => zi + 1 + D().tierAdd;
 const maxTier = () => { let t = 1; ZONES.forEach((z, i) => { if (zoneUnlocked(i)) t = zoneTier(i); }); return t; };
@@ -398,7 +402,7 @@ function rollRarity(min = 0, max = 3) {
   return min;
 }
 
-const tierSuffix = (tier) => ZONES[(tier - 1) % ZONES.length].suffix + ['', '★', '★★', '★★★'][Math.min(3, Math.floor((tier - 1) / ZONES.length))];
+const tierSuffix = (tier) => ZONES[(tier - 1) % 10].suffix + ['', '★', '★★', '★★★'][Math.min(3, Math.floor((tier - 1) / 10))];
 
 /* สูตรค่าพลังของอุปกรณ์แต่ละประเภท — ค่าแรกคือค่าหลัก (ใช้ตอนตีบวก) */
 function slotStats(cat, b, t, roll, rm, ri) {
@@ -464,7 +468,7 @@ function makeUnique(zone, tier) {
   if (b.atkAdd) st.atk = (st.atk || 0) + tier * b.atkAdd * 2.6;
   if (b.mp) st.mp = (st.mp || 0) + tier * b.mp;
   for (const k in st) st[k] = Math.round(st[k]);
-  const stars = ['', ' ★', ' ★★', ' ★★★'][Math.min(3, Math.floor((tier - 1) / ZONES.length))];
+  const stars = ['', ' ★', ' ★★', ' ★★★'][Math.min(3, Math.floor((tier - 1) / 10))];
   return finalizeItem({ slot: u.slot, key: `u:${zone.id}`, name: u.n + stars, icon: u.i, rarity: 'unique', tier, stats: st });
 }
 
@@ -579,7 +583,7 @@ function equipItem(it, target) {
 
 const rarityCost = (r) => (r === 'unique' ? 2.5 : r === 'legendary' ? 5 : RARITY.find((x) => x.id === r).cost);
 const forgeCost = (it) => Math.round((15 + it.tier * 12) * rarityCost(it.rarity) * (1 + it.plus * 0.55));
-const charmPrice = () => 100 + maxTier() * 40;
+const charmPrice = () => Math.round((100 + maxTier() * 40) * curTown().charm);
 
 function findItem(uid) {
   for (const slot of EQUIP_SLOTS) if (S.equip[slot] && S.equip[slot].uid === uid) return S.equip[slot];
@@ -1094,17 +1098,19 @@ function renderTown() {
   const msg = S.clearedDiffs[S.diff]
     ? `🎉 คุณโค่นจอมมารในโหมด${d.name}แล้ว! ${S.diff === 'nightmare' ? 'ฝันร้ายก็หยุดคุณไม่ได้!' : S.diff === 'advanced' ? 'คุณคือตำนานที่แท้จริง' : 'ลองท้าทายความยากที่สูงขึ้นดูสิ'}`
     : 'จอมมารกำลังคุกคามแผ่นดิน... ผู้กล้า จงออกเดินทาง!';
-  return `<div class="card town-head">
+  const tw = curTown();
+  return `<div class="card town-head" style="--town-bg:url(${tw.bg})">
     <div class="th-art" data-a="go" data-v="bag">${heroArt(S.cls, S.equip, 112)}</div>
     <div class="th-info">
-      <h2>🏘️ หมู่บ้านเริ่มต้น</h2>
-      <div class="muted th-msg">${msg}</div>
+      <button class="town-name" data-a="townmenu">${tw.icon} ${tw.n} <span class="tn-arrow">▾</span></button>
+      <div class="muted th-msg">${tw.id === 'start' ? msg : tw.desc}</div>
       <div class="th-stats">
         <span>⚔️ <b>${fmt(st.atk)}</b>${offWeapon() ? `<small>+${fmt(offhandAtk(st) * OFFHAND_HIT_RATE)}</small>` : ''}</span><span>🛡️ <b>${fmt(st.def)}</b></span>
         <span>❤️ <b>${fmt(st.hp)}</b></span><span>🎯 <b>${st.crit}%</b></span>
         <span>🏆 <b>${fmt(S.wins)}</b></span><span>👑 <b>${bossesBeaten()}/${ZONES.length}</b></span>
       </div>
     </div></div>
+  ${townMenuHTML()}
   <div class="menu-grid town-menu">
     <button class="primary wide" data-a="go" data-v="map"><span class="ico">🗺️</span> ออกผจญภัย</button>
     <button data-a="go" data-v="quests" class="quest-btn ${claimable() ? 'glow-btn' : ''}"><span class="ico">📋</span>ภารกิจ${claimable() ? ` <span class="badge">${claimable()}</span>` : ''}<span class="subtle">ประจำวัน & ความสำเร็จ</span></button>
@@ -1123,16 +1129,18 @@ function renderTown() {
   ${installButton()}`;
 }
 
-const innPrice = () => 10 + S.lv * 3;
+const innPrice = () => Math.round((10 + S.lv * 3) * curTown().inn);
+const potPrice = (k) => Math.max(1, Math.round(POTIONS[k].price * curTown().pot));
 const chestPrice = () => 60 + maxTier() * 60;
 
 function renderShop() {
-  return `<div class="row between"><h2>🛒 ร้านค้า</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>
+  return `<div class="row between"><h2>🛒 ร้านค้า${curTown().id !== 'start' ? ` <small class="muted">${curTown().n}</small>` : ''}</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>
+  ${curTown().id !== 'start' ? `<div class="muted" style="font-size:13px;margin-bottom:8px">${curTown().icon} ${curTown().desc}</div>` : ''}
   <div class="card"><h3 style="margin-top:0">ยา</h3>
     ${Object.entries(POTIONS).map(([k, p]) => `<div class="item">
       <span class="ico">${p.i}</span>
       <div class="info"><div class="nm">${p.n} <span class="muted">(มี ${S.pots[k]})</span></div><div class="st">${p.desc}</div></div>
-      <button class="small" data-a="buy" data-v="${k}" ${S.gold < p.price ? 'disabled' : ''}>${p.price} 💰</button>
+      <button class="small" data-a="buy" data-v="${k}" ${S.gold < potPrice(k) ? 'disabled' : ''}>${potPrice(k)} 💰</button>
     </div>`).join('')}
   </div>
   <div class="card"><h3 style="margin-top:0">ของพิเศษ</h3>
@@ -1530,7 +1538,7 @@ document.addEventListener('click', (ev) => {
   const a = el.dataset.a, v = el.dataset.v;
 
   switch (a) {
-    case 'go': view = v; B = null; busy = false; forgeFx = null; skillSlotSel = null; if (typeof cosTry !== 'undefined') cosTry = null; break;
+    case 'go': if (v === 'map' && view === 'town') S.world = curTown().world; townMenu = false; view = v; B = null; busy = false; forgeFx = null; skillSlotSel = null; if (typeof cosTry !== 'undefined') cosTry = null; break;
     case 'continue': S = load(); view = 'town'; break;
     case 'newgame':
       if (load() && !confirm('มีเซฟเก่าอยู่ เริ่มใหม่จะลบเซฟเดิม ตกลงไหม?')) return;
@@ -1551,8 +1559,8 @@ document.addEventListener('click', (ev) => {
     }
     case 'buy': {
       const p = POTIONS[v];
-      if (S.gold < p.price) return;
-      S.gold -= p.price; S.pots[v]++; save(); toast(`ซื้อ ${p.i} ${p.n}`); break;
+      if (S.gold < potPrice(v)) return;
+      S.gold -= potPrice(v); S.pots[v]++; save(); toast(`ซื้อ ${p.i} ${p.n}`); break;
     }
     case 'buycharm': {
       const c = charmPrice();
@@ -1564,7 +1572,7 @@ document.addEventListener('click', (ev) => {
       if (S.gold < cost) return;
       S.gold -= cost;
       const d = D();
-      const it = makeGear(maxTier(), d.minR, d.maxR);
+      const it = makeGear(maxTier(), Math.min(d.maxR, d.minR + curTown().chest), d.maxR);
       const isNew = addItem(it); save();
       toast(`🎁 ได้ ${it.icon} ${it.name} (${rarityName(it.rarity)})${isNew ? ' — ใหม่!' : ''}`); break;
     }

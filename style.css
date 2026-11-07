@@ -541,3 +541,17 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .town-menu button .subtle { font-size: 10px; line-height: 1.25; }
 .town-menu button.wide { grid-column: span 2; padding: 11px; font-size: 15px; }
 .town-menu .badge { font-size: 10px; }
+
+/* ===== เมือง & ทวีป ===== */
+.town-head { position: relative; isolation: isolate; }
+.town-head::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #1f1a30 15%, #1f1a30dd 55%, #1f1a3099), var(--town-bg) center/cover; }
+.town-name { background: none; border: 0; padding: 0; font-family: 'Kanit'; font-size: 19px; font-weight: 700; color: var(--text); text-align: left; }
+.town-name .tn-arrow { font-size: 13px; color: var(--gold); }
+.town-menu-pop { margin: -6px 0 12px; display: flex; flex-direction: column; gap: 5px; background: #14111ff5; border: 1px solid var(--line); border-radius: 12px; padding: 6px; box-shadow: 0 8px 24px #000c; }
+.town-menu-pop button { text-align: left; padding: 6px 9px; font-size: 13px; }
+.town-menu-pop button.on { background: #3a2b62; border-color: var(--accent); }
+.town-menu-pop .subtle { font-size: 10px; }
+.world-tabs { display: flex; gap: 6px; margin: -4px 0 8px; }
+.world-tabs button { flex: 1; padding: 5px 6px; font-size: 12px; }
+.world-tabs button.on { border-color: var(--accent); background: #3a2b62; }
+.world-tabs small { font-size: 10px; color: var(--muted); }

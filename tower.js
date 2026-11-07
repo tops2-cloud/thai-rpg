@@ -4,38 +4,96 @@
    (ไฟล์นี้โหลดก่อน game.js — ใช้ฟังก์ชันของ game.js ตอนเล่นเท่านั้น)
    ============================================================ */
 
-/* ---------------- แผนที่โลก ---------------- */
-// ตำแหน่งหมุดบนภาพ bg/worldmap.webp (เปอร์เซ็นต์ ซ้าย, บน)
+/* ---------------- โลก (ทวีป) ---------------- */
+// เพิ่มทวีปใหม่: ใส่ใน WORLDS แล้วเพิ่มด่านใน ZONES (game.js) โดยใส่ world: '<id>' และ pos: [ซ้าย%, บน%] บนภาพแผนที่
+const WORLDS = [
+  { id: 'w1', n: 'ทวีปแรก', icon: '🌍', map: 'bg/worldmap.webp', tower: [50, 46] },
+  { id: 'w2', n: 'ทวีปที่ 2', icon: '🌌', map: null, need: 'w1' }, // รอภาพแผนที่/มอนสเตอร์
+];
+// ตำแหน่งหมุดของทวีปแรก (เปอร์เซ็นต์ ซ้าย, บน)
 const MAP_POS = {
   forest: [25, 26], cave: [16, 52], desert: [23, 78], volcano: [41, 82], swamp: [84, 80],
-  ice: [88, 56], sea: [86, 21], sky: [67, 19], spirit: [70, 46], castle: [63, 78], tower: [50, 46],
+  ice: [88, 56], sea: [86, 21], sky: [67, 19], spirit: [70, 46], castle: [63, 78],
 };
+const worldDef = (id) => WORLDS.find((w) => w.id === id) || WORLDS[0];
+const zoneWorld = (z) => z.world || 'w1';
+const worldZoneIdx = (wid) => ZONES.map((z, i) => (zoneWorld(z) === wid ? i : -1)).filter((i) => i >= 0);
+const zonePos = (z) => z.pos || MAP_POS[z.id] || [50, 50];
+/* ทวีปเปิดเมื่อ: มีด่านแล้ว + ล้มบอสสุดท้ายของทวีปก่อนหน้า (ในความยากที่เล่นอยู่) */
+function worldUnlocked(wid) {
+  const w = worldDef(wid);
+  if (!w.need) return true;
+  if (!worldZoneIdx(wid).length) return false;
+  const prev = worldZoneIdx(w.need);
+  return !!P().bossWins[ZONES[prev[prev.length - 1]].id];
+}
+const worldReady = (wid) => worldZoneIdx(wid).length > 0 && !!worldDef(wid).map;
+
 let mapSel = null;
 
-function topZone() { let t = 0; ZONES.forEach((z, i) => { if (zoneUnlocked(i)) t = i; }); return t; }
+function topZone(wid = S.world) { const list = worldZoneIdx(wid); let t = list[0]; list.forEach((i) => { if (zoneUnlocked(i)) t = i; }); return t; }
 
 function renderWorldMap() {
   const d = D();
-  const top = topZone();
-  if (mapSel === null || (mapSel !== 'tower' && !ZONES[mapSel])) mapSel = top;
-  const pins = ZONES.map((z, i) => {
-    const [x, y] = MAP_POS[z.id];
-    const open = zoneUnlocked(i), beaten = P().bossWins[z.id];
-    return `<button class="map-pin ${open ? '' : 'locked'} ${mapSel === i ? 'on' : ''} ${i === top && !beaten ? 'cur' : ''}" style="left:${x}%;top:${y}%" data-a="mapsel" data-v="${i}">
-      <span class="pi">${open ? z.icon : '🔒'}</span>${beaten ? '<i class="pk">✓</i>' : ''}<b>${z.name}</b></button>`;
-  }).join('');
-  const [tx, ty] = MAP_POS.tower;
-  const tpin = `<button class="map-pin tower ${mapSel === 'tower' ? 'on' : ''}" style="left:${tx}%;top:${ty}%" data-a="mapsel" data-v="tower"><span class="pi">🗼</span><b>หอคอย 100 ชั้น</b></button>`;
+  const w = worldDef(S.world);
+  const tabs = WORLDS.length > 1 ? `<div class="world-tabs">${WORLDS.map((x) => {
+    const ok = worldReady(x.id) && worldUnlocked(x.id);
+    return `<button class="${x.id === w.id ? 'on' : ''}" data-a="world" data-v="${x.id}" ${ok ? '' : 'disabled'}>${ok ? x.icon : '🔒'} ${x.n}${worldReady(x.id) ? '' : ' <small>(เร็วๆ นี้)</small>'}</button>`;
+  }).join('')}</div>` : '';
   const menu = diffMenu ? `<div class="diff-menu">${DIFF_ORDER.map((k) => {
     const x = DIFFS[k], lock = diffLocked(k);
     return `<button class="d-${k} ${S.diff === k ? 'on' : ''}" data-a="setdiff" data-v="${k}" ${lock ? 'disabled' : ''}>
       <b>${lock ? '🔒' : x.icon} ${x.name}${S.clearedDiffs[k] ? ' 🏆' : ''}</b><span class="subtle">${lock ? diffLockText(k) : `มอนสเตอร์ Lv.${ZONES[0].lv + x.off}+ · รางวัล ×${x.reward}`}</span></button>`;
   }).join('')}</div>` : '';
-  return `<h2>🗺️ แผนที่โลก</h2>
-    <div class="map-wrap"><div class="worldmap"><img src="bg/worldmap.webp" alt="แผนที่โลก">${pins}${tpin}</div>
+  if (!worldReady(w.id)) return `<h2>🗺️ แผนที่โลก</h2>${tabs}<div class="card muted">🚧 ${w.n} กำลังสร้าง เร็วๆ นี้!</div>`;
+  const list = worldZoneIdx(w.id);
+  const top = topZone(w.id);
+  if (mapSel === null || (mapSel === 'tower' && !w.tower) || (mapSel !== 'tower' && !list.includes(mapSel))) mapSel = top;
+  const pins = list.map((i) => {
+    const z = ZONES[i];
+    const [x, y] = zonePos(z);
+    const open = zoneUnlocked(i), beaten = P().bossWins[z.id];
+    return `<button class="map-pin ${open ? '' : 'locked'} ${mapSel === i ? 'on' : ''} ${i === top && !beaten ? 'cur' : ''}" style="left:${x}%;top:${y}%" data-a="mapsel" data-v="${i}">
+      <span class="pi">${open ? z.icon : '🔒'}</span>${beaten ? '<i class="pk">✓</i>' : ''}<b>${z.name}</b></button>`;
+  }).join('');
+  const tpin = w.tower ? `<button class="map-pin tower ${mapSel === 'tower' ? 'on' : ''}" style="left:${w.tower[0]}%;top:${w.tower[1]}%" data-a="mapsel" data-v="tower"><span class="pi">🗼</span><b>หอคอย 100 ชั้น</b></button>` : '';
+  return `<h2>🗺️ แผนที่โลก</h2>${tabs}
+    <div class="map-wrap"><div class="worldmap"><img src="${w.map}" alt="แผนที่${w.n}">${pins}${tpin}</div>
       <button class="map-diff d-${S.diff}" data-a="diffmenu">${d.icon} ${d.name} ▾</button>${menu}</div>
-    <div class="muted" style="font-size:12px;margin:6px 2px 10px">แตะที่แผนที่เพื่อเลือกด่าน · 🗼 ตรงกลางคือหอคอย</div>
+    <div class="muted" style="font-size:12px;margin:6px 2px 10px">แตะที่แผนที่เพื่อเลือกด่าน${w.tower ? ' · 🗼 ตรงกลางคือหอคอย' : ''}</div>
     ${mapSel === 'tower' ? renderTowerPanel() : zoneCard(mapSel)}`;
+}
+
+/* ---------------- เมือง ---------------- */
+// pot = ตัวคูณราคายา, charm = ตัวคูณราคายันต์, inn = ตัวคูณค่าที่พัก, chest = ระดับความหายากขั้นต่ำของหีบ +เท่านี้
+const TOWNS = [
+  { id: 'start', n: 'หมู่บ้านเริ่มต้น', icon: '🏘️', world: 'w1', bg: 'bg/forest.webp', unlock: null,
+    desc: 'หมู่บ้านเล็กๆ ชายป่า จุดเริ่มต้นของผู้กล้า', pot: 1, charm: 1, inn: 1, chest: 0 },
+  { id: 'oasis', n: 'เมืองโอเอซิส', icon: '🏜️', world: 'w1', bg: 'bg/desert.webp', unlock: 'desert',
+    desc: 'ตลาดพ่อค้ากลางทะเลทราย · ยาทุกชนิดลด 25%', pot: 0.75, charm: 1, inn: 1, chest: 0 },
+  { id: 'frost', n: 'ป้อมปราการน้ำแข็ง', icon: '🏰', world: 'w1', bg: 'bg/ice.webp', unlock: 'ice',
+    desc: 'ป้อมของเหล่าช่างตีเหล็ก · ยันต์ลด 30% · ที่พักครึ่งราคา', pot: 1, charm: 0.7, inn: 0.5, chest: 0 },
+  { id: 'sky', n: 'นครลอยฟ้า', icon: '☁️', world: 'w1', bg: 'bg/sky.webp', unlock: 'sky',
+    desc: 'เมืองบนเกาะลอยฟ้า · หีบสมบัติดีขึ้น 1 ระดับ', pot: 1, charm: 1, inn: 1, chest: 1 },
+  { id: 'w2town', n: 'เมืองแห่งทวีปที่ 2', icon: '🌌', world: 'w2', bg: 'bg/spirit.webp', unlock: 'world:w2',
+    desc: 'เร็วๆ นี้', pot: 1, charm: 1, inn: 1, chest: 1 },
+];
+const townDef = (id) => TOWNS.find((t) => t.id === id) || TOWNS[0];
+const curTown = () => townDef(S && S.town);
+function townUnlocked(t) {
+  if (!t.unlock) return true;
+  if (t.unlock.startsWith('world:')) { const w = t.unlock.slice(6); return worldReady(w) && worldUnlocked(w); }
+  return Object.values(S.prog || {}).some((p) => p.bossWins && p.bossWins[t.unlock]); // ล้มบอสด่านนั้นในโหมดใดก็ได้
+}
+const townLockText = (t) => (t.unlock.startsWith('world:') ? `${worldDef(t.unlock.slice(6)).n} (เร็วๆ นี้)` : `ล้มบอส ${ZONES.find((z) => z.id === t.unlock).boss[0]}`);
+let townMenu = false;
+function townMenuHTML() {
+  if (!townMenu) return '';
+  return `<div class="town-menu-pop">${TOWNS.map((t) => {
+    const ok = townUnlocked(t);
+    return `<button class="${S.town === t.id ? 'on' : ''}" data-a="town" data-v="${t.id}" ${ok ? '' : 'disabled'}>
+      <b>${ok ? t.icon : '🔒'} ${t.n}</b><span class="subtle">${ok ? t.desc : townLockText(t)}</span></button>`;
+  }).join('')}</div>`;
 }
 
 function zoneCard(i) {
@@ -69,7 +127,7 @@ const TOWER_DIFFS = {
 };
 const towerLv = (k, f) => Math.round(TOWER_DIFFS[k].base + TOWER_DIFFS[k].per * f);
 const towerTier = (k, f) => clamp(Math.round(towerLv(k, f) / 2.8), 1, 32);
-const towerZone = (f) => Math.floor((f - 1) / 10) % ZONES.length;
+const towerZone = (f) => worldZoneIdx('w1')[Math.floor((f - 1) / 10) % 10];
 const towerOpen = (k) => { const n = TOWER_DIFFS[k].need; return !n || (S.tower[n[0]] || 0) >= n[1]; };
 let towerPick = null;
 
@@ -270,6 +328,8 @@ function migrateTower(s) {
   if (!s.towerD) s.towerD = 'normal';
   if (!s.frags) s.frags = {};
   if (!s.classes) s.classes = {};
+  if (!s.town || !TOWNS.some((x) => x.id === s.town)) s.town = 'start';
+  if (!s.world || !WORLDS.some((x) => x.id === s.world)) s.world = 'w1';
   if (!s.classes[s.cls]) s.classes[s.cls] = { lv: s.lv, exp: s.exp, adv: !!s.adv, loadout: (s.loadout || []).slice(), skin: s.cos ? s.cos.skin : 'default' };
   return s;
 }
@@ -277,6 +337,9 @@ function migrateTower(s) {
 function towerClick(a, v, el) {
   switch (a) {
     case 'diffmenu': diffMenu = !diffMenu; return true;
+    case 'world': if (worldReady(v) && worldUnlocked(v)) { S.world = v; mapSel = null; diffMenu = false; save(); } return true;
+    case 'townmenu': townMenu = !townMenu; return true;
+    case 'town': { const tw = townDef(v); if (townUnlocked(tw)) { S.town = tw.id; S.world = tw.world; mapSel = null; townMenu = false; save(); toast(`${tw.icon} มาถึง${tw.n}`); } return true; }
     case 'mapsel': diffMenu = false; mapSel = v === 'tower' ? 'tower' : +v; return true;
     case 'towerd': if (towerOpen(v)) { S.towerD = v; towerPick = null; save(); } return true;
     case 'tpick': { const max = Math.min(TOWER_FLOORS, (S.tower[S.towerD] || 0) + 1); towerPick = clamp((towerPick || max) + +v, 1, max); return true; }
