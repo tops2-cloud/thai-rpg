@@ -621,3 +621,7 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .foe-u.wb.huge { right: -44%; width: 150%; }
 .foe-u.wb.huge .mon-img { max-height: calc(min(50vh, 520px) * .9); }
 .foe-u.wb .ubars { left: 38%; }
+/* บอสโลก: สูงเกือบเต็มฉาก ล้นขวาได้ */
+.foe-u.wboss { right: -52%; width: 150%; }
+.foe-u.wboss .mon-img { max-height: calc(min(50vh, 520px) * .83); }
+.foe-u.wboss .ubars { left: 42%; }
