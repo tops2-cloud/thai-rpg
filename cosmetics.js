@@ -86,9 +86,9 @@ const curAura = () => (S && S.cos && S.cos.aura ? AURAS.find((x) => x.id === S.c
 /* ---------- วาดตัวละคร + สกิน + ออร่า (ออร่าอยู่ด้านหลัง) ---------- */
 function auraHTML(aura) {
   if (!aura) return '';
-  const cls = `aura-layer au-${aura.fx || 'pulse'}${aura.ground ? ' au-ground' : ''}`, st = aura.h ? ` style="height:${aura.h}%"` : '';
+  const cls = `aura-layer ${aura.flow ? 'au-surge' : `au-${aura.fx || 'pulse'}`}${aura.ground ? ' au-ground' : ''}`, st = aura.h ? ` style="height:${aura.h}%"` : '';
   // flow = แสงวิ่งตามเส้นสายฟ้า: ซ้อนภาพเดิมที่สว่างกว่า แล้วเปิดเผยทีละช่วงด้วยวงแสงที่ขยายออกจากศูนย์กลาง
-  const flow = aura.flow ? `<img class="${cls} au-flow" src="${aura.img}" alt="" aria-hidden="true"${st}><img class="${cls} au-flow f2" src="${aura.img}" alt="" aria-hidden="true"${st}>` : '';
+  const flow = aura.flow ? `<img class="${cls} au-flow" src="${aura.img}" alt="" aria-hidden="true"${st}>` : '';
   return `<img class="${cls}" src="${aura.img}" alt="" aria-hidden="true"${st}>${flow}`;
 }
 function heroArt(cls, equip, size, adv, opt = {}) {
