@@ -246,6 +246,7 @@ ZONES.forEach((z) => {
   if (z.bossFinal) MONSTER_IMG[z.bossFinal[0]] = `mon/${z.id}_final.webp`;
 });
 Object.values(WORLD_BOSSES).forEach((w) => { MONSTER_IMG[w.n] = w.img; });
+MONSTER_IMG[RUSH_FINAL.n] = RUSH_FINAL.img;
 const bossOf = (z) => (z.bossFinal && S && (S.diff === 'advanced' || S.diff === 'nightmare') ? z.bossFinal : z.boss);
 
 const DIFFS = {
@@ -717,7 +718,7 @@ function startBattle(zi, isBoss, opt = null) {
   }
   B = {
     id: ++battleSeq, events: [],
-    zi, isBoss, e, tower: opt && opt.tower ? opt.tower : null, wb: opt && opt.wb ? opt.wb : null,
+    zi, isBoss, e, tower: opt && opt.tower ? opt.tower : null, wb: opt && opt.wb ? opt.wb : null, rush: opt && opt.rush ? opt.rush : null,
     log: [opt && opt.tower ? `🗼 ชั้น ${opt.tower.floor}: ${e.i} ${e.n} ปรากฏตัว!` : `${e.i} ${e.n} ปรากฏตัว!`],
     eTurns: 0, charging: false, defending: false, enraged: false,
     atkUp: 0, berserk: 0, focus: 0, ironwall: 0, manaShield: 0, evade: false,
@@ -996,6 +997,7 @@ function victory() {
 
   if (B.tower) towerWin(rewards);
   else if (B.wb) wbWin(rewards);
+  else if (B.rush) rushWin(rewards);
   else if (B.isBoss) {
     const first = !P().bossWins[z.id];
     if (Math.random() < 0.06) fragDrop(rewards, 1);
@@ -1577,7 +1579,10 @@ function battleResult() {
     ${r.newItems ? `<div class="muted" style="margin-top:6px">📖 บันทึกไอเทมใหม่ลงสมุดสะสม ${r.newItems} ชิ้น</div>` : ''}
   </div>
   ${ending}
-  ${B.wb ? `<div class="actions"><button class="primary" data-a="wbfight">${WORLD_BOSSES[B.wb].icon} ท้าอีกครั้ง</button><button data-a="go" data-v="map">🗺️ กลับแผนที่</button></div>`
+  ${B.rush ? `<div class="actions">
+    ${B.rush.floor < B.rush.total ? `<button class="primary" data-a="rnext">⬆️ ขึ้นชั้น ${B.rush.floor + 1}</button>` : ''}
+    <button class="${B.rush.floor >= B.rush.total ? 'primary full' : ''}" data-a="go" data-v="map">🗺️ กลับแผนที่</button></div>`
+  : B.wb ? `<div class="actions"><button class="primary" data-a="wbfight">${WORLD_BOSSES[B.wb].icon} ท้าอีกครั้ง</button><button data-a="go" data-v="map">🗺️ กลับแผนที่</button></div>`
   : B.tower ? `<div class="actions">
     ${B.tower.floor < TOWER_FLOORS ? `<button class="primary" data-a="tnext">⬆️ ขึ้นชั้น ${B.tower.floor + 1}</button>` : ''}
     <button class="${B.tower.floor >= TOWER_FLOORS ? 'primary full' : ''}" data-a="go" data-v="map">🗺️ กลับแผนที่</button>
@@ -1795,7 +1800,7 @@ document.addEventListener('click', (ev) => {
     default: if (!featureClick(a, v, el) && !cosClick(a, v, el) && !towerClick(a, v, el)) return;
   }
   render();
-  if (['go', 'continue', 'leave', 'create', 'setdiff', 'tower', 'tnext', 'wbfight'].includes(a)) window.scrollTo(0, 0);
+  if (['go', 'continue', 'leave', 'create', 'setdiff', 'tower', 'tnext', 'wbfight', 'rush', 'rnext'].includes(a)) window.scrollTo(0, 0);
 });
 
 render();

@@ -8,7 +8,7 @@
 // เพิ่มทวีปใหม่: ใส่ใน WORLDS แล้วเพิ่มด่านใน ZONES (game.js) โดยใส่ world: '<id>' และ pos: [ซ้าย%, บน%] บนภาพแผนที่
 const WORLDS = [
   { id: 'w1', n: 'ทวีปแรก', icon: '🌍', map: 'bg/worldmap.webp', tower: [50, 44], wb: [50, 63] },
-  { id: 'w2', n: 'ทวีปที่ 2: ดินแดนใหม่', icon: '🌌', map: 'bg/worldmap2.webp', need: 'w1', wb: [50, 43] },
+  { id: 'w2', n: 'ทวีปที่ 2: ดินแดนใหม่', icon: '🌌', map: 'bg/worldmap2.webp', need: 'w1', wb: [50, 60], rush: [50, 32] },
 ];
 // ตำแหน่งหมุดของทวีปแรก (เปอร์เซ็นต์ ซ้าย, บน)
 const MAP_POS = {
@@ -22,7 +22,63 @@ const WORLD_BOSSES = {
   w2: { n: 'เทพแห่งความว่างเปล่า', i: '👁️', img: 'mon/worldboss.webp', bg: 'bg/wb2.webp', lv: 62, gate: 'w2castle', icon: '👁️', frag: 3, legend: 0.1, hp: 20 },
 };
 const WORLD_BOSS = WORLD_BOSSES.w2; // เผื่อโค้ดเก่า
-const isWorldBoss = (name) => Object.values(WORLD_BOSSES).some((x) => x.n === name);
+const isWorldBoss = (name) => Object.values(WORLD_BOSSES).some((x) => x.n === name) || name === RUSH_FINAL.n;
+
+/* ---------------- 🏛️ หอคอยรวมบอส (แมพ 2) ----------------
+   ไต่ล้มบอสทุกตัวของทั้ง 2 แมพ + บอสโลก แล้วจบด้วย Final Boss · HP ไม่ฟื้นระหว่างชั้น */
+const RUSH_FINAL = { n: 'ราชันย์แห่งจุดจบ', i: '🌑', img: 'mon/castle_final.webp', lv: 72, hp: 30, atk: 2.1 }; // ภาพชั่วคราว รอดีไซน์ Final Boss
+function rushList() {
+  const out = [];
+  for (const wid of ['w1', 'w2']) {
+    worldZoneIdx(wid).forEach((zi) => { const z = ZONES[zi]; out.push({ n: z.boss[0], i: z.boss[1], zi, lv: z.lv + 3, hp: 7, atk: 1.6 }); });
+    const W = WORLD_BOSSES[wid]; out.push({ n: W.n, i: W.i, zi: ZONES.findIndex((z) => z.id === W.gate), lv: W.lv, hp: Math.round(W.hp * 0.7), atk: 1.8, wb: true });
+  }
+  out.push({ ...RUSH_FINAL, zi: ZONES.findIndex((z) => z.id === 'w2castle'), final: true });
+  return out;
+}
+const rushOpen = () => worldUnlocked('w2');
+const rushBest = () => (S.rush || {})[S.diff] || 0;
+let rushPick = null;
+function startRush(floor) {
+  const L = rushList();
+  floor = clamp(floor, 1, Math.min(L.length, rushBest() + 1));
+  const R = L[floor - 1], d = D(), Z = R.lv + d.off, mb = monsterBase(Z);
+  const e = { n: R.n, i: R.i, maxHp: mb.hp * R.hp * d.mul.hp, atk: mb.atk * R.atk * d.mul.atk, def: mb.def * 1.35 * d.mul.def, exp: mb.exp * 9 * d.reward, gold: mb.gold * 12 * d.reward };
+  for (const k of ['maxHp', 'atk', 'def', 'exp', 'gold']) e[k] = Math.round(e[k]);
+  e.hp = e.maxHp; e.lv = Z;
+  startBattle(R.zi, true, { e, rush: { floor, total: L.length } });
+}
+function rushWin(rewards) {
+  const d = D(), r = B.rush, L = rushList();
+  S.rush = S.rush || {};
+  rewards.rush = r;
+  if (r.floor > rushBest()) { S.rush[S.diff] = r.floor; rewards.rushNew = true; }
+  rewards.items.push(makeGear(maxTier(), d.bossMinR, d.maxR));
+  fragDrop(rewards, L[r.floor - 1].wb ? 3 : 1);
+  if (L[r.floor - 1].final) {
+    fragDrop(rewards, 5);
+    if (rewards.rushNew) rewards.items.push(makeLegend(pick(LEGENDS)), makeLegend(pick(LEGENDS)));
+  }
+}
+function rushPanel() {
+  const L = rushList(), best = rushBest(), maxPick = Math.min(L.length, best + 1);
+  if (rushPick === null || rushPick > maxPick) rushPick = maxPick;
+  const R = L[rushPick - 1], d = D();
+  if (!rushOpen()) return `<div class="card tower-card"><h3 style="margin-top:0">🏛️ หอคอยรวมบอส</h3><div class="muted">🔒 เปิดเมื่อเข้าแมพ 2 ได้</div></div>`;
+  return `<div class="card tower-card">
+    <h3 style="margin-top:0">🏛️ หอคอยรวมบอส <span class="muted" style="font-size:13px">โหมด${d.name}</span></h3>
+    <div class="muted" style="font-size:12px">ล้มบอสทุกตัวของทั้ง 2 แมพ + บอสโลก ต่อเนื่อง ${L.length} ชั้น · ชั้นสุดท้ายคือ Final Boss · HP ไม่ฟื้นระหว่างชั้น</div>
+    <div class="rush-track">${L.map((x, k) => `<span class="${k < best ? 'done' : ''} ${k === rushPick - 1 ? 'on' : ''} ${x.final ? 'fin' : x.wb ? 'wbx' : ''}" title="${x.n}">${k < best ? '✓' : x.final ? '👑' : x.wb ? '★' : k + 1}</span>`).join('')}</div>
+    <div class="tower-floor">
+      <button class="small" data-a="rpick" data-v="-1">◀</button>
+      <div><div class="tf-n">ชั้น ${rushPick}/${L.length}</div><div class="muted" style="font-size:12px">Lv.${R.lv + d.off}${R.final ? ' · FINAL BOSS' : R.wb ? ' · บอสโลก' : ''}</div></div>
+      <button class="small" data-a="rpick" data-v="1">▶</button>
+    </div>
+    <div class="tf-foe">${monsterSVG(R.n, 64, R.i)}<div><b class="warn">${R.final ? '👑 ' : ''}${R.n}</b><div class="muted" style="font-size:12px">รางวัล: อุปกรณ์บอส · 💠 ${R.final ? 6 : R.wb ? 3 : 1}${R.final ? ' · ผ่านครั้งแรกได้เลเจนดารี 2 ชิ้น!' : ''}</div></div></div>
+    <button class="primary" style="width:100%;margin-top:8px" data-a="rush" data-v="${rushPick}">${rushPick > best ? '⬆️ ท้าชั้นใหม่' : '🔁 สู้ซ้ำ'} ชั้น ${rushPick}</button>
+    <div class="muted" style="font-size:12px;margin-top:8px">ผ่านแล้วสูงสุด: ${best}/${L.length} (แยกตามความยาก)</div>
+  </div>`;
+}
 const wbKey = (wid) => (wid === 'w2' ? S.diff : `${wid}:${S.diff}`); // ทวีป 2 ใช้คีย์เดิม (เซฟเก่าไม่หาย)
 const wbOpen = (wid = S.world) => !!WORLD_BOSSES[wid] && !!P().bossWins[WORLD_BOSSES[wid].gate];
 function startWB(wid = S.world) {
@@ -105,7 +161,7 @@ function renderWorldMap() {
   if (!worldReady(w.id)) return `<h2>🗺️ แผนที่โลก</h2>${tabs}<div class="card muted">🚧 ${w.n} กำลังสร้าง เร็วๆ นี้!</div>`;
   const list = worldZoneIdx(w.id);
   const top = topZone(w.id);
-  if (mapSel === null || (mapSel === 'tower' && !w.tower) || (mapSel === 'wb' && !w.wb) || (mapSel !== 'tower' && mapSel !== 'wb' && !list.includes(mapSel))) mapSel = top;
+  if (mapSel === null || (mapSel === 'tower' && !w.tower) || (mapSel === 'wb' && !w.wb) || (mapSel === 'rush' && !w.rush) || (!['tower', 'wb', 'rush'].includes(mapSel) && !list.includes(mapSel))) mapSel = top;
   const pins = list.map((i) => {
     const z = ZONES[i];
     const [x, y] = zonePos(z);
@@ -114,12 +170,13 @@ function renderWorldMap() {
       <span class="pi">${open ? z.icon : '🔒'}</span>${beaten ? '<i class="pk">✓</i>' : ''}<b>${z.name}</b></button>`;
   }).join('');
   const wpin = w.wb ? `<button class="map-pin tower wb ${mapSel === 'wb' ? 'on' : ''} ${wbOpen() ? '' : 'locked'}" style="left:${w.wb[0]}%;top:${w.wb[1]}%" data-a="mapsel" data-v="wb"><span class="pi">${wbOpen() ? WORLD_BOSSES[w.id].icon : '🔒'}</span><b>บอสโลก</b></button>` : '';
+  const rpin = w.rush ? `<button class="map-pin tower rushp ${mapSel === 'rush' ? 'on' : ''} ${rushOpen() ? '' : 'locked'}" style="left:${w.rush[0]}%;top:${w.rush[1]}%" data-a="mapsel" data-v="rush"><span class="pi">🏛️</span><b>หอคอยรวมบอส</b></button>` : '';
   const tpin = w.tower ? `<button class="map-pin tower ${mapSel === 'tower' ? 'on' : ''}" style="left:${w.tower[0]}%;top:${w.tower[1]}%" data-a="mapsel" data-v="tower"><span class="pi">🗼</span><b>หอคอย 100 ชั้น</b></button>` : '';
   return `<h2>🗺️ แผนที่โลก</h2>${tabs}
-    <div class="map-wrap"><div class="worldmap"><img src="${w.map}" alt="แผนที่${w.n}">${pins}${tpin}${wpin}</div>
+    <div class="map-wrap"><div class="worldmap"><img src="${w.map}" alt="แผนที่${w.n}">${pins}${tpin}${wpin}${rpin}</div>
       <button class="map-diff d-${S.diff}" data-a="diffmenu">${d.icon} ${d.name} ▾</button>${menu}</div>
     <div class="muted" style="font-size:12px;margin:6px 2px 10px">แตะที่แผนที่เพื่อเลือกด่าน${w.tower ? ' · 🗼 ตรงกลางคือหอคอย' : ''}${w.wb ? ` · ${WORLD_BOSSES[w.id].icon} บอสโลก` : ''}</div>
-    ${mapSel === 'tower' ? renderTowerPanel() : mapSel === 'wb' ? wbPanel() : zoneCard(mapSel)}`;
+    ${mapSel === 'tower' ? renderTowerPanel() : mapSel === 'wb' ? wbPanel() : mapSel === 'rush' ? rushPanel() : zoneCard(mapSel)}`;
 }
 
 /* ---------------- เมือง ---------------- */
@@ -399,7 +456,10 @@ function towerClick(a, v, el) {
     case 'world': if (worldReady(v) && worldUnlocked(v)) { setWorld(v); mapSel = null; diffMenu = false; save(); } return true;
     case 'townmenu': townMenu = !townMenu; return true;
     case 'town': { const tw = townDef(v); if (townUnlocked(tw)) { S.town = tw.id; setWorld(tw.world); mapSel = null; townMenu = false; save(); toast(`${tw.icon} มาถึง${tw.n}`); } return true; }
-    case 'mapsel': diffMenu = false; mapSel = v === 'tower' || v === 'wb' ? v : +v; return true;
+    case 'mapsel': diffMenu = false; mapSel = ['tower', 'wb', 'rush'].includes(v) ? v : +v; return true;
+    case 'rpick': { const max = Math.min(rushList().length, rushBest() + 1); rushPick = clamp((rushPick || max) + +v, 1, max); return true; }
+    case 'rush': startRush(+v); return 'battle';
+    case 'rnext': startRush(B.rush.floor + 1); return 'battle';
     case 'wbfight': startWB(B && B.wb ? B.wb : S.world); return 'battle';
     case 'towerd': if (towerOpen(v)) { S.towerD = v; towerPick = null; save(); } return true;
     case 'tpick': { const max = Math.min(TOWER_FLOORS, (S.tower[S.towerD] || 0) + 1); towerPick = clamp((towerPick || max) + +v, 1, max); return true; }
