@@ -100,7 +100,7 @@ function heroArt(cls, equip, size, adv, opt = {}) {
   const h = Math.round(size * 250 / 235);
   const tier3 = opt.tier3 !== undefined ? opt.tier3 : (typeof S !== 'undefined' && !!S && S.cls === cls && !!S.adv3);
   const src = skin && skin.img && skinFits(skin, cls) ? skin.img : HERO_IMG[cls][tier3 ? 2 : adv ? 1 : 0];
-  return `<div class="hero-art ${tier3 && src === HERO_IMG[cls][1] ? 'tier3' : ''}" style="height:${h}px;min-width:${Math.round(h * 0.55)}px">${auraHTML(aura)}<img class="skin-img ${FACE_LEFT.has(src) ? 'face-left' : ''} ${skin && skin.giant && src === skin.img ? 'giant' : ''}" src="${src}" alt="" style="${src === HERO_IMG[cls][2] ? `height:${Math.round(h * 1.3)}px;margin:${-Math.round(h * 0.3)}px ${-Math.round(h * 0.12)}px 0` : `height:${h}px`}"></div>`;
+  return `<div class="hero-art ${tier3 && src === HERO_IMG[cls][1] ? 'tier3' : ''} ${skin && skin.giant && src === skin.img ? 'giant' : ''}" style="height:${h}px;min-width:${Math.round(h * 0.55)}px">${auraHTML(aura)}<img class="skin-img ${FACE_LEFT.has(src) ? 'face-left' : ''} " src="${src}" alt="" style="${src === HERO_IMG[cls][2] ? `height:${Math.round(h * 1.3)}px;margin:${-Math.round(h * 0.3)}px ${-Math.round(h * 0.12)}px 0` : `height:${h}px`}"></div>`;
 }
 
 /* ---------- หน้าสกิน & ออร่า ---------- */
