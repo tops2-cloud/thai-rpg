@@ -598,3 +598,12 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 
 /* ออร่าที่ตั้งบนพื้น: ขอบล่างอยู่ใต้เท้าตัวละคร 3px */
 .aura-layer.au-ground { top: auto; bottom: -3px; --ty: 0%; transform: translate(-50%, 0); transform-origin: 50% 100%; }
+
+/* แสงวิ่งตามสายฟ้า: วงแสงขยายจากกลางออกไปปลายสาย */
+.aura-layer.au-flow { z-index: 0; mix-blend-mode: screen; filter: brightness(1.9) saturate(1.3);
+  -webkit-mask-image: radial-gradient(closest-side, transparent 55%, #000 72%, #000 80%, transparent 97%); mask-image: radial-gradient(closest-side, transparent 55%, #000 72%, #000 80%, transparent 97%);
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: 50% 50%; mask-position: 50% 50%;
+  animation-name: auFlowRing; animation-duration: 1.5s; animation-timing-function: ease-out; animation-iteration-count: infinite; animation-direction: normal; }
+.aura-layer.au-flow.f2 { animation-delay: .75s; }
+@keyframes auFlowRing { 0% { -webkit-mask-size: 0% 0%; mask-size: 0% 0%; opacity: 1; } 80% { opacity: 1; } 100% { -webkit-mask-size: 160% 160%; mask-size: 160% 160%; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .aura-layer.au-flow { display: none; } }
