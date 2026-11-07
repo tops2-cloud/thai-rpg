@@ -447,14 +447,27 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .try-label { font-size: 13px; display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; position: relative; z-index: 2; }
 
 /* หลอดเลือดใต้เท้า + เส้น EXP */
-.ubars { position: absolute; top: calc(100% + 1px); left: 50%; transform: translateX(-50%); width: 64px; display: flex; flex-direction: column; gap: 2px; align-items: stretch; pointer-events: none; }
+.ubars { position: absolute; top: calc(100% + 1px); left: 50%; transform: translateX(-50%); width: 64px; display: flex; flex-direction: column; gap: 1px; align-items: stretch; pointer-events: none; }
 .foe-u.boss .ubars { width: 84px; }
-.mbar { position: relative; height: 5px; background: #0d0b16dd; border-radius: 3px; overflow: visible; box-shadow: 0 0 0 1px #000a; }
+.mbar { position: relative; height: 3px; background: #0d0b16dd; border-radius: 3px; overflow: visible; box-shadow: 0 0 0 1px #000a; }
 .mbar > i { display: block; height: 100%; border-radius: 3px; transition: width .35s; }
 .mbar.hp > i { background: linear-gradient(90deg, #c22f45, var(--hp)); }
-.mbar.mp { height: 3px; } .mbar.mp > i { background: linear-gradient(90deg, #2f63c2, var(--mp)); }
+.mbar.mp { height: 2px; } .mbar.mp > i { background: linear-gradient(90deg, #2f63c2, var(--mp)); }
 .mbar > span { position: absolute; right: -2px; top: 50%; transform: translate(100%, -50%); font-size: 9px; line-height: 1; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; }
 .uname { font-size: 9px; line-height: 1.1; text-align: center; color: #fff; text-shadow: 0 1px 2px #000, 0 0 3px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .foe-u .utags { left: auto; right: 0; }
 .exp-line { position: relative; height: 3px; margin-top: 8px; background: #0d0b16; border-radius: 2px; }
 .exp-line > i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, #5aa82f, var(--exp)); transition: width .35s; }
+/* ปุ่มในหน้าต่อสู้ให้กะทัดรัด */
+#bact button { font-size: 14px; border-radius: 10px; }
+#bact .actions { gap: 6px; }
+#bact .actions button { padding: 8px 6px; }
+#bact [data-a=defend] .subtle { display: none; }
+#bact .actions .subtle { font-size: 10px; }
+#bact .btool { gap: 5px; margin-bottom: 6px; }
+#bact .btool button { padding: 4px 4px; font-size: 12px; border-radius: 8px; }
+#bact .skill-bar { gap: 5px; margin: 6px 0; }
+#bact .skill-btn { padding: 5px 2px 4px; }
+#bact .skill-btn .sk-ico { font-size: 19px; }
+#bact .skill-btn .sk-nm { font-size: 11px; }
+#bact .skill-btn .sk-mp { font-size: 9px; }

@@ -1251,7 +1251,7 @@ function battleActions() {
   };
   return `<div class="actions">
     <button class="primary" data-a="attack" ${d}>⚔️ โจมตี</button>
-    <button data-a="defend" ${d}>🛡️ ป้องกัน<span class="subtle">ลดดาเมจ 65% · ฟื้น MP</span></button>
+    <button data-a="defend" ${d} title="ลดดาเมจ 65% · ฟื้น MP">🛡️ ป้องกัน<span class="subtle">ลดดาเมจ 65% · ฟื้น MP</span></button>
   </div>
   <div class="skill-bar" style="grid-template-columns:repeat(${S.loadout.length},1fr)">${S.loadout.map(skillBtn).join('')}</div>
   <div class="actions">
