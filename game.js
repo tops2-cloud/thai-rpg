@@ -1095,10 +1095,20 @@ function renderTown() {
   const msg = S.clearedDiffs[S.diff]
     ? `🎉 คุณโค่นจอมมารในโหมด${d.name}แล้ว! ${S.diff === 'nightmare' ? 'ฝันร้ายก็หยุดคุณไม่ได้!' : S.diff === 'advanced' ? 'คุณคือตำนานที่แท้จริง' : 'ลองท้าทายความยากที่สูงขึ้นดูสิ'}`
     : 'จอมมารกำลังคุกคามแผ่นดิน... ผู้กล้า จงออกเดินทาง!';
-  return `<div class="card"><h2 style="margin-top:0">🏘️ หมู่บ้านเริ่มต้น</h2>
-    <div class="muted">${msg}</div></div>
-  <div class="menu-grid">
+  return `<div class="card town-head">
+    <div class="th-art" data-a="go" data-v="bag">${heroArt(S.cls, S.equip, 112)}</div>
+    <div class="th-info">
+      <h2>🏘️ หมู่บ้านเริ่มต้น</h2>
+      <div class="muted th-msg">${msg}</div>
+      <div class="th-stats">
+        <span>⚔️ <b>${fmt(st.atk)}</b>${offWeapon() ? `<small>+${fmt(offhandAtk(st) * OFFHAND_HIT_RATE)}</small>` : ''}</span><span>🛡️ <b>${fmt(st.def)}</b></span>
+        <span>❤️ <b>${fmt(st.hp)}</b></span><span>🎯 <b>${st.crit}%</b></span>
+        <span>🏆 <b>${fmt(S.wins)}</b></span><span>👑 <b>${bossesBeaten()}/${ZONES.length}</b></span>
+      </div>
+    </div></div>
+  <div class="menu-grid town-menu">
     <button class="primary wide" data-a="go" data-v="map"><span class="ico">🗺️</span> ออกผจญภัย</button>
+    <button data-a="go" data-v="quests" class="quest-btn ${claimable() ? 'glow-btn' : ''}"><span class="ico">📋</span>ภารกิจ${claimable() ? ` <span class="badge">${claimable()}</span>` : ''}<span class="subtle">ประจำวัน & ความสำเร็จ</span></button>
     <button data-a="inn" ${full ? 'disabled' : ''}><span class="ico">🏨</span>โรงเตี๊ยม<span class="subtle">พักฟื้นเต็ม ${fmt(innCost)} 💰</span></button>
     <button data-a="go" data-v="shop"><span class="ico">🛒</span>ร้านค้า<span class="subtle">ยา หีบ & ยันต์</span></button>
     <button data-a="go" data-v="forge"><span class="ico">⚒️</span>ช่างตีเหล็ก<span class="subtle">ตีบวกอุปกรณ์</span></button>
@@ -1108,17 +1118,6 @@ function renderTown() {
     <button data-a="go" data-v="legend" class="${LEGENDS.some((L) => (S.frags[L.id] || 0) >= LEGEND_NEED) ? 'glow-btn' : ''}"><span class="ico">🌟</span>เลเจนดารี<span class="subtle">💠 เศษ ${Object.values(S.frags).reduce((a, b) => a + b, 0)} ชิ้น</span></button>
     <button data-a="go" data-v="cosmetics"><span class="ico">👘</span>สกิน & ออร่า<span class="subtle">${curSkin().n}${curAura() ? ` · ${curAura().n}` : ''}</span></button>
     <button data-a="go" data-v="pets"><span class="ico">🐾</span>สัตว์เลี้ยง<span class="subtle">${curPet() ? `${petDef(S.pet).n} Lv.${curPet().lv}` : `${S.pets.length}/${PETS.length} ตัว`}</span></button>
-    <button data-a="go" data-v="quests" class="${claimable() ? 'glow-btn' : ''}"><span class="ico">📋</span>ภารกิจ${claimable() ? ` <span class="badge">${claimable()}</span>` : ''}<span class="subtle">ประจำวัน & ความสำเร็จ</span></button>
-  </div>
-  <div class="card" style="margin-top:12px">
-    <h3 style="margin-top:0">สถานะ</h3>
-    <div class="row" style="align-items:flex-start">
-    <div class="hero-stage small" data-a="go" data-v="bag">${heroArt(S.cls, S.equip, 124)}</div>
-    <div class="grid1 muted" style="flex:1">
-      <div>⚔️ โจมตี: <b>${fmt(st.atk)}</b>${offWeapon() ? ` <span style="font-size:12px">+ ${fmt(offhandAtk(st) * OFFHAND_HIT_RATE)}</span>` : ''}</div><div>🛡️ ป้องกัน: <b>${fmt(st.def)}</b></div>
-      <div>❤️ HP สูงสุด: <b>${fmt(st.hp)}</b></div><div>🎯 คริติคอล: <b>${st.crit}%</b></div>
-      <div>🏆 ชนะทั้งหมด: <b>${fmt(S.wins)}</b></div><div>👑 บอสที่ล้ม: <b>${bossesBeaten()}/${ZONES.length}</b></div>
-    </div></div>
   </div>
   <div class="row" style="margin-top:6px"><button class="small" style="flex:1" data-a="go" data-v="save">💾 เซฟ & ตั้งค่า</button>
     <button class="ghost small" style="flex:1" data-a="reset">🗑️ ลบเซฟ เริ่มใหม่</button></div>
