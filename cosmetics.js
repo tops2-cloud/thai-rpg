@@ -109,11 +109,11 @@ function heroArt(cls, equip, size, adv, opt = {}) {
 
 /* ---------- หน้าสกิน & ออร่า ---------- */
 let cosTab = 'skin';
+let cosTry = null; // ลองสวม (พรีวิว) — { type, id }
 function renderCosmetics() {
   const tab = (id, n) => `<button class="${cosTab === id ? 'on' : ''}" data-a="costab" data-v="${id}">${n}</button>`;
   let html = `<div class="row between"><h2>👘 สกิน & ออร่า</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>
-    <div class="card cos-preview"><div class="cos-prev-big">${heroArt(S.cls, S.equip, 170)}</div>
-      <div class="muted" style="font-size:13px">สกิน: <b>${curSkin().n}</b> · ออร่า: <b>${curAura() ? curAura().n : 'ไม่มี'}</b><br>ความสวยงามล้วน ไม่มีผลต่อค่าพลัง</div></div>
+    ${cosPreviewCard()}
     <div class="tabs">${tab('skin', `สกิน`)}${tab('aura', `ออร่า`)}</div>`;
   if (cosTab === 'skin') {
     html += `<div class="cos-grid">${SKINS.filter((d) => skinFits(d, S.cls)).map((d) => cosCard('skin', d, heroArt(S.cls, S.equip, 92, undefined, { skin: d, aura: null }))).join('')}</div>`;
@@ -123,12 +123,25 @@ function renderCosmetics() {
   }
   return html;
 }
+function cosPreviewCard() {
+  let skin = curSkin(), aura = curAura(), label = '';
+  if (cosTry) {
+    if (cosTry.type === 'skin') skin = SKINS.find((x) => x.id === cosTry.id) || skin;
+    else aura = cosTry.id ? AURAS.find((x) => x.id === cosTry.id) : null;
+    const d = cosTry.type === 'skin' ? skin : aura;
+    label = `<div class="try-label">👀 กำลังลองสวม: <b>${d ? d.n : 'ไม่มีออร่า'}</b>${d && !cosOwned(cosTry.type, d) ? ` · 🔒 ${cosUnlockText(d.unlock)}` : ''}
+      <button class="small ghost" data-a="costry" data-v="">เลิกลอง</button></div>`;
+  }
+  return `<div class="card cos-preview"><div class="cos-prev-big">${heroArt(S.cls, S.equip, 170, undefined, { skin, aura })}</div>
+    ${label || `<div class="muted" style="font-size:13px">สกิน: <b>${curSkin().n}</b> · ออร่า: <b>${curAura() ? curAura().n : 'ไม่มี'}</b><br>👆 แตะการ์ดเพื่อลองสวมก่อน · ความสวยงามล้วน ไม่มีผลต่อค่าพลัง</div>`}</div>`;
+}
+
 function cosCard(type, d, preview) {
   const owned = d.id === '' || cosOwned(type, d);
   const on = type === 'skin' ? curSkin().id === d.id : ((S.cos.aura || '') === d.id);
   const canBuy = !owned && d.unlock.gold && S.gold >= d.unlock.gold;
   return `<div class="cos-card ${on ? 'on' : ''} ${owned ? '' : 'locked'}">
-    <div class="cos-prev">${preview}</div>
+    <div class="cos-prev" data-a="costry" data-t="${type}" data-v="${d.id}" title="แตะเพื่อลองสวม">${preview}<span class="try-hint">👀 ลอง</span></div>
     <b>${d.icon} ${d.n}</b>
     ${d.desc ? `<div class="muted" style="font-size:11px">${d.desc}</div>` : ''}
     ${on ? '<span class="tag">ใช้อยู่</span>'
@@ -144,9 +157,11 @@ function migrateCosmetics(s) {
 }
 
 function cosClick(a, v, el) {
-  if (a === 'costab') { cosTab = v; return true; }
+  if (a === 'costab') { cosTab = v; cosTry = null; return true; }
+  if (a === 'costry') { cosTry = v || el.dataset.t ? { type: el.dataset.t || 'skin', id: v } : null; if (!el.dataset.t) cosTry = null; window.scrollTo(0, 0); return true; }
   if (a === 'cosequip') {
     const type = el.dataset.t;
+    cosTry = null;
     if (type === 'skin') { const d = SKINS.find((x) => x.id === v); if (d && cosOwned('skin', d)) S.cos.skin = v; }
     else { if (!v) S.cos.aura = null; else { const d = AURAS.find((x) => x.id === v); if (d && cosOwned('aura', d)) S.cos.aura = v; } }
     save(); return true;
@@ -155,7 +170,7 @@ function cosClick(a, v, el) {
     const type = el.dataset.t, list = type === 'skin' ? SKINS : AURAS, d = list.find((x) => x.id === v);
     if (!d || !d.unlock.gold || S.gold < d.unlock.gold || cosOwned(type, d)) return true;
     if (!confirm(`ซื้อ${type === 'skin' ? 'สกิน' : 'ออร่า'} "${d.n}" ราคา ${fmt(d.unlock.gold)} ทอง?`)) return false;
-    S.gold -= d.unlock.gold;
+    S.gold -= d.unlock.gold; cosTry = null;
     S.cos[type === 'skin' ? 'skins' : 'auras'].push(d.id);
     if (type === 'skin') S.cos.skin = d.id; else S.cos.aura = d.id;
     save(); toast(`✨ ได้${type === 'skin' ? 'สกิน' : 'ออร่า'} ${d.icon} ${d.n}!`); return true;

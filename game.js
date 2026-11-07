@@ -1501,7 +1501,7 @@ document.addEventListener('click', (ev) => {
   const a = el.dataset.a, v = el.dataset.v;
 
   switch (a) {
-    case 'go': view = v; B = null; busy = false; forgeFx = null; skillSlotSel = null; break;
+    case 'go': view = v; B = null; busy = false; forgeFx = null; skillSlotSel = null; if (typeof cosTry !== 'undefined') cosTry = null; break;
     case 'continue': S = load(); view = 'town'; break;
     case 'newgame':
       if (load() && !confirm('มีเซฟเก่าอยู่ เริ่มใหม่จะลบเซฟเดิม ตกลงไหม?')) return;

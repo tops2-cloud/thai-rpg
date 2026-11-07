@@ -440,3 +440,7 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .cos-prev-big { height: 250px; width: 100%; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; border-radius: 12px; }
 .cos-preview > .muted { position: relative; z-index: 2; }
 @media (prefers-reduced-motion: reduce) { .au-pulse, .au-flame, .au-rise, .au-spin, .au-spin-slow, .au-zap, .au-flap, .au-drift, .au-blink, .au-twinkle { animation: none !important; } }
+
+.cos-prev { position: relative; cursor: pointer; }
+.try-hint { position: absolute; top: 6px; right: 8px; font-size: 11px; background: #0d0b16cc; border-radius: 99px; padding: 1px 7px; z-index: 3; }
+.try-label { font-size: 13px; display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; position: relative; z-index: 2; }
