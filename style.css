@@ -565,11 +565,14 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .foe-u .mon-img.flip { transform: scaleX(-1); }
 .pet-u .mon-img { transform: scaleX(-1); }
 .pet-u .mon-img.flip { transform: none; }
-/* บอสโลก: ใหญ่ครึ่งฉาก เห็นครึ่งตัวบน */
-.foe-u.wb { right: 0; bottom: 0; width: 52%; align-items: center; }
-.foe-u.wb .foe-sprite { animation: wbBob 3.2s ease-in-out infinite; padding: 0; }
-.foe-u.wb .mon-img { height: min(62vw, 340px) !important; margin-bottom: calc(min(62vw, 340px) * -0.42); }
-@keyframes wbBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-.foe-u.wb .ubars { top: 4px; width: 120px; }
-.foe-u.wb .utags { top: 30px; right: 4px; }
-.foe-u.wb .ushadow { display: none; }
+/* บอสโลก: ฉากสูงครึ่งจอ แสดงบอสเต็มตัว */
+.stage.wb-stage { aspect-ratio: auto; height: 50vh; min-height: 300px; max-height: 520px; }
+.wb-stage .hero-u { z-index: 3; left: 4%; }
+.wb-stage .hero-u .ubody { transform: scale(.85); transform-origin: 50% 100%; }
+.wb-stage .pet-u { z-index: 4; }
+.foe-u.wb { right: 0; bottom: 7%; width: 76%; align-items: center; }
+.foe-u.wb .foe-sprite { width: 100%; display: flex; justify-content: center; padding: 0; animation: wbBob 3.2s ease-in-out infinite; }
+.foe-u.wb .mon-img { width: 100%; height: auto !important; max-height: calc(min(50vh, 520px) * .84); object-fit: contain; }
+@keyframes wbBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.foe-u.wb .ubars { width: 130px; }
+.foe-u.wb .ushadow { width: 60%; height: 16px; }
