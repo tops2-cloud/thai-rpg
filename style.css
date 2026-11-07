@@ -415,7 +415,7 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .aura-layer { position: absolute; z-index: 0; left: 50%; top: 46%; height: 135%; width: auto; aspect-ratio: 1; transform: translate(-50%,-50%); pointer-events: none; max-width: none; }
 .au-pulse { animation: auPulse 2.6s ease-in-out infinite; }
 @keyframes auPulse { 0%,100% { transform: translate(-50%,-50%) scale(.96); opacity: .85; } 50% { transform: translate(-50%,-50%) scale(1.04); opacity: 1; } }
-.au-spin { animation: auSpin 14s linear infinite; }
+.au-spin { animation: auSpin 45s linear infinite; }
 @keyframes auSpin { from { transform: translate(-50%,-50%) rotate(0); } to { transform: translate(-50%,-50%) rotate(360deg); } }
 .au-flicker { animation: auFlick 1.1s ease-in-out infinite alternate; transform-origin: 50% 90%; }
 @keyframes auFlick { from { transform: translate(-50%,-50%) scale(1,.97); opacity: .85; } to { transform: translate(-50%,-50%) scale(1.03,1.05); opacity: 1; } }
