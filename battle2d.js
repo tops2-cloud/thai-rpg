@@ -107,8 +107,8 @@ const SCENE = {
 /* ฉากหลัง: หอคอย > บอสโลก > ด่าน */
 function stageBg(zone, foe, isWB) {
   const b = typeof B !== 'undefined' ? B : null;
-  if (b && b.rush) return 'bg/tower2.webp';
-  if (b && b.tower) return 'bg/tower1.webp';
+  if (b && b.rush) return 'bg/rush.webp';
+  if (b && b.tower) return b.tower.w === 'w2' ? 'bg/tower2.webp' : 'bg/tower1.webp';
   const W = isWB && typeof WORLD_BOSSES !== 'undefined' ? Object.values(WORLD_BOSSES).find((w) => w.n === foe.n) : null;
   if (W && W.bg) return W.bg;
   return `bg/${zone.scene || zone.id}.webp`;

@@ -8,7 +8,7 @@
 // เพิ่มทวีปใหม่: ใส่ใน WORLDS แล้วเพิ่มด่านใน ZONES (game.js) โดยใส่ world: '<id>' และ pos: [ซ้าย%, บน%] บนภาพแผนที่
 const WORLDS = [
   { id: 'w1', n: 'ทวีปแรก', icon: '🌍', map: 'bg/worldmap.webp', tower: [50, 44], wb: [50, 63] },
-  { id: 'w2', n: 'ทวีปที่ 2: ดินแดนใหม่', icon: '🌌', map: 'bg/worldmap2.webp', need: 'w1', wb: [50, 60], rush: [50, 32] },
+  { id: 'w2', n: 'ทวีปที่ 2: ดินแดนใหม่', icon: '🌌', map: 'bg/worldmap2.webp', need: 'w1', tower: [44, 36], wb: [50, 60], rush: [57, 31] },
 ];
 // ตำแหน่งหมุดของทวีปแรก (เปอร์เซ็นต์ ซ้าย, บน)
 const MAP_POS = {
@@ -240,16 +240,19 @@ const TOWER_DIFFS = {
   hard: { name: 'ยาก', icon: '🟠', world: 'hard', base: 32, per: 0.8, frag: 0.08, bossFrag: 2, need: ['normal', 50] },
   hell: { name: 'นรก', icon: '🔴', world: 'advanced', base: 62, per: 0.8, frag: 0.12, bossFrag: 3, need: ['hard', 50] },
 };
-const towerLv = (k, f) => Math.round(TOWER_DIFFS[k].base + TOWER_DIFFS[k].per * f);
-const towerTier = (k, f) => clamp(Math.round(towerLv(k, f) / 2.8), 1, 32);
-const towerZone = (f) => worldZoneIdx('w1')[Math.floor((f - 1) / 10) % 10];
-const towerOpen = (k) => { const n = TOWER_DIFFS[k].need; return !n || (S.tower[n[0]] || 0) >= n[1]; };
+/* หอคอยแยกตามแมพ: w1 = S.tower, w2 = S.tower2 (มอนสเตอร์แมพ 2 · เลเวล +30) */
+const curTW = () => (S && S.world === 'w2' ? 'w2' : 'w1');
+const tp = (w) => (w === 'w2' ? (S.tower2 || (S.tower2 = { normal: 0, hard: 0, hell: 0 })) : S.tower);
+const towerLv = (k, f, w = curTW()) => Math.round(TOWER_DIFFS[k].base + TOWER_DIFFS[k].per * f + (w === 'w2' ? 30 : 0));
+const towerTier = (k, f, w = curTW()) => clamp(Math.round(towerLv(k, f, w) / 2.8), 1, 40);
+const towerZone = (f, w = curTW()) => worldZoneIdx(w)[Math.floor((f - 1) / 10) % 10];
+const towerOpen = (k, w = curTW()) => { const n = TOWER_DIFFS[k].need; return !n || (tp(w)[n[0]] || 0) >= n[1]; };
 let towerPick = null;
 
-function towerEnemy(k, floor) {
+function towerEnemy(k, floor, w) {
   const td = TOWER_DIFFS[k], dd = DIFFS[td.world];
-  const z = ZONES[towerZone(floor)];
-  const Z = towerLv(k, floor);
+  const z = ZONES[towerZone(floor, w)];
+  const Z = towerLv(k, floor, w);
   const mb = monsterBase(Z);
   const boss = floor % 10 === 0;
   let e;
@@ -264,22 +267,23 @@ function towerEnemy(k, floor) {
   e.exp *= dd.reward; e.gold *= dd.reward;
   for (const key of ['maxHp', 'atk', 'def', 'exp', 'gold']) e[key] = Math.round(e[key]);
   e.hp = e.maxHp; e.lv = Z;
-  return { e, boss, zi: towerZone(floor) };
+  return { e, boss, zi: towerZone(floor, w) };
 }
 
-function startTower(k, floor) {
-  if (!towerOpen(k)) return;
-  floor = clamp(floor, 1, Math.min(TOWER_FLOORS, (S.tower[k] || 0) + 1));
-  const t = towerEnemy(k, floor);
-  startBattle(t.zi, t.boss, { tower: { d: k, floor }, e: t.e });
+function startTower(k, floor, w = curTW()) {
+  if (!towerOpen(k, w)) return;
+  floor = clamp(floor, 1, Math.min(TOWER_FLOORS, (tp(w)[k] || 0) + 1));
+  const t = towerEnemy(k, floor, w);
+  startBattle(t.zi, t.boss, { tower: { d: k, floor, w }, e: t.e });
 }
 
 /* รางวัลเมื่อชนะในหอคอย (เรียกจาก victory) */
 function towerWin(rewards) {
   const t = B.tower, td = TOWER_DIFFS[t.d], dd = DIFFS[td.world];
-  const tier = towerTier(t.d, t.floor);
+  const w = t.w || 'w1', P2 = tp(w);
+  const tier = towerTier(t.d, t.floor, w);
   rewards.tower = t;
-  if (t.floor > (S.tower[t.d] || 0)) { S.tower[t.d] = t.floor; rewards.towerNew = true; }
+  if (t.floor > (P2[t.d] || 0)) { P2[t.d] = t.floor; rewards.towerNew = true; }
   if (B.isBoss) {
     rewards.items.push(makeGear(tier, dd.bossMinR, dd.maxR));
     fragDrop(rewards, td.bossFrag);
@@ -294,25 +298,26 @@ function towerWin(rewards) {
 }
 
 function renderTowerPanel() {
+  const w = curTW();
   const k = S.towerD;
-  const best = S.tower[k] || 0;
+  const best = tp(w)[k] || 0;
   const maxPick = Math.min(TOWER_FLOORS, best + 1);
   if (towerPick === null || towerPick > maxPick) towerPick = maxPick;
-  const f = towerPick, boss = f % 10 === 0, z = ZONES[towerZone(f)];
+  const f = towerPick, boss = f % 10 === 0, z = ZONES[towerZone(f, w)];
   const td = TOWER_DIFFS[k];
   const tabs = Object.entries(TOWER_DIFFS).map(([id, x]) => {
-    const open = towerOpen(id);
-    return `<button class="${k === id ? 'on' : ''}" data-a="towerd" data-v="${id}" ${open ? '' : 'disabled'}>${open ? x.icon : '🔒'} ${x.name}<span class="subtle">${S.tower[id] || 0}/${TOWER_FLOORS}</span></button>`;
+    const open = towerOpen(id, w);
+    return `<button class="${k === id ? 'on' : ''}" data-a="towerd" data-v="${id}" ${open ? '' : 'disabled'}>${open ? x.icon : '🔒'} ${x.name}<span class="subtle">${tp(w)[id] || 0}/${TOWER_FLOORS}</span></button>`;
   }).join('');
   const bs = boss ? (f === TOWER_FLOORS && z.bossFinal ? z.bossFinal : z.boss) : null;
   return `<div class="card tower-card">
-    <h3 style="margin-top:0">🗼 หอคอย 100 ชั้น</h3>
+    <h3 style="margin-top:0">🗼 หอคอย 100 ชั้น${w === 'w2' ? ' · แมพ 2' : ''}</h3>
     <div class="tower-tabs">${tabs}</div>
-    ${Object.entries(TOWER_DIFFS).filter(([id]) => !towerOpen(id)).map(([id, x]) => `<div class="muted" style="font-size:12px">🔒 ${x.name}: ผ่านชั้น ${x.need[1]} ของโหมด${TOWER_DIFFS[x.need[0]].name}</div>`).join('')}
+    ${Object.entries(TOWER_DIFFS).filter(([id]) => !towerOpen(id, w)).map(([id, x]) => `<div class="muted" style="font-size:12px">🔒 ${x.name}: ผ่านชั้น ${x.need[1]} ของโหมด${TOWER_DIFFS[x.need[0]].name}</div>`).join('')}
     <div class="tower-bar"><i style="height:${best}%"></i></div>
     <div class="tower-floor">
       <button class="small" data-a="tpick" data-v="-10">⏪</button><button class="small" data-a="tpick" data-v="-1">◀</button>
-      <div><div class="tf-n">ชั้น ${f}</div><div class="muted" style="font-size:12px">Lv.${towerLv(k, f)} · ${z.icon} ${z.name}</div></div>
+      <div><div class="tf-n">ชั้น ${f}</div><div class="muted" style="font-size:12px">Lv.${towerLv(k, f, w)} · ${z.icon} ${z.name}</div></div>
       <button class="small" data-a="tpick" data-v="1">▶</button><button class="small" data-a="tpick" data-v="10">⏩</button>
     </div>
     <div class="tf-foe">${boss ? `${monsterSVG(bs[0], 64, bs[1])}<div><b class="warn">👑 ชั้นบอส: ${bs[0]}</b><div class="muted" style="font-size:12px">ได้ 💠 เศษเลเจนดารี ${td.bossFrag} ชิ้นแน่นอน${f === TOWER_FLOORS ? ' · ผ่านครั้งแรกได้อุปกรณ์เลเจนดารีทันที!' : ''}</div></div>`
@@ -462,9 +467,9 @@ function towerClick(a, v, el) {
     case 'rnext': startRush(B.rush.floor + 1); return 'battle';
     case 'wbfight': startWB(B && B.wb ? B.wb : S.world); return 'battle';
     case 'towerd': if (towerOpen(v)) { S.towerD = v; towerPick = null; save(); } return true;
-    case 'tpick': { const max = Math.min(TOWER_FLOORS, (S.tower[S.towerD] || 0) + 1); towerPick = clamp((towerPick || max) + +v, 1, max); return true; }
+    case 'tpick': { const max = Math.min(TOWER_FLOORS, (tp(curTW())[S.towerD] || 0) + 1); towerPick = clamp((towerPick || max) + +v, 1, max); return true; }
     case 'tower': startTower(S.towerD, +v); return 'battle';
-    case 'tnext': startTower(B.tower.d, B.tower.floor + 1); return 'battle';
+    case 'tnext': startTower(B.tower.d, B.tower.floor + 1, B.tower.w); return 'battle';
     case 'legcraft': {
       const L = legendDef(v); if (!L) return true;
       if ((S.frags[v] || 0) < LEGEND_NEED || S.gold < LEGEND_GOLD) return true;
