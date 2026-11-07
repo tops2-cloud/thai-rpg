@@ -6,7 +6,7 @@
    ============================================================ */
 
 /* ---------- ภาพตัวละครหลักของแต่ละคลาส [ปกติ, หลังเลื่อนขั้น] ---------- */
-const FACE_LEFT = new Set(['chars/archer.webp', 'chars/hunter.webp', 'skins/archer_black.webp', 'skins/assassin.webp', 'skins/aquatic.webp', 'skins/phantom.webp', 'skins/chimera.webp', 'skins/crystal.webp', 'skins/archmage.webp']); // ภาพที่หันซ้าย → กลับด้านในฉากต่อสู้
+const FACE_LEFT = new Set(['chars/archer.webp', 'chars/hunter.webp', 'skins/archer_black.webp', 'skins/assassin.webp', 'skins/aquatic.webp', 'skins/phantom.webp', 'skins/chimera.webp', 'skins/crystal.webp', 'skins/archmage.webp', 'skins/phantom.webp']); // ภาพที่หันซ้าย → กลับด้านในฉากต่อสู้
 const HERO_IMG = {
   warrior: ['chars/warrior.webp', 'chars/holy.webp', 'chars/celestial_emperor.webp'],
   mage: ['chars/mage.webp', 'chars/sage.webp', 'chars/magic_deity.webp'],
