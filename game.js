@@ -321,6 +321,13 @@ const POTIONS = {
   mp_s: { n: 'ยาฟ้า', i: '💧', price: 25, desc: 'ฟื้น MP 30% (ขั้นต่ำ 40)', mp: 40, mpPct: 0.3 },
   hp_l: { n: 'ยาแดงใหญ่', i: '🍷', price: 60, desc: 'ฟื้น HP 40% (ขั้นต่ำ 250)', hp: 250, hpPct: 0.4 },
   elixir: { n: 'น้ำอมฤต', i: '🌟', price: 300, desc: 'ฟื้น HP/MP เต็ม', full: true },
+  rage: { n: 'ยาคลั่ง', i: '🔥', price: 150, scale: true, battle: true, desc: 'พลังโจมตี +50% 3 เทิร์น (ใช้ในการต่อสู้)', buff: 'atkUp' },
+  stone: { n: 'ยาหินผา', i: '🪨', price: 150, scale: true, battle: true, desc: 'ป้องกัน +60% 3 เทิร์น (ใช้ในการต่อสู้)', buff: 'ironwall' },
+  bomb: { n: 'ระเบิดเพลิง', i: '💣', price: 250, scale: true, battle: true, desc: 'ระเบิดใส่ศัตรู 12% ของ HP สูงสุด (บอส 4%)', bomb: true },
+  phoenix: { n: 'ขนนกฟีนิกซ์', i: '🪶', price: 1500, scale: true, desc: 'พกไว้: ถ้าพ่ายแพ้จะฟื้นทันทีด้วย HP 50% (ใช้เอง)', passive: true },
+  expscroll: { n: 'คัมภีร์ปัญญา', i: '📘', price: 800, scale: true, desc: 'EXP +50% ใน 20 การต่อสู้ถัดไป', scroll: 'exp' },
+  goldscroll: { n: 'คัมภีร์โชคลาภ', i: '📙', price: 800, scale: true, desc: 'ทอง +50% ใน 20 การต่อสู้ถัดไป', scroll: 'gold' },
+  lunch: { n: 'ข้าวกล่องคนงาน', i: '🍱', price: 200, scale: true, desc: 'ฟื้นพลังขุดเหมือง +10', mine: 10 },
 };
 
 /* ---------------- สถานะเกม ---------------- */
@@ -794,7 +801,7 @@ function playerAct(act, arg) {
     ev({ a: 'aura', kind: 'shield', text: 'ป้องกัน' });
   } else if (act === 'item') {
     const p = POTIONS[arg];
-    if (!p || !S.pots[arg]) return;
+    if (!p || !S.pots[arg] || p.passive || p.scroll || p.mine) return;
     usePotion(arg, true);
   } else if (act === 'flee') {
     if (B.isBoss) return;
@@ -974,6 +981,11 @@ function enemyTurn() {
     log('👑 จักรพรรดิไม่ล้ม! รอดด้วย HP 1');
     ev({ a: 'num', t: 'hero', text: '👑 ไม่ล้ม!', cls: 'buff' });
   }
+  if (S.hp <= 0 && S.pots.phoenix > 0) {
+    S.pots.phoenix--; S.hp = Math.round(st.hp * 0.5);
+    log('🪶 ขนนกฟีนิกซ์ลุกโชน! ฟื้นคืนชีพด้วย HP 50%');
+    ev({ a: 'aura', kind: 'heal', text: '🪶 ฟื้นคืนชีพ!' });
+  }
   if (S.hp <= 0) return defeat();
   if (hasPassive('w_counter') && Math.random() < 0.2) {
     const r = hitEnemy(0.8);
@@ -991,6 +1003,9 @@ function victory() {
   const d = D();
   const tier = zoneTier(B.zi);
   const rewards = { exp: e.exp, gold: e.gold, items: [], newItems: 0, levels: 0, pots: [], charm: 0 };
+  if (S.buffs.exp > 0) { S.buffs.exp--; rewards.exp = e.exp = Math.round(e.exp * 1.5); }
+  if (S.buffs.gold > 0) { S.buffs.gold--; rewards.gold = e.gold = Math.round(e.gold * 1.5); }
+  if (Math.random() < 0.06) { const k = pick(['rage', 'stone', 'bomb', 'lunch']); S.pots[k]++; rewards.pots.push(k); }
   S.gold += e.gold;
   S.wins++;
   S.bestiary[e.n] = (S.bestiary[e.n] || 0) + 1;
@@ -1071,13 +1086,19 @@ function usePotion(k, inBattle) {
   const p = POTIONS[k];
   const st = stats();
   if (!S.pots[k]) return;
+  if (p.passive) { toast(`${p.i} ${p.n} ทำงานเองเมื่อพ่ายแพ้`); return; }
+  if (p.battle && !inBattle) { toast('ใช้ได้เฉพาะตอนต่อสู้'); return; }
   S.pots[k]--;
   track('pots');
   let msg;
-  if (p.full) { S.hp = st.hp; S.mp = st.mp; msg = 'ฟื้นฟูเต็ม!'; }
+  if (p.buff) { B[p.buff] = 4; msg = p.buff === 'atkUp' ? 'พลังโจมตี +50%' : 'ป้องกัน +60%'; }
+  else if (p.bomb) { const dmg = Math.max(1, Math.round(B.e.maxHp * (B.isBoss ? 0.04 : 0.12))); B.e.hp = Math.max(0, B.e.hp - dmg); msg = `ระเบิด ${fmt(dmg)} ดาเมจ`; if (inBattle) ev({ a: 'num', t: 'foe', text: `💣 -${fmt(dmg)}`, cls: 'crit' }); }
+  else if (p.scroll) { S.buffs[p.scroll] = (S.buffs[p.scroll] || 0) + 20; msg = `${p.scroll === 'exp' ? 'EXP' : 'ทอง'} +50% อีก ${S.buffs[p.scroll]} การต่อสู้`; }
+  else if (p.mine) { mineSync(); S.mine.energy = Math.min(mineMax() + 30, S.mine.energy + p.mine); msg = `พลังขุด +${p.mine}`; }
+  else if (p.full) { S.hp = st.hp; S.mp = st.mp; msg = 'ฟื้นฟูเต็ม!'; }
   else if (p.hp) { const a = Math.min(Math.max(p.hp, Math.round(st.hp * p.hpPct)), st.hp - S.hp); S.hp += a; msg = `ฟื้น HP ${fmt(a)}`; }
   else if (p.mp) { const a = Math.min(Math.max(p.mp, Math.round(st.mp * p.mpPct)), st.mp - S.mp); S.mp += a; msg = `ฟื้น MP ${fmt(a)}`; }
-  if (inBattle) { log(`${p.i} ใช้${p.n} ${msg}`); ev({ a: 'aura', kind: p.mp && !p.hp ? 'mana' : 'heal', text: msg.replace(/^ฟื้น (HP|MP) /, '+') }); }
+  if (inBattle) { log(`${p.i} ใช้${p.n} ${msg}`); if (!p.bomb) ev({ a: 'aura', kind: p.buff ? 'buff' : p.mp && !p.hp ? 'mana' : 'heal', text: msg.replace(/^ฟื้น (HP|MP) /, '+') }); }
   else { toast(`${p.i} ${msg}`); save(); render(); }
 }
 
@@ -1129,7 +1150,7 @@ function hud() {
 
 function nav() {
   const items = [['town', '🏘️', 'เมือง'], ['map', '🗺️', 'ผจญภัย'], ['bag', '🎒', 'กระเป๋า'], ['collection', '📖', 'สะสม']];
-  const sub = { legend: 'town', classes: 'town', cosmetics: 'town', advance: 'town', shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town' };
+  const sub = { mine: 'town', legend: 'town', classes: 'town', cosmetics: 'town', advance: 'town', shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town' };
   return `<nav class="nav"><div class="in">${items.map(([v, i, n]) =>
     `<button data-a="go" data-v="${v}" class="${view === v || sub[view] === v ? 'on' : ''}"><span class="ico">${i}</span>${n}</button>`).join('')}</div></nav>`;
 }
@@ -1156,6 +1177,7 @@ function render() {
     else if (view === 'save') html += renderSave();
     else if (view === 'map') html += renderWorldMap();
     else if (view === 'legend') html += renderLegend();
+    else if (view === 'mine') html += renderMine();
     else if (view === 'classes') html += renderClasses();
     else if (view === 'bag') html += renderBag();
     else if (view === 'collection') html += renderCollection();
@@ -1232,6 +1254,7 @@ function renderTown() {
     <button data-a="go" data-v="forge"><span class="ico">⚒️</span>ช่างตีเหล็ก<span class="subtle">ตีบวกอุปกรณ์</span></button>
     <button data-a="go" data-v="skills"><span class="ico">📜</span>สกิล<span class="subtle">${S.loadout.filter(Boolean).length}/${skillSlots()} ช่อง · ปลดล็อก ${skillsOf(S.cls).filter(skillOpen).length}/${skillsOf(S.cls).length}</span></button>
     <button data-a="go" data-v="advance" class="${(!S.adv && S.lv >= ADV_LV) || (S.adv && !S.adv3 && S.lv >= ADV3_LV) ? 'glow-btn' : ''}"><span class="ico">${S.adv ? classIcon() : S.lv >= ADV_LV ? '🌟' : '🔒'}</span>เลื่อนขั้นอาชีพ<span class="subtle">${(!S.adv && S.lv >= ADV_LV) || (S.adv && !S.adv3 && S.lv >= ADV3_LV) ? 'พร้อมแล้ว!' : S.adv ? className() : `ปลดล็อก Lv.${ADV_LV}`}</span></button>
+    <button data-a="go" data-v="mine" class="${mineEnergy() >= mineMax() ? 'glow-btn' : ''}"><span class="ico">⛏️</span>เหมืองทอง<span class="subtle">พลังขุด ${mineEnergy()}/${mineMax()}</span></button>
     <button data-a="go" data-v="classes"><span class="ico">🔄</span>สลับอาชีพ<span class="subtle">${Object.entries(S.classes).filter(([k]) => k !== S.cls).map(([k, c]) => `${CLASSES[k].icon}Lv.${c.lv}`).join(' ') || 'เลเวลแยกแต่ละอาชีพ'}</span></button>
     <button data-a="go" data-v="legend" class="${LEGENDS.some((L) => (S.frags[L.id] || 0) >= LEGEND_NEED) ? 'glow-btn' : ''}"><span class="ico">🌟</span>เลเจนดารี<span class="subtle">💠 เศษ ${Object.values(S.frags).reduce((a, b) => a + b, 0)} ชิ้น</span></button>
     <button data-a="go" data-v="cosmetics"><span class="ico">👘</span>สกิน & ออร่า<span class="subtle">${curSkin().n}${curAura() ? ` · ${curAura().n}` : ''}</span></button>
@@ -1243,7 +1266,7 @@ function renderTown() {
 }
 
 const innPrice = () => Math.round((10 + S.lv * 3) * curTown().inn);
-const potPrice = (k) => Math.max(1, Math.round(POTIONS[k].price * curTown().pot));
+const potPrice = (k) => Math.max(1, Math.round(POTIONS[k].price * (POTIONS[k].scale ? 1 + S.lv / 25 : 1) * curTown().pot));
 const chestPrice = () => 60 + maxTier() * 60;
 
 function renderShop() {
@@ -1389,7 +1412,7 @@ function renderBattleView() {
 function battleActions() {
   const st = stats();
   if (B.sub === 'item') {
-    return `<div class="actions">${Object.entries(POTIONS).map(([k, p]) =>
+    return `<div class="actions">${Object.entries(POTIONS).filter(([, p]) => !p.passive && !p.scroll && !p.mine).map(([k, p]) =>
       `<button data-a="useitem" data-v="${k}" ${!S.pots[k] || busy ? 'disabled' : ''}>${p.i} ${p.n} ×${S.pots[k]}<span class="subtle">${p.desc}</span></button>`
     ).join('')}<button class="full ghost" data-a="sub" data-v="">← ย้อนกลับ</button></div>`;
   }
@@ -1596,6 +1619,7 @@ function battleResult() {
 }
 
 let slotSel = null;
+let bagSel = null;
 
 function slotCell(slot) {
   const it = S.equip[slot];
@@ -1650,21 +1674,34 @@ function renderBag() {
   const cats = ['all', ...Object.keys(GEAR)];
   html += `<div class="chips">${cats.map((c) => `<button class="chip ${bagFilter === c ? 'on' : ''}" data-a="bagfilter" data-v="${c}">${c === 'all' ? 'ทั้งหมด' : CAT_NAME[c]}</button>`).join('')}</div>`;
   const list = S.bag.filter((x) => bagFilter === 'all' || x.slot === bagFilter)
-    .sort((a, b) => RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity] || b.value - a.value);
-  html += `<div class="row between" style="margin-bottom:8px"><span class="muted">${list.length}/${S.bag.length} ชิ้น</span>
-    <button class="small" data-a="sellcommon">ขายของธรรมดา/หายากทั้งหมด</button></div>`;
-  html += list.map((it) => {
-    const tg = equipTargets(it);
+    .sort((a, b) => (isBetter(b) ? 1 : 0) - (isBetter(a) ? 1 : 0) || RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity] || b.value - a.value);
+  const total = list.reduce((s, x) => s + x.value, 0);
+  html += `<div class="row between" style="margin-bottom:8px"><span class="muted">${list.length}/${S.bag.length} ชิ้น · <span class="up">▲</span> = ดีกว่าที่ใส่</span>
+    <button class="small danger" data-a="sellall" ${list.length ? '' : 'disabled'}>ขายทั้งหมด ${fmt(total)} 💰</button></div>`;
+  const sel = list.find((x) => x.uid === bagSel);
+  if (sel) {
+    const tg = equipTargets(sel);
     const btns = tg.length > 1
-      ? tg.map((t) => `<button class="small primary" data-a="equip" data-v="${it.uid}" data-t="${t}">${SHORT_SLOT[t]}</button>`).join('')
-      : `<button class="small primary" data-a="equip" data-v="${it.uid}" data-t="${tg[0]}">ใส่</button>`;
-    return `<div class="item b-${it.rarity}"><span class="ico">${it.icon}</span>
-      <div class="info"><div class="nm r-${it.rarity}">${itemName(it)}</div>
-        <div class="st">${CAT_NAME[it.slot]}${isTwoHand(it) ? ' (สองมือ)' : ''} · ${rarityName(it.rarity)} · ${statText(it.stats)}</div>
-        <div class="st">เทียบ: ${tg.map((t) => (tg.length > 1 ? `<span class="muted">${SHORT_SLOT[t]}:</span> ` : '') + compareText(it, t)).join(' &nbsp;')}</div></div>
-      <div class="btncol">${btns}<button class="small" data-a="sell" data-v="${it.uid}">ขาย ${fmt(it.value)}</button></div></div>`;
-  }).join('');
+      ? tg.map((t) => `<button class="small primary" data-a="equip" data-v="${sel.uid}" data-t="${t}">ใส่${SHORT_SLOT[t]}</button>`).join('')
+      : `<button class="small primary" data-a="equip" data-v="${sel.uid}" data-t="${tg[0]}">ใส่</button>`;
+    html += `<div class="item b-${sel.rarity} bag-detail"><span class="ico">${sel.icon}</span>
+      <div class="info"><div class="nm r-${sel.rarity}">${itemName(sel)}</div>
+        <div class="st">${CAT_NAME[sel.slot]}${isTwoHand(sel) ? ' (สองมือ)' : ''} · ${rarityName(sel.rarity)} · ${statText(sel.stats)}</div>
+        <div class="st">เทียบ: ${tg.map((t) => (tg.length > 1 ? `<span class="muted">${SHORT_SLOT[t]}:</span> ` : '') + compareText(sel, t)).join(' &nbsp;')}</div></div>
+      <div class="btncol">${btns}<button class="small" data-a="sell" data-v="${sel.uid}">ขาย ${fmt(sel.value)}</button></div></div>`;
+  }
+  html += `<div class="bag-grid">${list.map((it) => `<button class="bag-cell b-${it.rarity} ${it.uid === bagSel ? 'on' : ''}" data-a="bagsel" data-v="${it.uid}">
+      <span class="bi">${it.icon}</span>${it.plus ? `<span class="bp">+${it.plus}</span>` : ''}${isBetter(it) ? '<span class="bu">▲</span>' : ''}</button>`).join('')}</div>`;
   return html;
+}
+
+/* ดีกว่าของที่ใส่อยู่ไหม (ช่องว่างถือว่าดีกว่า) */
+function isBetter(it) {
+  return equipTargets(it).some((t) => {
+    const cur = S.equip[t];
+    if (!cur) return true;
+    return itemScore(effStats(it, t)) > itemScore(effStats(cur, t));
+  });
 }
 
 function collectionEntries() {
@@ -1764,10 +1801,10 @@ document.addEventListener('click', (ev) => {
     case 'useitem': playerAct('item', v); return;
     case 'sub': B.sub = v || null; break;
     case 'bagtab': bagTab = v; break;
-    case 'drink': usePotion(v, false); return;
+    case 'drink': usePotion(v, false); if (view === 'mine') render(); return;
     case 'equip': {
       const it = S.bag.find((x) => x.uid === +v); if (!it) return;
-      equipItem(it, el.dataset.t); break;
+      equipItem(it, el.dataset.t); bagSel = null; break;
     }
     case 'unequip': {
       const it = S.equip[v]; if (!it) return;
@@ -1786,10 +1823,21 @@ document.addEventListener('click', (ev) => {
     case 'skillslot': skillSlotSel = skillSlotSel === +v ? null : +v; break;
     case 'skillset': setSkill(v); break;
     case 'skillrm': { const i = S.loadout.indexOf(v); if (i >= 0) { S.loadout[i] = null; save(); } break; }
+    case 'bagsel': bagSel = bagSel === +v ? null : +v; break;
+    case 'sellall': {
+      const list = S.bag.filter((x) => bagFilter === 'all' || x.slot === bagFilter);
+      if (!list.length) return;
+      const better = list.filter(isBetter).length;
+      if (better && !confirm(`มี ${better} ชิ้นที่ดีกว่าของที่ใส่อยู่ ขายทั้งหมด ${list.length} ชิ้นจริงไหม?`)) return;
+      const g = list.reduce((s, x) => s + x.value, 0);
+      S.bag = S.bag.filter((x) => !list.includes(x)); S.gold += g; bagSel = null; save();
+      toast(`ขาย ${list.length} ชิ้น ได้ ${fmt(g)} 💰`); break;
+    }
     case 'sell': {
       const i = S.bag.findIndex((x) => x.uid === +v); if (i < 0) return;
       const it = S.bag[i];
-      if ((it.rarity === 'unique' || it.plus >= 5 || RARITY_ORDER[it.rarity] <= RARITY_ORDER.mythic) && !confirm(`ขาย ${itemNameText(it)} จริงไหม?`)) return;
+      if (isBetter(it) && !confirm(`${itemNameText(it)} ดีกว่าของที่ใส่อยู่ ขายจริงไหม?`)) return;
+      bagSel = null;
       S.bag.splice(i, 1); S.gold += it.value; save(); toast(`ขายได้ ${fmt(it.value)} 💰`); break;
     }
     case 'sellcommon': {

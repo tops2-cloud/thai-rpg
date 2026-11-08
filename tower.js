@@ -449,6 +449,9 @@ function migrateTower(s) {
   if (!s.frags) s.frags = {};
   if (!s.classes) s.classes = {};
   if (!s.town || !TOWNS.some((x) => x.id === s.town)) s.town = 'start';
+  if (!s.mine) s.mine = { pick: 1, energy: 20, t: Date.now(), total: 0, gold: 0 };
+  if (!s.buffs) s.buffs = {};
+  for (const k of Object.keys(POTIONS)) if (s.pots[k] == null) s.pots[k] = 0;
   if (!s.world || !WORLDS.some((x) => x.id === s.world)) s.world = 'w1';
   if (!s.diffBy) s.diffBy = { [s.world]: s.diff };
   if (!s.classes[s.cls]) s.classes[s.cls] = { lv: s.lv, exp: s.exp, adv: !!s.adv, loadout: (s.loadout || []).slice(), skin: s.cos ? s.cos.skin : 'default' };
@@ -456,6 +459,7 @@ function migrateTower(s) {
 }
 
 function towerClick(a, v, el) {
+  if (mineClick(a, v)) return true;
   switch (a) {
     case 'diffmenu': diffMenu = !diffMenu; return true;
     case 'world': if (worldReady(v) && worldUnlocked(v)) { setWorld(v); mapSel = null; diffMenu = false; save(); } return true;
@@ -481,4 +485,84 @@ function towerClick(a, v, el) {
     case 'swcls': switchClass(v); return true;
     default: return false;
   }
+}
+
+/* ---------------- ⛏️ เหมืองทอง ----------------
+   แตะขุดใช้พลัง 1 · พลังฟื้น 1 ทุก 2 นาที (แม้ปิดเกม) · อัปเกรดพลั่วเพิ่มรายได้/ของหายาก */
+const MINE_REGEN_MS = 120000;
+const PICK_MAX = 10;
+const ORES = [
+  { id: 'stone', n: 'หินแร่', i: '🪨', w: 44, m: 0.5 },
+  { id: 'copper', n: 'ทองแดง', i: '🟤', w: 25, m: 1 },
+  { id: 'silver', n: 'แร่เงิน', i: '⚪', w: 15, m: 2 },
+  { id: 'gold', n: 'ก้อนทองคำ', i: '🟡', w: 9, m: 5 },
+  { id: 'gem', n: 'อัญมณี', i: '💎', w: 4, m: 15 },
+  { id: 'frag', n: 'เศษเลเจนดารี', i: '💠', w: 1.6, m: 0 },
+  { id: 'charm', n: 'ยันต์คุ้มครอง', i: '🧿', w: 1, m: 0 },
+  { id: 'chest', n: 'หีบโบราณ', i: '🎁', w: 0.6, m: 0 },
+];
+const mineMax = () => 20 + ((S.mine && S.mine.pick) || 1) * 2;
+const pickCost = (lv) => Math.round(3000 * lv * lv);
+function mineSync() {
+  const m = S.mine, now = Date.now();
+  if (m.energy >= mineMax()) { m.t = now; return; }
+  const gain = Math.floor((now - m.t) / MINE_REGEN_MS);
+  if (gain > 0) { m.energy = Math.min(mineMax(), m.energy + gain); m.t += gain * MINE_REGEN_MS; if (m.energy >= mineMax()) m.t = now; }
+}
+const mineEnergy = () => { if (!S || !S.mine) return 0; mineSync(); return S.mine.energy; };
+let mineLast = null;
+function mineDig(times = 1) {
+  mineSync();
+  const m = S.mine, got = { gold: 0, finds: [] };
+  for (let k = 0; k < times && m.energy > 0; k++) {
+    m.energy--;
+    if (m.energy < mineMax() && m.t > Date.now()) m.t = Date.now();
+    const rareBoost = 1 + (m.pick - 1) * 0.15;
+    const pool = ORES.map((o) => ({ ...o, w: o.m >= 5 || !o.m ? o.w * rareBoost : o.w }));
+    let x = Math.random() * pool.reduce((s, o) => s + o.w, 0), ore = pool[0];
+    for (const o of pool) { x -= o.w; if (x <= 0) { ore = o; break; } }
+    const base = (25 + S.lv * 9) * (1 + (m.pick - 1) * 0.3);
+    if (ore.m) { const g = Math.round(base * ore.m * rand(0.85, 1.15)); got.gold += g; }
+    if (ore.id === 'frag') { const r = { frags: [] }; fragDrop(r, 1); }
+    if (ore.id === 'charm') S.charms++;
+    if (ore.id === 'chest') { const d = D(); const it = makeGear(maxTier(), Math.min(d.maxR, d.minR + 1), d.maxR); addItem(it); got.item = it; }
+    got.finds.push(ore);
+    m.total = (m.total || 0) + 1;
+  }
+  S.gold += got.gold; m.gold = (m.gold || 0) + got.gold;
+  mineLast = { ...got, k: (mineLast ? mineLast.k : 0) + 1 };
+  save();
+}
+function renderMine() {
+  mineSync();
+  const m = S.mine, max = mineMax();
+  const next = m.energy >= max ? 0 : Math.ceil((MINE_REGEN_MS - (Date.now() - m.t)) / 1000);
+  const last = mineLast;
+  const counts = {}; if (last) last.finds.forEach((o) => { counts[o.id] = (counts[o.id] || 0) + 1; });
+  return `<div class="row between"><h2>⛏️ เหมืองทอง</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>
+  <div class="card mine-card">
+    <div class="row between"><b>⚡ พลังขุด ${m.energy}/${max}</b><span class="muted" style="font-size:12px">${next ? `+1 ใน ${Math.floor(next / 60)}:${String(next % 60).padStart(2, '0')}` : 'เต็มแล้ว'}</span></div>
+    <div class="bar exp" style="margin:6px 0 10px"><i style="width:${(m.energy / max) * 100}%"></i></div>
+    <button class="mine-rock ${last ? 'hit' : ''}" data-a="dig" data-v="1" ${m.energy ? '' : 'disabled'} data-k="${last ? last.k : 0}">
+      <span class="mr-ore">⛰️</span><span class="mr-pick">⛏️</span>
+      ${last ? `<span class="mr-pop" key="${last.k}">${last.gold ? `+${fmt(last.gold)} 💰` : ''} ${Object.entries(counts).filter(([id]) => ['frag', 'charm', 'chest', 'gem', 'gold'].includes(id)).map(([id, c]) => `${ORES.find((o) => o.id === id).i}${c > 1 ? '×' + c : ''}`).join(' ')}</span>` : ''}
+    </button>
+    <div class="muted" style="text-align:center;font-size:12px;margin:6px 0">แตะก้อนหินเพื่อขุด</div>
+    <div class="actions"><button data-a="dig" data-v="10" ${m.energy ? '' : 'disabled'}>⛏️ ขุด ×10</button><button data-a="dig" data-v="999" ${m.energy ? '' : 'disabled'}>⛏️ ขุดทั้งหมด (${m.energy})</button></div>
+    ${last && last.item ? `<div class="new-skill">🎁 เจอหีบโบราณ! ได้ <b class="r-${last.item.rarity}">${esc(last.item.name)}</b></div>` : ''}
+    ${S.pots.lunch ? `<button class="small" style="margin-top:8px;width:100%" data-a="drink" data-v="lunch">🍱 กินข้าวกล่อง (+10 พลัง) · มี ${S.pots.lunch}</button>` : ''}
+  </div>
+  <div class="card">
+    <div class="row between"><b>⛏️ พลั่ว Lv.${m.pick}${m.pick >= PICK_MAX ? ' (สูงสุด)' : ''}</b>
+      ${m.pick < PICK_MAX ? `<button class="small primary" data-a="pickup" ${S.gold >= pickCost(m.pick) ? '' : 'disabled'}>อัปเกรด ${fmt(pickCost(m.pick))} 💰</button>` : ''}</div>
+    <div class="muted" style="font-size:13px;margin-top:4px">รายได้ +${(m.pick - 1) * 30}% · ของหายาก +${(m.pick - 1) * 15}% · พลังสูงสุด ${max}${m.pick < PICK_MAX ? ` → อัปเกรดแล้ว: รายได้ +${m.pick * 30}% พลังสูงสุด ${max + 2}` : ''}</div>
+  </div>
+  <div class="card"><b>สิ่งที่ขุดเจอได้</b>
+    <div class="ore-list">${ORES.map((o) => `<span>${o.i} ${o.n}</span>`).join('')}</div>
+    <div class="muted" style="font-size:12px;margin-top:6px">ขุดมาแล้ว ${fmt(m.total || 0)} ครั้ง · ได้ทองรวม ${fmt(m.gold || 0)} 💰 · ทองที่ได้เพิ่มตามเลเวล</div></div>`;
+}
+function mineClick(a, v) {
+  if (a === 'dig') { if (!mineEnergy()) { toast('พลังขุดหมดแล้ว รอสักครู่หรือกินข้าวกล่อง'); return true; } mineDig(+v); return true; }
+  if (a === 'pickup') { const c = pickCost(S.mine.pick); if (S.mine.pick >= PICK_MAX || S.gold < c) return true; S.gold -= c; S.mine.pick++; save(); toast(`⛏️ พลั่วเป็น Lv.${S.mine.pick}!`); return true; }
+  return false;
 }

@@ -651,3 +651,28 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 /* หน้าอุปกรณ์: ตัวละครยืนเหนือช่องผ้าคลุม/ตีบวกพอดี */
 .equip-board .eb-mid { justify-content: flex-end; gap: 2px; }
 .equip-board .eb-hero { flex: 1; align-items: flex-end; }
+
+/* ===== กระเป๋าแบบช่อง ===== */
+.bag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)); gap: 6px; }
+.bag-cell { position: relative; aspect-ratio: 1; padding: 0; border-radius: 10px; background: #15111f; border: 2px solid var(--line); display: grid; place-items: center; }
+.bag-cell .bi { font-size: 26px; }
+.bag-cell .bp { position: absolute; top: 1px; right: 3px; font-size: 10px; font-family: 'Kanit'; color: var(--gold); }
+.bag-cell .bu { position: absolute; bottom: 0; left: 3px; font-size: 13px; color: #4bd16a; text-shadow: 0 0 4px #000; }
+.bag-cell.on { box-shadow: 0 0 0 2px #fff; }
+.bag-cell.b-common { border-color: var(--common); } .bag-cell.b-rare { border-color: var(--rare); } .bag-cell.b-epic { border-color: var(--epic); }
+.bag-cell.b-legend { border-color: var(--legend); } .bag-cell.b-mythic { border-color: var(--mythic); } .bag-cell.b-divine { border-color: var(--divine); }
+.bag-cell.b-unique { border-color: var(--unique); } .bag-cell.b-legendary { border-color: #ff5e2e; box-shadow: 0 0 8px #ff5e2e88; }
+.bag-detail { margin-bottom: 8px; }
+
+/* ===== เหมือง ===== */
+.mine-card { background: linear-gradient(180deg, #2a2236, #1a1424); }
+.mine-rock { position: relative; width: 100%; height: 150px; border-radius: 16px; background: radial-gradient(circle at 50% 80%, #3a2e48, #1a1424); border: 1px solid #5a4a7a; overflow: hidden; }
+.mine-rock .mr-ore { font-size: 88px; display: block; }
+.mine-rock .mr-pick { position: absolute; right: 22%; top: 18%; font-size: 44px; transform-origin: 80% 80%; }
+.mine-rock.hit .mr-pick { animation: pickSwing .35s ease-out; }
+.mine-rock.hit .mr-ore { animation: oreShake .3s ease-out; }
+@keyframes pickSwing { 0% { transform: rotate(40deg); } 60% { transform: rotate(-25deg); } 100% { transform: rotate(0); } }
+@keyframes oreShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.mine-rock .mr-pop { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); font-family: 'Kanit'; font-size: 20px; font-weight: 700; color: var(--gold); text-shadow: 0 2px 4px #000; white-space: nowrap; animation: minePop .9s ease-out forwards; }
+@keyframes minePop { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, -50px); } }
+.ore-list { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 6px; font-size: 13px; }
