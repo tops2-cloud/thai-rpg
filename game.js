@@ -1620,6 +1620,7 @@ function battleResult() {
 
 let slotSel = null;
 let bagSel = null;
+let potSel = null;
 
 function slotCell(slot) {
   const it = S.equip[slot];
@@ -1664,10 +1665,15 @@ function renderBag() {
   let html = `<h2>🎒 อุปกรณ์ & กระเป๋า</h2>${renderEquipBoard()}
   <div class="tabs">${tab('gear', 'อุปกรณ์')}${tab('pots', 'ยา')}</div>`;
   if (bagTab === 'pots') {
-    html += Object.entries(POTIONS).map(([k, p]) => `<div class="item"><span class="ico">${p.i}</span>
-      <div class="info"><div class="nm">${p.n} ×${S.pots[k]}</div><div class="st">${p.desc}</div></div>
-      <button class="small" data-a="drink" data-v="${k}" ${S.pots[k] ? '' : 'disabled'}>ใช้</button></div>`).join('');
-    html += `<div class="item"><span class="ico">🧿</span><div class="info"><div class="nm">ยันต์คุ้มครอง ×${S.charms}</div><div class="st">ใช้ที่ช่างตีเหล็ก</div></div></div>`;
+    const items = [...Object.entries(POTIONS).map(([k, p]) => ({ k, i: p.i, n: p.n, d: p.desc, c: S.pots[k], use: !p.battle && !p.passive })),
+      { k: 'charm', i: '🧿', n: 'ยันต์คุ้มครอง', d: 'ใช้ตอนตีบวก +7 ขึ้นไปที่ช่างตีเหล็ก ถ้าล้มเหลวจะไม่ลดระดับ', c: S.charms }];
+    const sel = items.find((x) => x.k === potSel);
+    if (sel) html += `<div class="item bag-detail"><span class="ico">${sel.i}</span>
+      <div class="info"><div class="nm">${sel.n} ×${sel.c}</div><div class="st">${sel.d}</div></div>
+      ${sel.use ? `<button class="small primary" data-a="drink" data-v="${sel.k}" ${sel.c ? '' : 'disabled'}>ใช้</button>` : ''}</div>`;
+    html += `<div class="muted" style="font-size:12px;margin-bottom:8px">แตะช่องเพื่อดูรายละเอียด</div>
+    <div class="bag-grid">${items.map((x) => `<button class="bag-cell ${x.c ? '' : 'empty'} ${x.k === potSel ? 'on' : ''}" data-a="potsel" data-v="${x.k}">
+      <span class="bi">${x.i}</span><span class="bq">${x.c}</span></button>`).join('')}</div>`;
     return html;
   }
   if (!S.bag.length) return html + `<div class="card muted" style="text-align:center">ยังไม่มีอุปกรณ์ — ไปล่ามอนสเตอร์หรือซื้อหีบสมบัติดูสิ!</div>`;
@@ -1823,6 +1829,7 @@ document.addEventListener('click', (ev) => {
     case 'skillslot': skillSlotSel = skillSlotSel === +v ? null : +v; break;
     case 'skillset': setSkill(v); break;
     case 'skillrm': { const i = S.loadout.indexOf(v); if (i >= 0) { S.loadout[i] = null; save(); } break; }
+    case 'potsel': potSel = potSel === v ? null : v; break;
     case 'bagsel': bagSel = bagSel === +v ? null : +v; break;
     case 'sellall': {
       const list = S.bag.filter((x) => bagFilter === 'all' || x.slot === bagFilter);
