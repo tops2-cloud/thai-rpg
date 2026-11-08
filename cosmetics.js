@@ -7,6 +7,8 @@
 
 /* ---------- ภาพตัวละครหลักของแต่ละคลาส [ปกติ, หลังเลื่อนขั้น] ---------- */
 const FACE_LEFT = new Set(['chars/archer.webp', 'chars/hunter.webp', 'skins/archer_black.webp', 'skins/assassin.webp', 'skins/aquatic.webp', 'skins/phantom.webp', 'skins/chimera.webp', 'skins/crystal.webp', 'skins/archmage.webp', 'skins/phantom.webp', 'skins/yak.webp']); // ภาพที่หันซ้าย → กลับด้านในฉากต่อสู้
+/* จุดกึ่งกลางลำตัวในภาพ (เทียบความสูง) — ใช้วางออร่าให้ตรงตัว */
+const BODY_DX = {"chars/celestial_emperor.webp": 0.039, "chars/hunter.webp": -0.043, "chars/mage.webp": -0.039, "chars/magic_deity.webp": 0.022, "chars/sage.webp": 0.018, "skins/alien.webp": -0.022, "skins/archmage.webp": -0.024, "skins/berserker.webp": -0.024, "skins/chimera.webp": 0.052, "skins/cosmic.webp": 0.015, "skins/crystal.webp": -0.025, "skins/magitech.webp": 0, "skins/olympian.webp": 0.034, "skins/phantom.webp": 0.035, "skins/tan.webp": -0.093, "skins/yak.webp": 0.029};
 const HERO_IMG = {
   warrior: ['chars/warrior.webp', 'chars/holy.webp', 'chars/celestial_emperor.webp'],
   mage: ['chars/mage.webp', 'chars/sage.webp', 'chars/magic_deity.webp'],
@@ -100,7 +102,8 @@ function heroArt(cls, equip, size, adv, opt = {}) {
   const h = Math.round(size * 250 / 235);
   const tier3 = opt.tier3 !== undefined ? opt.tier3 : (typeof S !== 'undefined' && !!S && S.cls === cls && !!S.adv3);
   const src = skin && skin.img && skinFits(skin, cls) ? skin.img : HERO_IMG[cls][tier3 ? 2 : adv ? 1 : 0];
-  return `<div class="hero-art ${tier3 && src === HERO_IMG[cls][1] ? 'tier3' : ''} ${skin && skin.giant && src === skin.img ? 'giant' : ''}" style="height:${h}px;min-width:${Math.round(h * 0.55)}px">${auraHTML(aura)}<img class="skin-img ${FACE_LEFT.has(src) ? 'face-left' : ''} ${src === HERO_IMG[cls][2] ? 'big3' : ''}" src="${src}" alt="" style="height:${h}px"></div>`;
+  const adx = Math.round((BODY_DX[src] || 0) * h);
+  return `<div class="hero-art ${tier3 && src === HERO_IMG[cls][1] ? 'tier3' : ''} ${skin && skin.giant && src === skin.img ? 'giant' : ''} ${FACE_LEFT.has(src) ? 'fl' : ''}" style="height:${h}px;min-width:${Math.round(h * 0.55)}px;--adx:${adx}px">${auraHTML(aura)}<img class="skin-img ${FACE_LEFT.has(src) ? 'face-left' : ''} ${src === HERO_IMG[cls][2] ? 'big3' : ''}" src="${src}" alt="" style="height:${h}px"></div>`;
 }
 
 /* ---------- หน้าสกิน & ออร่า ---------- */
