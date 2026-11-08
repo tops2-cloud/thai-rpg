@@ -641,3 +641,6 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .rush-track span.wbx { border-color: #ff5b8a; } .rush-track span.fin { border-color: var(--gold); width: 30px; }
 .rush-track span.on { box-shadow: 0 0 0 2px var(--gold); color: #fff; }
 .hud-mini { padding-top: 10px; padding-bottom: 10px; }
+
+/* ภาพคลาสขั้นที่ 3 มีเอฟเฟกต์รอบตัว: ขยายเฉพาะในฉากต่อสู้ ที่อื่นแสดงเต็มกรอบ */
+.stage .hero-art .skin-img.big3 { scale: 1.3; transform-origin: 50% 100%; }
