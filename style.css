@@ -648,3 +648,6 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 /* ออร่าตรงกลางลำตัว (ชดเชยภาพที่ตัวไม่อยู่กลาง) */
 .hero-art .aura-layer { left: calc(50% + var(--adx, 0px)); }
 .stage .hero-art.fl .aura-layer { left: calc(50% - var(--adx, 0px)); }
+/* หน้าอุปกรณ์: ตัวละครยืนเหนือช่องผ้าคลุม/ตีบวกพอดี */
+.equip-board .eb-mid { justify-content: flex-end; gap: 2px; }
+.equip-board .eb-hero { flex: 1; align-items: flex-end; }
