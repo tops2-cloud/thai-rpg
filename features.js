@@ -73,7 +73,7 @@ function renderPets() {
   const owned = S.pets.length;
   let html = `<div class="row between"><h2>🐾 สัตว์เลี้ยง</h2><button class="small" data-a="go" data-v="town">← กลับ</button></div>
     <div class="muted" style="font-size:14px;margin-bottom:10px">มีแล้ว ${owned}/${PETS.length} ตัว · ได้จากการล้มบอส (โอกาส 50%) · พาไปด้วยได้ 1 ตัว ได้ EXP ทุกครั้งที่ชนะ</div>`;
-  html += `<div class="pet-grid">${[...PETS].sort((a, b) => (isHunter() ? (b.hunter ? 1 : 0) - (a.hunter ? 1 : 0) : 0)).map((d) => {
+  html += `<div class="pet-grid">${PETS.filter((d) => (S.mode === 'hunter' ? d.ally || d.hunter : !d.ally)).sort((a, b) => (isHunter() ? (b.hunter ? 1 : 0) - (a.hunter ? 1 : 0) : 0)).map((d) => {
     const pet = S.pets.find((p) => p.id === d.id);
     const z = ZONES.find((x) => x.id === d.zone);
     if (d.hunter && !isHunter()) return `<div class="pet-card locked"><div class="pet-art">${petSVG(d.id, 64)}</div><b>${d.n}</b><div class="muted" style="font-size:12px">🔒 เฉพาะนักล่าสายลม (นักธนูเลื่อนขั้น)</div></div>`;
@@ -207,6 +207,7 @@ function renderQuests() {
 
 /* ---------------- สำรอง / ย้ายเซฟ ---------------- */
 const BACKUP_KEY = 'thai-rpg-backup';
+const backupKey = () => (((S && S.mode) || gameMode) === 'hunter' ? 'thai-rpg-backup-hunter' : BACKUP_KEY); // แยกตามโหมด
 const CODE_PREFIX = 'TRPG1:';
 function exportCode() {
   const json = JSON.stringify(S);
@@ -223,12 +224,12 @@ function parseCode(code) {
 function autoBackup() {
   if (!S) return;
   try {
-    const prev = JSON.parse(localStorage.getItem(BACKUP_KEY) || 'null');
+    const prev = JSON.parse(localStorage.getItem(backupKey()) || 'null');
     if (prev && Date.now() - prev.t < 10 * 60 * 1000) return; // ทุก 10 นาที
-    localStorage.setItem(BACKUP_KEY, JSON.stringify({ t: Date.now(), lv: S.lv, name: S.name, data: S }));
+    localStorage.setItem(backupKey(), JSON.stringify({ t: Date.now(), lv: S.lv, name: S.name, data: S }));
   } catch (e) { /* ignore */ }
 }
-const readBackup = () => { try { return JSON.parse(localStorage.getItem(BACKUP_KEY) || 'null'); } catch (e) { return null; } };
+const readBackup = () => { try { return JSON.parse(localStorage.getItem(backupKey()) || 'null'); } catch (e) { return null; } };
 
 function renderSave() {
   const bk = readBackup();
@@ -258,7 +259,7 @@ function doImport(text) {
   let s;
   try { s = parseCode(text); } catch (e) { toast('❌ รหัสเซฟไม่ถูกต้อง'); return; }
   if (!confirm(`นำเข้าเซฟของ ${s.name} (Lv.${s.lv})? ตัวละครปัจจุบันจะถูกแทนที่`)) return;
-  S = migrate(s); save(); B = null; view = 'town';
+  S = migrate(s); gameMode = S.mode === 'hunter' ? 'hunter' : 'story'; save(); B = null; view = 'town';
   toast(`✅ นำเข้าเซฟ ${s.name} สำเร็จ`); render();
 }
 
@@ -273,7 +274,7 @@ function scheduleAuto() {
   clearTimeout(autoTimer); autoTimer = null;
   if (!S || !S.settings.auto || view !== 'battle' || !B) return;
   if (B.result) {
-    if (B.result === 'win' && (!B.isBoss || B.tower) && S.settings.chain && !B.rewards.ending && !(B.tower && B.tower.floor >= TOWER_FLOORS)) {
+    if (B.result === 'win' && (!B.isBoss || B.tower) && S.settings.chain && !hmPending() && !B.rewards.ending && !(B.tower && B.tower.floor >= TOWER_FLOORS)) {
       const st = stats();
       if (S.hp / st.hp * 100 < S.settings.stopHp) { stopAuto(`🤖 หยุดออโต้: HP ต่ำกว่า ${S.settings.stopHp}%`); render(); return; }
       const zi = B.zi, tw = B.tower;
@@ -354,7 +355,7 @@ function onVictoryExtras(rewards) {
   track('kills'); track(`zk_${z.id}`); track('gold', rewards.gold);
   if (B.isBoss) {
     track('bossKills');
-    const d = PETS.find((p) => p.zone === z.id);
+    const d = S.mode === 'hunter' ? null : PETS.find((p) => p.zone === z.id); // กิลด์นักล่าได้พวกจากการจับมอนแทน
     if (d) {
       const have = S.pets.find((p) => p.id === d.id);
       if (!have && Math.random() < 0.5) {
