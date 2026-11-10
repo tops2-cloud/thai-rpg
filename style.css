@@ -720,3 +720,22 @@ textarea.code { width: 100%; height: 76px; margin: 8px 0; padding: 8px; border-r
 .hm-offer-btns button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; }
 .hm-offer-btns .subtle { font-size: 11px; line-height: 1.35; text-align: center; }
 .hm-release { width: 100%; margin-top: 6px; }
+/* กิลด์นักล่า: ช่องแบบกระเป๋า */
+.hm-detail { display: flex; gap: 10px; align-items: center; padding: 10px 12px; margin-bottom: 8px; border-width: 2px; }
+.hm-detail.on { border-color: var(--gold); }
+.hm-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
+.hm-cell { overflow: hidden; }
+.hm-cell-art { width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 3px; }
+.hm-cell-art .mon-img, .hm-cell-art img { max-height: 40px; max-width: 46px; }
+.hm-cell.t-atk, .hm-detail.t-atk { border-color: #d0564f; }
+.hm-cell.t-guard, .hm-detail.t-guard { border-color: #4b8fe0; }
+.hm-cell.t-heal, .hm-detail.t-heal { border-color: #4bd16a; }
+.hm-cell.t-buff, .hm-detail.t-buff { border-color: #b884ff; }
+.hm-cell.t-boss, .hm-detail.t-boss { border-color: var(--gold); box-shadow: 0 0 6px #ffcc4d55; }
+.hm-cell.on { box-shadow: 0 0 0 2px #fff; }
+.hm-type { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 6px; border: 1px solid; margin-right: 2px; }
+.hm-type.t-atk { color: #ff8a80; border-color: #d0564f; } .hm-type.t-guard { color: #8cc1ff; border-color: #4b8fe0; }
+.hm-type.t-heal { color: #8be09a; border-color: #4bd16a; } .hm-type.t-buff { color: #d4b3ff; border-color: #b884ff; }
+.hm-type.t-boss { color: var(--gold); border-color: var(--gold); }
+.hm-legend { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; justify-content: center; }
+.skill-btn.hm-sk.on { box-shadow: 0 0 0 2px #fff; }
