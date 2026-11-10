@@ -38,6 +38,7 @@ const petSVG = (id, size) => { const d = petDef(id); return d.img ? `<img class=
 /* สัตว์เลี้ยงลงมือหลังผู้เล่น (ชนิดติดตัว guard/dodge ไม่ลงมือ) */
 function petAct(st) {
   const pet = curPet(); if (!pet || !B || B.result || B.e.hp <= 0) return;
+  if (pet.id.startsWith('m:')) return hmAllyAct(st, pet); // พวกอสูร (โหมดกิลด์นักล่า)
   const d = petDef(pet.id), p = petPow(pet) / 100, e = B.e;
   const hit = (mult, opt = {}) => { const r = calcDmg(st.atk, e.def, mult, { crit: opt.crit || 5, ignoreDef: opt.ignoreDef }); e.hp = Math.max(0, e.hp - r.dmg); return r; };
   switch (d.kind) {

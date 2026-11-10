@@ -78,6 +78,15 @@ const HM_JOBS = [
   { id: 'beast', n: 'ราชันอสูร', i: '👑', bonus: 'ค่าพลังทั้งหมด +12% · พวกอสูรแรงขึ้น ×1.3',
     hint: 'มีเพียงนักล่าแรงค์สูงที่นำฝูงอสูรขนาดใหญ่ เท่านั้นที่อสูรจะยอมเรียกว่า "ราชา"...',
     ok: () => hmAllies().length >= 12 && S.hunter.rank >= 4 },
+  { id: 'storm', n: 'ผู้ควบคุมอสนี', i: '⚡', bonus: 'สกิลอสูรโอกาสทำให้มึน +20% · คริ +10%',
+    hint: 'เมื่อพลังแห่งฟากฟ้าและห้วงสมุทรมาบรรจบในร่างเดียว พายุจะเชื่อฟัง...',
+    ok: () => hmSkillEls().filter((e) => e === 'sky').length >= 3 && hmSkillEls().filter((e) => e === 'sea').length >= 2 },
+  { id: 'plague', n: 'หมอผีโรคระบาด', i: '🦠', bonus: 'พิษจากสกิลอสูรแรง ×2 และนานขึ้น 2 เทิร์น · DEF +10%',
+    hint: 'ผู้ที่ทั้งกลืนกินพิษและเลี้ยงดูสัตว์แห่งหนองบึง จะไม่หวั่นต่อโรคใดๆ...',
+    ok: () => hmSkillEls().filter((e) => e === 'swamp').length >= 4 && hmAllies().filter((m) => m.el === 'swamp').length >= 2 },
+  { id: 'bounty', n: 'นักล่าค่าหัว', i: '💰', bonus: 'ทองจากการต่อสู้ +50% · แต้มกิลด์ +50%',
+    hint: 'กิลด์จะมอบตราพิเศษให้แก่ผู้ที่ทำภารกิจจากบอร์ดสำเร็จนับไม่ถ้วน...',
+    ok: () => (S.hunter.qdone || 0) >= 20 && S.hunter.rank >= 2 },
 ];
 const hmJob = () => (S && S.hunter && S.hunter.job) || null;
 function hmCheckJobs() {
@@ -94,13 +103,15 @@ function hmStatMods(s) {
   if (j === 'beast') for (const k of ['hp', 'mp', 'atk', 'def']) s[k] *= 1.12;
   if (j === 'flame') s.atk *= 1.1;
   if (j === 'soul') s.hp *= 1.1;
+  if (j === 'storm') s.crit += 10;
+  if (j === 'plague') s.def *= 1.1;
 }
 const hmSlots = () => HM_RANKS[S.hunter.rank].slots + (hmJob() === 'devour' ? 1 : 0);
 const hmAllyMul = () => (hmJob() === 'soul' ? 1.6 : hmJob() === 'beast' ? 1.3 : 1);
 
 /* ---------------- เซฟ ---------------- */
 function hmMigrate(s) {
-  s.hunter = { rank: 0, pts: 0, skills: {}, load: [], quests: [], jobs: {}, job: null, absorbed: 0, tamed: 0, tab: 'rank', ...(s.hunter || {}) };
+  s.hunter = { rank: 0, pts: 0, skills: {}, load: [], quests: [], jobs: {}, job: null, absorbed: 0, tamed: 0, qdone: 0, tab: 'rank', selSk: null, selAl: null, ...(s.hunter || {}) };
   return s;
 }
 
@@ -283,15 +294,8 @@ function hmParse(code) {
 }
 const HM_BOSS_MUL = 1.3; // สกิลราชัน (จากบอส) ดาเมจแรงขึ้น
 
-function hmSkillDef(name) {
-  const m = hmMon(name); if (!m) return null;
-  const E = HM_ELEM[m.el];
-  const [word, code] = HM_SKILLS[name] || [E.atk, m.boss ? 'h2 td' : 'h1.5'];
-  const o = hmParse(code);
-  const lv = (S.hunter.skills[name] || {}).lv || 1;
-  const pow = (1 + 0.1 * (lv - 1)) * (hmJob() === 'flame' && m.el === 'volcano' ? 1.6 : 1) * (hmJob() === 'devour' ? 1.25 : 1);
-  const mul = m.boss ? HM_BOSS_MUL : 1;
-  const P = (x) => Math.round(x * pow * mul * 100);
+/* ข้อความอธิบายผลสกิล — P(x) แปลงตัวคูณเป็น % ที่แสดง */
+function hmDesc(o, P, hp = 1) {
   const d = [];
   if (o.h) {
     let s = o.x ? `โจมตี ${o.x} ครั้ง ครั้งละ ${P(o.h)}%` : `โจมตี ${P(o.h)}%`;
@@ -313,7 +317,7 @@ function hmSkillDef(name) {
   if (o.dr) d.push(`ดูดเลือด ${o.dr}%`);
   if (o.gd) d.push('ขโมยทอง');
   if (o.pt) d.push('สั่งพวกอสูรโจมตีเพิ่ม 2 ครั้ง');
-  if (o.he) d.push(`ฟื้น HP ${Math.round(o.he * pow)}%`);
+  if (o.he) d.push(`ฟื้น HP ${Math.round(o.he * hp)}%`);
   if (o.re) d.push('ฟื้นฟู HP ทุกเทิร์น');
   if (o.mg) d.push(`ฟื้น MP ${o.mg}%`);
   if (o.iw) d.push('ป้องกัน +60%');
@@ -324,6 +328,18 @@ function hmSkillDef(name) {
   if (o.fo) d.push('สมาธิ (ATK +30%, คริ +40%)');
   if (o.bs) d.push('คลั่ง (ATK ×2 แต่ป้องกันลด)');
   if (o.hc) d.push(`แลกด้วย HP ${o.hc}%`);
+  return d;
+}
+
+function hmSkillDef(name) {
+  const m = hmMon(name); if (!m) return null;
+  const E = HM_ELEM[m.el];
+  const [word, code] = HM_SKILLS[name] || [E.atk, m.boss ? 'h2 td' : 'h1.5'];
+  const o = hmParse(code);
+  const lv = (S.hunter.skills[name] || {}).lv || 1;
+  const pow = (1 + 0.1 * (lv - 1)) * (hmJob() === 'flame' && m.el === 'volcano' ? 1.6 : 1) * (hmJob() === 'devour' ? 1.25 : 1);
+  const mul = m.boss ? HM_BOSS_MUL : 1;
+  const d = hmDesc(o, (x) => Math.round(x * pow * mul * 100), pow);
   const type = m.boss ? 'boss' : o.h ? 'atk' : o.he || o.re ? 'heal' : o.iw || o.ms || o.dv || o.ev ? 'guard' : 'buff';
   return { id: name, mon: name, icon: m.i, el: m.el, elIcon: E.i, type, lv, pow, mul, o, word, name: `${word} (${name})`, desc: d.join(' · ') };
 }
@@ -343,10 +359,17 @@ function hmUseSkill(id, st, e) {
   const cost = hmCost(sk, st);
   if (S.mp < cost) return false;
   S.mp -= cost;
+  hmCast(sk, st, e, null);
+  track('skills');
+  return true;
+}
+
+/* ทำผลของสกิล — ally = { n, atk, hp } เมื่อพวกอสูรเป็นคนใช้ (ใช้พลังโจมตีของพวก ไม่เสียอะไร) */
+function hmCast(sk, st, e, ally) {
   const o = sk.o, extra = [], DUR = 4;
   const heal = (amt) => { amt = Math.max(0, Math.min(Math.round(amt), st.hp - S.hp)); S.hp += amt; return amt; };
   let hits = [];
-  if (o.hc) { const c = Math.max(0, Math.min(Math.round(st.hp * o.hc / 100), S.hp - 1)); S.hp -= c; if (c) extra.push(`เสีย HP ${fmt(c)}`); }
+  if (o.hc && !ally) { const c = Math.max(0, Math.min(Math.round(st.hp * o.hc / 100), S.hp - 1)); S.hp -= c; if (c) extra.push(`เสีย HP ${fmt(c)}`); }
   if (o.h) {
     let mult = o.h * sk.mul;
     if (o.rg) mult *= 1 + 1.5 * (1 - S.hp / st.hp);
@@ -355,7 +378,8 @@ function hmUseSkill(id, st, e) {
     const opt = { ignoreDef: !!o.td, pierce: o.pi ? o.pi / 100 : undefined, bonusCrit: o.cr || 0 };
     if (o.df) opt.atk = st.atk * 0.4 + st.def * 1.6;
     if (o.mp) opt.atk = st.atk * 0.5 + st.mp * 0.35;
-    B.skillMul = sk.pow; B.curSkill = null;
+    if (ally) opt.atk = ally.atk; else B.skillMul = sk.pow;
+    B.curSkill = null;
     hits = multiHit(o.x || 1, mult, opt);
     B.skillMul = 1;
   }
@@ -364,11 +388,14 @@ function hmUseSkill(id, st, e) {
     const pd = Math.round(B.poisonDmg * B.poison * 1.5); e.hp = Math.max(0, e.hp - pd); B.poison = 0;
     extra.push(`ระเบิดพิษ ${fmt(pd)}`); ev({ a: 'num', t: 'foe', text: `-${fmt(pd)}`, cls: 'poison' });
   }
-  if (o.ps && e.hp > 0) { B.poison = o.ps; B.poisonDmg = Math.round((st.atk * 0.6 + e.maxHp * 0.03) * sk.pow); extra.push('ศัตรูติดพิษ'); }
+  if (o.ps && e.hp > 0) {
+    const pl = hmJob() === 'plague';
+    B.poison = o.ps + (pl ? 2 : 0); B.poisonDmg = Math.round(((ally ? ally.atk : st.atk) * 0.6 + e.maxHp * 0.03) * (ally ? 1 : sk.pow) * (pl ? 2 : 1)); extra.push('ศัตรูติดพิษ');
+  }
   if (o.sl && e.hp > 0) { B.slow = 2; extra.push('ศัตรูช้าลง'); }
   if (o.dr && dmg) { const a = heal(dmg * o.dr / 100); if (a) extra.push(`ดูดเลือด ${fmt(a)}`); }
-  if (o.gd) { const g = Math.max(1, Math.round((e.gold || 10) * 0.5 * sk.pow)); S.gold += g; extra.push(`ขโมยทอง 💰${fmt(g)}`); }
-  if (o.he) { const a = heal(st.hp * o.he / 100 * sk.pow); if (a) extra.push(`ฟื้น HP ${fmt(a)}`); }
+  if (o.gd) { const g = Math.max(1, Math.round((e.gold || 10) * 0.5 * (ally ? 0.6 : sk.pow))); S.gold += g; extra.push(`ขโมยทอง 💰${fmt(g)}`); }
+  if (o.he) { const a = heal(st.hp * o.he / 100 * (ally ? ally.hp : sk.pow)); if (a) extra.push(`ฟื้น HP ${fmt(a)}`); }
   if (o.mg) { const g = Math.min(Math.round(st.mp * o.mg / 100), st.mp - S.mp); if (g > 0) { S.mp += g; extra.push(`ฟื้น MP ${fmt(g)}`); } }
   if (o.re) B.regen = DUR;
   if (o.iw) B.ironwall = DUR;
@@ -380,10 +407,12 @@ function hmUseSkill(id, st, e) {
   if (o.bs) B.berserk = DUR;
   const buffs = [o.re && 'ฟื้นฟู', o.iw && 'DEF↑', o.ms && 'บาเรีย', o.dv && 'โล่เทพ', o.ev && 'หลบ', o.au && 'ATK↑', o.fo && 'สมาธิ', o.bs && 'คลั่ง'].filter(Boolean);
   if (buffs.length) extra.push(buffs.join(' '));
-  if (hits.length) hitLog(sk, hits, extra.length ? ` · ${extra.join(' · ')}` : '');
-  else log(`${sk.icon} ${sk.name}! ${extra.join(' · ')}`);
+  const who = ally ? { icon: '🐾', name: `${ally.n} ใช้ ${sk.word}` } : sk;
+  if (hits.length) hitLog(who, hits, extra.length ? ` · ${extra.join(' · ')}` : '');
+  else log(`${who.icon} ${who.name}! ${extra.join(' · ')}`);
   // แอนิเมชัน: เลือกตามธาตุ/ผลของสกิล
-  if (hits.length) {
+  if (ally) ev(hits.length ? { a: 'pet', kind: sk.el === 'volcano' ? 'fire' : o.ps || o.pb ? 'poison' : o.st ? 'thunder' : 'hit', hits } : { a: 'pet', kind: o.mg && !o.he ? 'mana' : 'heal', text: buffs[0] || 'HP↑' });
+  else if (hits.length) {
     const kind = o.st && (sk.el === 'sky' || sk.el === 'sea') ? 'bolt' : sk.el === 'volcano' ? 'fire' : o.ps || o.pb ? 'poison' : o.sl ? 'ice' : o.td || o.mp ? 'dark' : null;
     if (kind === 'bolt') ev({ a: 'bolt', hits });
     else if (kind) ev({ a: 'proj', kind, big: o.h * (o.x || 1) >= 1.8, hits });
@@ -391,10 +420,8 @@ function hmUseSkill(id, st, e) {
   } else {
     ev({ a: 'aura', kind: o.he || o.re ? 'heal' : o.iw || o.ms || o.dv ? 'shield' : o.ev ? 'wind' : 'buff', text: buffs[0] || 'HP↑' });
   }
-  if (o.st && e.hp > 0 && Math.random() < o.st / 100) tryStun('มึนงง');
-  if (o.pt && e.hp > 0 && curPet()) { petAct(st); if (e.hp > 0) petAct(st); }
-  track('skills');
-  return true;
+  if (o.st && e.hp > 0 && Math.random() < (o.st + (hmJob() === 'storm' ? 20 : 0)) / 100) tryStun('มึนงง');
+  if (o.pt && e.hp > 0) { if (ally) { const r = hitEnemy(1, { atk: ally.atk }); ev({ a: 'pet', kind: 'hit', hits: [r] }); } else if (curPet()) { petAct(st); if (e.hp > 0) petAct(st); } }
 }
 
 function hmBattleButtons() {
@@ -410,14 +437,30 @@ function hmBattleButtons() {
   }).join('')}</div>`;
 }
 
-/* ---------------- พวกอสูร (ใช้ระบบสัตว์เลี้ยงเดิม: id = 'm:<ชื่อมอน>') ---------------- */
+/* ---------------- พวกอสูร (ใช้ระบบสัตว์เลี้ยงเดิม: id = 'm:<ชื่อมอน>') ----------------
+   ทุกเทิร์นโจมตีด้วยพลังของพวก และทุก 3 เทิร์นใช้สกิลประจำตัวของมอนตัวนั้น (ไม่ซ้ำกันทุกตัว) */
+const HM_ALLY_EVERY = 3;
+const hmAllyFactor = (name, lv) => (0.4 + 0.04 * lv) * ((hmMon(name) || {}).boss ? 1.4 : 1) * hmAllyMul();
 function hmAllyDef(name) {
   const m = hmMon(name); if (!m) return null;
-  const kind = HM_ELEM[m.el].pet;
-  const base = PETS.find((p) => p.kind === kind && !p.hunter && !p.ally);
-  const bm = m.boss ? 1.5 : 1;
-  return { id: `m:${name}`, ally: true, n: `${m.boss ? '👑' : ''}${name}`, art: name, kind, el: m.el,
-    desc: base.desc, pow: (lv) => base.pow(lv) * bm * hmAllyMul() };
+  const sig = HM_SKILLS[name] || [HM_ELEM[m.el].atk, 'h1.5'];
+  return { id: `m:${name}`, ally: true, n: `${m.boss ? '👑' : ''}${name}`, art: name, kind: 'ally', el: m.el, sig: sig[0],
+    pow: (lv) => Math.round(hmAllyFactor(name, lv) * 100),
+    desc: (p) => `โจมตี ${Math.round(p)}% ทุกเทิร์น · ทุก ${HM_ALLY_EVERY} เทิร์นใช้ "${sig[0]}": ${hmDesc(hmParse(sig[1]), (x) => Math.round(x * (m.boss ? HM_BOSS_MUL : 1) * p), p / 100).join(' · ')}` };
+}
+/* เรียกจาก petAct เมื่อพวกที่พาไปเป็นอสูร */
+function hmAllyAct(st, pet) {
+  const name = pet.id.slice(2), d = petDef(pet.id), e = B.e;
+  const f = hmAllyFactor(name, pet.lv);
+  B.hmAt = (B.hmAt || 0) + 1;
+  if (B.hmAt % HM_ALLY_EVERY === 2) {
+    const sk = hmSkillDef(name);
+    hmCast(sk, st, e, { n: d.n, atk: st.atk * f, hp: f });
+    return;
+  }
+  const r = hitEnemy(1, { atk: st.atk * f });
+  log(`🐾 ${d.n} โจมตี ${fmt(r.dmg)} ดาเมจ${r.crit ? ' คริ!' : ''}`);
+  ev({ a: 'pet', kind: 'hit', hits: [r] });
 }
 /* ลงทะเบียนพวกอสูรของเซฟนี้เข้า PETS (เรียกทุกครั้งก่อน render) */
 let hmSig = null;
@@ -438,7 +481,10 @@ function hmOnVictory(r) {
   const ready = hmCanPromote();
   const first = B.isBoss && P().bossWins[z.id] === 1;
   const pts = B.isBoss ? (first ? 10 + 5 * zr : 3 + zr) : 1 + zr;
-  H.pts += pts; r.hmPts = pts;
+  const bounty = hmJob() === 'bounty';
+  if (bounty) { const g = Math.round(r.gold * 0.5); S.gold += g; r.gold += g; }
+  const gain = Math.round(pts * (bounty ? 1.5 : 1));
+  H.pts += gain; r.hmPts = gain;
   for (const q of H.quests) {
     if (q.have >= q.need) continue;
     if ((q.t === 'hunt' && !B.isBoss && q.zi === B.zi) || (q.t === 'boss' && B.isBoss && q.zi === B.zi)) q.have++;
@@ -567,45 +613,56 @@ function hmRankTab() {
   <div class="muted" style="font-size:13px">💡 ล่ามอนได้แต้มตามแรงค์ของด่าน · บอสครั้งแรกได้แต้มเยอะ · มอนธรรมดามีโอกาส ${Math.round(HM_OFFER_CHANCE * 100)}% ที่วิญญาณจะหลุดออกมา บอสหลุดทุกครั้ง</div>`;
 }
 
+const HM_TYPE = { atk: ['โจมตี', 't-atk'], boss: ['ราชัน', 't-boss'], guard: ['ป้องกัน', 't-guard'], heal: ['ฟื้นฟู', 't-heal'], buff: ['เสริมพลัง', 't-buff'] };
+
 function hmSkillsTab() {
   const H = S.hunter, st = stats(), slots = hmSlots();
   while (H.load.length > slots) H.load.pop();
   const owned = Object.keys(H.skills).map(hmSkillDef).filter(Boolean)
-    .sort((a, b) => (H.load.includes(b.id) ? 1 : 0) - (H.load.includes(a.id) ? 1 : 0) || b.lv - a.lv);
-  const typeName = { atk: 'โจมตี', boss: 'ราชัน', guard: 'ป้องกัน', heal: 'ฟื้นฟู', buff: 'เสริมพลัง' };
-  return `<div class="muted" style="font-size:14px;margin-bottom:8px">ใส่ได้ ${slots} ช่อง (เพิ่มตามแรงค์) · ดูดสกิลเดิมซ้ำ = เลเวลอัพ (สูงสุด Lv.${HM_SKILL_MAX})</div>
-  <div class="skill-bar" style="grid-template-columns:repeat(${slots},1fr)">${Array.from({ length: slots }, (_, i) => {
+    .sort((a, b) => (H.load.includes(b.id) ? 1 : 0) - (H.load.includes(a.id) ? 1 : 0) || b.lv - a.lv || hmMon(a.id).zi - hmMon(b.id).zi);
+  if (!owned.some((x) => x.id === H.selSk)) H.selSk = owned.length ? owned[0].id : null;
+  const sel = owned.find((x) => x.id === H.selSk);
+  let html = `<div class="skill-bar" style="grid-template-columns:repeat(${slots},1fr)">${Array.from({ length: slots }, (_, i) => {
     const id = H.load[i];
     if (!id) return `<button class="skill-btn empty" disabled><span class="sk-ico">➕</span><span class="sk-nm">ว่าง</span></button>`;
     const sk = hmSkillDef(id);
-    return `<button class="skill-btn hm-sk" data-a="hmunload" data-v="${esc(id)}" title="แตะเพื่อถอด"><span class="sk-ico">${sk.icon}</span><span class="sk-nm">${sk.word}</span><span class="sk-mp">ถอด ✕</span></button>`;
-  }).join('')}</div>
-  ${owned.length ? owned.map((sk) => {
-    const on = H.load.includes(sk.id);
-    return `<div class="card hm-skill ${on ? 'on' : ''}">
-      <span class="hm-sk-art">${monsterSVG(sk.mon, 44, sk.icon)}</span>
-      <div style="flex:1;min-width:0"><b>${sk.elIcon} ${sk.word}</b> <span class="muted">Lv.${sk.lv} · ${typeName[sk.type]}</span>
-        <div class="muted" style="font-size:12px">จาก${esc(sk.mon)}</div>
-        <div style="font-size:13px">${sk.desc} · ${hmCost(sk, st)} MP</div></div>
-      ${on ? '<span class="muted">ใส่อยู่</span>' : `<button class="small primary" data-a="hmload" data-v="${esc(sk.id)}" ${H.load.length >= slots ? 'disabled' : ''}>ใส่</button>`}
+    return `<button class="skill-btn hm-sk ${H.selSk === id ? 'on' : ''}" data-a="hmselsk" data-v="${esc(id)}"><span class="sk-ico">${sk.icon}</span><span class="sk-nm">${sk.word}</span><span class="sk-mp">Lv.${sk.lv}</span></button>`;
+  }).join('')}</div>`;
+  if (!owned.length) return html + '<div class="card muted">ยังไม่มีสกิลอสูร ไปล่ามอนแล้วเลือก "ดูดสกิล" เมื่อวิญญาณหลุดออกมา</div>';
+  if (sel) {
+    const on = H.load.includes(sel.id), [tn, tc] = HM_TYPE[sel.type];
+    html += `<div class="card hm-detail ${tc}">
+      <span class="hm-sk-art">${monsterSVG(sel.mon, 52, sel.icon)}</span>
+      <div style="flex:1;min-width:0"><b>${sel.word}</b> <span class="muted">Lv.${sel.lv}/${HM_SKILL_MAX}</span>
+        <div class="muted" style="font-size:12px"><span class="hm-type ${tc}">${tn}</span> ${sel.elIcon} จาก${esc(sel.mon)} · ${hmCost(sel, st)} MP</div>
+        <div style="font-size:13px;margin-top:2px">${sel.desc}</div></div>
+      <button class="small ${on ? '' : 'primary'}" data-a="${on ? 'hmunload' : 'hmload'}" data-v="${esc(sel.id)}" ${!on && H.load.length >= slots ? 'disabled' : ''}>${on ? 'ถอด' : 'ใส่'}</button>
     </div>`;
-  }).join('') : '<div class="card muted">ยังไม่มีสกิลอสูร ไปล่ามอนแล้วเลือก "ดูดสกิล" เมื่อวิญญาณหลุดออกมา</div>'}`;
+  }
+  html += `<div class="row between" style="margin:2px 0 6px"><span class="muted" style="font-size:12px">มี ${owned.length} สกิล · แตะช่องเพื่อดู · ✓ = ใส่อยู่</span>
+    <span class="muted" style="font-size:12px">ดูดซ้ำ = เลเวลอัพ</span></div>
+  <div class="bag-grid hm-grid">${owned.map((sk) => `<button class="bag-cell hm-cell ${HM_TYPE[sk.type][1]} ${sk.id === H.selSk ? 'on' : ''}" data-a="hmselsk" data-v="${esc(sk.id)}">
+      <span class="hm-cell-art">${monsterSVG(sk.mon, 38, sk.icon)}</span><span class="bp">Lv.${sk.lv}</span>${H.load.includes(sk.id) ? '<span class="bu">✓</span>' : ''}</button>`).join('')}</div>
+  <div class="hm-legend">${Object.values(HM_TYPE).map(([n, c]) => `<span class="hm-type ${c}">${n}</span>`).join('')}</div>`;
+  return html;
 }
 
 function hmAlliesTab() {
-  const list = S.pets.filter((p) => p.id.startsWith('m:'));
+  const H = S.hunter;
+  const list = S.pets.filter((p) => p.id.startsWith('m:') && petDef(p.id)).sort((a, b) => (b.id === S.pet) - (a.id === S.pet) || b.lv - a.lv);
   if (!list.length) return '<div class="card muted">ยังไม่มีพวกอสูร ไปล่ามอนแล้วเลือก "รับเป็นพวก" เมื่อวิญญาณหลุดออกมา</div>';
-  return `<div class="muted" style="font-size:14px;margin-bottom:8px">มีพวก ${list.length} ตัว · พาไปต่อสู้ได้ 1 ตัว · ได้ EXP ทุกครั้งที่ชนะ · รับตัวเดิมซ้ำ = ได้ EXP</div>
-  <div class="pet-grid">${list.sort((a, b) => b.lv - a.lv).map((p) => {
-    const d = petDef(p.id); if (!d) return '';
-    const on = S.pet === p.id;
-    return `<div class="pet-card ${on ? 'on' : ''}">
-      <div class="pet-art">${monsterSVG(d.art, 64)}</div>
-      <b>${esc(d.n)}</b><div class="muted" style="font-size:12px">${HM_ELEM[d.el].i} ${HM_ELEM[d.el].n} · Lv.${p.lv}${p.lv < PET_MAX_LV ? ` · EXP ${p.exp}/${petExpNeed(p.lv)}` : ' (สูงสุด)'}</div>
-      <div style="font-size:12px;margin:4px 0">${d.desc(petPow(p))}</div>
+  if (!list.some((p) => p.id === H.selAl)) H.selAl = (curPet() && S.pet.startsWith('m:') ? S.pet : list[0].id);
+  const p = list.find((x) => x.id === H.selAl), d = petDef(p.id), on = S.pet === p.id, m = hmMon(p.id.slice(2));
+  return `<div class="card hm-detail ${on ? 'on' : ''}">
+      <span class="hm-sk-art">${monsterSVG(d.art, 56)}</span>
+      <div style="flex:1;min-width:0"><b>${esc(d.n)}</b> <span class="muted">Lv.${p.lv}${p.lv < PET_MAX_LV ? ` · EXP ${p.exp}/${petExpNeed(p.lv)}` : ' (สูงสุด)'}</span>
+        <div class="muted" style="font-size:12px">${HM_ELEM[m.el].i} ธาตุ${HM_ELEM[m.el].n}${on ? ' · <span class="up">กำลังติดตาม</span>' : ''}</div>
+        <div style="font-size:13px;margin-top:2px">${d.desc(petPow(p))}</div></div>
       <button class="small ${on ? '' : 'primary'}" data-a="pet" data-v="${on ? '' : esc(p.id)}">${on ? 'พักผ่อน' : 'พาไปด้วย'}</button>
-    </div>`;
-  }).join('')}</div>`;
+    </div>
+    <div class="muted" style="font-size:12px;margin:2px 0 6px">มี ${list.length} ตัว · พาไปได้ 1 ตัว · 🐾 = ตัวที่พาไป · ได้ EXP ทุกครั้งที่ชนะ</div>
+    <div class="bag-grid hm-grid">${list.map((x) => `<button class="bag-cell hm-cell ${hmMon(x.id.slice(2)).boss ? 't-boss' : ''} ${x.id === H.selAl ? 'on' : ''}" data-a="hmselal" data-v="${esc(x.id)}">
+      <span class="hm-cell-art">${monsterSVG(petDef(x.id).art, 38)}</span><span class="bp">Lv.${x.lv}</span>${x.id === S.pet ? '<span class="bu">🐾</span>' : ''}</button>`).join('')}</div>`;
 }
 
 function hmJobsTab() {
@@ -627,6 +684,8 @@ function hmClick(a, v) {
   switch (a) {
     case 'mskill': playerAct('mskill', v); return false; // playerAct render เองแล้ว
     case 'hmtab': H.tab = v; return true;
+    case 'hmselsk': H.selSk = v; return true;
+    case 'hmselal': H.selAl = v; return true;
     case 'hmabsorb': case 'hmtame': case 'hmrelease': {
       const o = B && B.rewards && B.rewards.hunt; if (!o || o.done) return true;
       o.done = true;
@@ -644,8 +703,8 @@ function hmClick(a, v) {
     }
     case 'hmclaim': {
       const q = H.quests[+v]; if (!q || q.have < q.need) return true;
-      H.pts += q.pts; S.gold += q.gold; H.quests.splice(+v, 1); hmEnsureQuests(); save();
-      toast(`📋 ภารกิจสำเร็จ! 🏛️ +${q.pts} แต้ม · 💰 +${fmt(q.gold)}`); return true;
+      const qp = Math.round(q.pts * (hmJob() === 'bounty' ? 1.5 : 1)); H.pts += qp; H.qdone = (H.qdone || 0) + 1; S.gold += q.gold; H.quests.splice(+v, 1); hmEnsureQuests(); save();
+      hmCheckJobs(); toast(`📋 ภารกิจสำเร็จ! 🏛️ +${qp} แต้ม · 💰 +${fmt(q.gold)}`); return true;
     }
     case 'hmdrop': H.quests.splice(+v, 1); hmEnsureQuests(); save(); return true;
     case 'hmload': if (H.skills[v] && !H.load.includes(v) && H.load.length < hmSlots()) { H.load.push(v); save(); } return true;
