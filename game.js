@@ -6,6 +6,9 @@
    ============================================================ */
 
 const SAVE_KEY = 'thai-rpg-save-v1';
+const HUNTER_SAVE_KEY = 'thai-rpg-hunter-v1'; // โหมดกิลด์นักล่า: เซฟแยก ไม่แตะเซฟเนื้อเรื่อง
+let gameMode = 'story'; // 'story' | 'hunter' — โหมดที่เลือกจากหน้าแรก
+const saveKeyFor = (m) => (m === 'hunter' ? HUNTER_SAVE_KEY : SAVE_KEY);
 const SAVE_VERSION = 3;
 const BOSS_UNLOCK_KILLS = 5;
 const MAX_PLUS = 15;
@@ -354,9 +357,9 @@ function offhandAtk(st) {
   return Math.max(1, (st || stats()).atk - (main ? main.stats.atk || 0 : 0) + (off.stats.atk || 0));
 }
 
-function save() { if (S) try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); autoBackup(); } catch (e) { /* ignore */ } }
-function load() {
-  try { const raw = localStorage.getItem(SAVE_KEY); if (raw) return migrate(JSON.parse(raw)); } catch (e) { /* ignore */ }
+function save() { if (S) try { localStorage.setItem(saveKeyFor(S.mode), JSON.stringify(S)); autoBackup(); } catch (e) { /* ignore */ } }
+function load(m = gameMode) {
+  try { const raw = localStorage.getItem(saveKeyFor(m)); if (raw) return migrate(JSON.parse(raw)); } catch (e) { /* ignore */ }
   return null;
 }
 
@@ -405,6 +408,7 @@ function migrate(s) {
   migrateExtras(s);
   migrateCosmetics(s);
   migrateTower(s);
+  if (s.mode === 'hunter') hmMigrate(s);
   return s;
 }
 
@@ -416,7 +420,7 @@ function P() {
 
 function newGame(name, cls) {
   S = {
-    v: SAVE_VERSION, name, cls, lv: 1, exp: 0, gold: 60,
+    v: SAVE_VERSION, mode: gameMode, name, cls, lv: 1, exp: 0, gold: 60,
     hp: 0, mp: 0,
     equip: Object.fromEntries(EQUIP_SLOTS.map((k) => [k, null])),
     bag: [], pots: { hp_s: 3, mp_s: 2, hp_l: 0, elixir: 0 }, charms: 0,
@@ -427,6 +431,7 @@ function newGame(name, cls) {
   migrateExtras(S);
   migrateCosmetics(S);
   migrateTower(S);
+  if (S.mode === 'hunter') hmMigrate(S);
   const starter = { warrior: ['sword', 'ดาบฝึกหัด', '🗡️'], mage: ['staff', 'คทาฝึกหัด', '🪄'], archer: ['bow', 'ธนูฝึกหัด', '🏹'] }[cls];
   S.equip.weapon = finalizeItem({ slot: 'weapon', key: `${starter[0]}:common`, name: starter[1], icon: starter[2], rarity: 'common', tier: 1, stats: { atk: 3 } });
   S.collection[S.equip.weapon.key] = true;
@@ -451,6 +456,7 @@ function stats() {
   if (hasPassive('w_blood')) s.hp *= 1.12;
   if (hasPassive('m_mind')) s.mp *= 1.15;
   if (hasPassive('a_eye')) s.crit += 5;
+  if (S.mode === 'hunter') hmStatMods(s);
   for (const k in s) s[k] = Math.round(s[k]);
   s.crit = clamp(s.crit, 0, 75);
   return s;
@@ -458,6 +464,7 @@ function stats() {
 
 const expNeed = (lv) => Math.round(15 * Math.pow(lv, 1.6));
 function zoneUnlocked(i) {
+  if (S.mode === 'hunter' && !hmZoneRankOk(i)) return false; // กิลด์นักล่า: ต้องมีแรงค์ถึง
   const list = worldZoneIdx(zoneWorld(ZONES[i])), k = list.indexOf(i);
   if (k === 0) return worldUnlocked(zoneWorld(ZONES[i]));
   return !!P().bossWins[ZONES[list[k - 1]].id] && zoneUnlocked(list[k - 1]);
@@ -793,6 +800,8 @@ function playerAct(act, arg) {
       ev({ a: 'num', t: 'hero', text: `${sk.icon} สกิล Lv.${skillLv(arg)}!`, cls: 'buff' });
       toast(`⬆️ ${sk.icon} ${sk.name} เลเวลอัพเป็น Lv.${skillLv(arg)}!`);
     }
+  } else if (act === 'mskill') {
+    if (!hmUseSkill(arg, st, e)) return; // สกิลอสูร (โหมดกิลด์นักล่า)
   } else if (act === 'defend') {
     B.defending = true;
     const gain = Math.round(st.mp * 0.08);
@@ -1039,6 +1048,7 @@ function victory() {
   rewards.advUnlock = !S.adv && oldLv < ADV_LV && S.lv >= ADV_LV;
   rewards.adv3Unlock = S.adv && !S.adv3 && oldLv < ADV3_LV && S.lv >= ADV3_LV;
   onVictoryExtras(rewards);
+  hmOnVictory(rewards);
 
   log(`🏆 ชนะ ${e.n}!`);
   ev({ a: 'foeDie' });
@@ -1150,12 +1160,13 @@ function hud() {
 
 function nav() {
   const items = [['town', '🏘️', 'เมือง'], ['map', '🗺️', 'ผจญภัย'], ['bag', '🎒', 'กระเป๋า'], ['collection', '📖', 'สะสม']];
-  const sub = { mine: 'town', legend: 'town', classes: 'town', cosmetics: 'town', advance: 'town', shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town' };
+  const sub = { mine: 'town', legend: 'town', classes: 'town', cosmetics: 'town', advance: 'town', shop: 'town', forge: 'town', diff: 'town', skills: 'town', pets: 'town', quests: 'town', save: 'town', guild: 'town' };
   return `<nav class="nav"><div class="in">${items.map(([v, i, n]) =>
     `<button data-a="go" data-v="${v}" class="${view === v || sub[view] === v ? 'on' : ''}"><span class="ico">${i}</span>${n}</button>`).join('')}</div></nav>`;
 }
 
 function render() {
+  hmSync();
   if (view === 'battle' && B) { renderBattleView(); return; }
   app.dataset.bid = '';
   let html = '';
@@ -1181,6 +1192,7 @@ function render() {
     else if (view === 'classes') html += renderClasses();
     else if (view === 'bag') html += renderBag();
     else if (view === 'collection') html += renderCollection();
+    else if (view === 'guild') html += hmRenderGuild();
     if (view !== 'battle') html += nav();
   }
   app.innerHTML = html;
@@ -1188,13 +1200,24 @@ function render() {
 }
 
 function renderTitle() {
-  const has = !!load();
+  const card = (m, icon, name, desc) => {
+    const sv = load(m);
+    return `<div class="card mode-card mode-${m}">
+      <div class="mc-head"><span class="mc-ico">${icon}</span><div><b>${name}</b><div class="muted">${desc}</div></div></div>
+      ${sv ? `<div class="mc-save">💾 ${esc(sv.name)} · Lv.${sv.lv} ${CLASSES[sv.cls].name}${m === 'hunter' && sv.hunter ? ` · แรงค์ ${HM_RANKS[sv.hunter.rank].r}` : ''}</div>` : ''}
+      <div class="row">
+        ${sv ? `<button class="primary" style="flex:1" data-a="continue" data-v="${m}">▶ เล่นต่อ</button>` : ''}
+        <button class="${sv ? '' : 'primary'}" style="flex:1" data-a="newgame" data-v="${m}">✨ ${sv ? 'เริ่มใหม่' : 'เริ่มเกม'}</button>
+      </div></div>`;
+  };
   return `<div class="title-screen">
     <h1>ตำนานผู้กล้า</h1>
-    <div class="muted">RPG ผจญภัยแบบเทิร์นเบส • 10 ด่าน • หอคอย 100 ชั้น • 4 ระดับความยาก</div>
+    <div class="muted">RPG ผจญภัยแบบเทิร์นเบส • เลือกโหมดที่จะเล่น (เซฟแยกกัน)</div>
+    <div class="mode-list">
+      ${card('story', '⚔️', 'เนื้อเรื่องหลัก', '10 ด่าน • หอคอย 100 ชั้น • 4 ระดับความยาก')}
+      ${card('hunter', '🏛️', 'กิลด์นักล่า', 'ไต่แรงค์ F→S • ดูดสกิลอสูร • จับมอนเป็นพวก • อาชีพลับ')}
+    </div>
     <div class="stack">
-      ${has ? '<button class="primary" data-a="continue">▶ เล่นต่อ</button>' : ''}
-      <button class="${has ? '' : 'primary'}" data-a="newgame">✨ เริ่มเกมใหม่</button>
       <button class="ghost" data-a="go" data-v="save">📥 นำเข้าเซฟจากเครื่องอื่น</button>
       ${installButton()}
     </div>
@@ -1204,7 +1227,7 @@ function renderTitle() {
 function renderCreate() {
   const cs = createState;
   return `<div class="stack" style="padding-top:20px">
-    <h2>สร้างตัวละคร</h2>
+    <h2>สร้างตัวละคร${gameMode === 'hunter' ? ' · 🏛️ กิลด์นักล่า' : ''}</h2>
     <div class="card">
       <div class="muted" style="margin-bottom:6px">ชื่อผู้กล้า</div>
       <input type="text" id="pname" maxlength="16" placeholder="เช่น ไอ้เข้ม" value="${esc(cs.name)}" />
@@ -1249,6 +1272,7 @@ function renderTown() {
   <div class="menu-grid town-menu">
     <button class="primary wide" data-a="go" data-v="map"><span class="ico">🗺️</span> ออกผจญภัย</button>
     <button data-a="go" data-v="quests" class="quest-btn ${claimable() ? 'glow-btn' : ''}"><span class="ico">📋</span>ภารกิจ${claimable() ? ` <span class="badge">${claimable()}</span>` : ''}<span class="subtle">ประจำวัน & ความสำเร็จ</span></button>
+    ${S.mode === 'hunter' ? hmTownButton() : ''}
     <button data-a="inn" ${full ? 'disabled' : ''}><span class="ico">🏨</span>โรงเตี๊ยม<span class="subtle">พักฟื้นเต็ม ${fmt(innCost)} 💰</span></button>
     <button data-a="go" data-v="shop"><span class="ico">🛒</span>ร้านค้า<span class="subtle">ยา หีบ & ยันต์</span></button>
     <button data-a="go" data-v="forge"><span class="ico">⚒️</span>ช่างตีเหล็ก<span class="subtle">ตีบวกอุปกรณ์</span></button>
@@ -1258,9 +1282,9 @@ function renderTown() {
     <button data-a="go" data-v="classes"><span class="ico">🔄</span>สลับอาชีพ<span class="subtle">${Object.entries(S.classes).filter(([k]) => k !== S.cls).map(([k, c]) => `${CLASSES[k].icon}Lv.${c.lv}`).join(' ') || 'เลเวลแยกแต่ละอาชีพ'}</span></button>
     <button data-a="go" data-v="legend" class="${LEGENDS.some((L) => (S.frags[L.id] || 0) >= LEGEND_NEED) ? 'glow-btn' : ''}"><span class="ico">🌟</span>เลเจนดารี<span class="subtle">💠 เศษ ${Object.values(S.frags).reduce((a, b) => a + b, 0)} ชิ้น</span></button>
     <button data-a="go" data-v="cosmetics"><span class="ico">👘</span>สกิน & ออร่า<span class="subtle">${curSkin().n}${curAura() ? ` · ${curAura().n}` : ''}</span></button>
-    <button data-a="go" data-v="pets"><span class="ico">🐾</span>สัตว์เลี้ยง<span class="subtle">${curPet() ? `${petDef(S.pet).n} Lv.${curPet().lv}` : `${S.pets.length}/${PETS.length} ตัว`}</span></button>
+    <button data-a="go" data-v="pets"><span class="ico">🐾</span>สัตว์เลี้ยง<span class="subtle">${curPet() ? `${petDef(S.pet).n} Lv.${curPet().lv}` : S.mode === 'hunter' ? `พวกอสูร ${S.pets.length} ตัว` : `${S.pets.length}/${PETS.length} ตัว`}</span></button>
   </div>
-  <div class="row" style="margin-top:6px"><button class="small" style="flex:1" data-a="go" data-v="save">💾 เซฟ & ตั้งค่า</button>
+  <div class="row" style="margin-top:6px"><button class="small" style="flex:1" data-a="totitle">🏠 เปลี่ยนโหมด</button><button class="small" style="flex:1" data-a="go" data-v="save">💾 เซฟ & ตั้งค่า</button>
     <button class="ghost small" style="flex:1" data-a="reset">🗑️ ลบเซฟ เริ่มใหม่</button></div>
   ${installButton()}`;
 }
@@ -1395,11 +1419,11 @@ function renderBattleView() {
   document.getElementById('bact').innerHTML = battleToolbar() + (B.result ? '' : battleActions());
   // ผลการต่อสู้: หน้าต่างกลางจอ (ไม่มีข้อความบรรยายการโจมตี จอจะได้ไม่ขยับ)
   const br = document.getElementById('bresult');
-  const key = B.result ? `${B.id}:${B.result}` : '';
+  const key = B.result ? `${B.id}:${B.result}:${B.hmk || 0}` : '';
   if (br.dataset.k !== key) {
     br.dataset.k = key;
     // ออโต้ล่าต่อเนื่อง: ไม่เด้งหน้าต่าง แค่แจ้งสั้นๆ (หยุดออโต้เมื่อไหร่ หน้าต่างจะขึ้นตามปกติ)
-    const chaining = B.result === 'win' && S.settings.auto && S.settings.chain && (!B.isBoss || B.tower) && !B.rewards.ending && !B.rewards.items.length && !B.rewards.levels && !(B.rewards.frags || []).length;
+    const chaining = B.result === 'win' && S.settings.auto && S.settings.chain && (!B.isBoss || B.tower) && !hmPending() && !B.rewards.ending && !B.rewards.items.length && !B.rewards.levels && !(B.rewards.frags || []).length;
     if (chaining) { br.innerHTML = ''; toast(`🏆 +${fmt(B.rewards.exp)} EXP · 💰 +${fmt(B.rewards.gold)}`); }
     else br.innerHTML = B.result ? `<div class="result-modal ${B.result}"><div class="rm-box">${battleResult()}</div></div>` : '';
   }
@@ -1431,6 +1455,7 @@ function battleActions() {
     <button data-a="defend" ${d} title="ลดดาเมจ 65% · ฟื้น MP">🛡️ ป้องกัน<span class="subtle">ลดดาเมจ 65% · ฟื้น MP</span></button>
   </div>
   <div class="skill-bar" style="grid-template-columns:repeat(${S.loadout.length},1fr)">${S.loadout.map(skillBtn).join('')}</div>
+  ${S.mode === 'hunter' ? hmBattleButtons() : ''}
   <div class="actions">
     <button data-a="sub" data-v="item" ${d}>🧪 ไอเทม</button>
     ${B.isBoss ? `<button disabled class="ghost">MP ${fmt(S.mp)}/${fmt(st.mp)}</button>` : `<button class="ghost" data-a="flee" ${d}>🏃 หนี (65%)</button>`}
@@ -1591,7 +1616,7 @@ function battleResult() {
     <h3 style="margin-top:0">🏆 ชัยชนะ!</h3>
     <div>✨ +${fmt(r.exp)} EXP &nbsp; <span class="gold">💰 +${fmt(r.gold)}</span></div>
     ${r.levels ? `<div class="up" style="font-family:Kanit;font-size:18px;margin-top:6px">⬆️ เลเวลอัพ! ตอนนี้ Lv.${S.lv} (ฟื้นฟูเต็ม)</div>` : ''}
-    ${extrasResultHTML(r)}${fragResultHTML(r)}
+    ${S.mode === 'hunter' ? hmResultHTML(r) : ''}${extrasResultHTML(r)}${fragResultHTML(r)}
     ${r.adv3Unlock ? `<div class="new-skill">👑 Lv.${ADV3_LV}! เลื่อนขั้นเป็น<b>${ADV3_CLASSES[S.cls].name}</b>ได้แล้ว <button class="small primary" data-a="go" data-v="advance">ไปเลื่อนขั้น</button></div>` : ''}
     ${r.newPassives && r.newPassives.length ? `<div class="new-skill">🌀 ได้พาสซีฟใหม่: ${r.newPassives.map((p) => `<b>${p.icon} ${p.name}</b>`).join(', ')} <button class="small" data-a="go" data-v="skills">ดู</button></div>` : ''}
     ${r.advUnlock ? `<div class="new-skill">🌟 Lv.${ADV_LV}! เลื่อนขั้นเป็น<b>${ADV_CLASSES[S.cls].name}</b>ได้แล้ว <button class="small primary" data-a="go" data-v="advance">ไปเลื่อนขั้น</button></div>` : ''}
@@ -1751,19 +1776,21 @@ document.addEventListener('click', (ev) => {
 
   switch (a) {
     case 'go': if (v === 'map' && view === 'town') setWorld(curTown().world); townMenu = false; view = v; B = null; busy = false; forgeFx = null; skillSlotSel = null; if (typeof cosTry !== 'undefined') cosTry = null; break;
-    case 'continue': S = load(); view = 'town'; break;
+    case 'continue': gameMode = v || 'story'; S = load(); view = 'town'; break;
+    case 'totitle': save(); S = null; B = null; busy = false; view = 'title'; break;
     case 'newgame':
-      if (load() && !confirm('มีเซฟเก่าอยู่ เริ่มใหม่จะลบเซฟเดิม ตกลงไหม?')) return;
+      gameMode = v || 'story';
+      if (load() && !confirm('มีเซฟเก่าของโหมดนี้อยู่ เริ่มใหม่จะลบเซฟเดิม ตกลงไหม?')) return;
       createState = { name: '', cls: 'warrior' }; view = 'create'; break;
     case 'pickcls': createState.cls = v; break;
     case 'create': {
       const name = (createState.name || '').trim() || 'ผู้กล้านิรนาม';
       newGame(name, createState.cls); view = 'town';
-      toast(`ยินดีต้อนรับ ${name}!`); break;
+      toast(S.mode === 'hunter' ? `🏛️ ยินดีต้อนรับสู่กิลด์นักล่า ${name}! เริ่มที่แรงค์ F` : `ยินดีต้อนรับ ${name}!`); break;
     }
     case 'reset':
       if (!confirm('ลบเซฟทั้งหมดและเริ่มใหม่?')) return;
-      localStorage.removeItem(SAVE_KEY); S = null; view = 'title'; break;
+      localStorage.removeItem(saveKeyFor(S.mode)); S = null; view = 'title'; break;
     case 'inn': {
       const cost = innPrice();
       if (S.gold < cost) { toast('ทองไม่พอ'); return; }
@@ -1854,10 +1881,10 @@ document.addEventListener('click', (ev) => {
       S.bag = S.bag.filter((x) => !sell.includes(x)); S.gold += g; save();
       toast(`ขาย ${sell.length} ชิ้น ได้ ${fmt(g)} 💰`); break;
     }
-    default: if (!featureClick(a, v, el) && !cosClick(a, v, el) && !towerClick(a, v, el)) return;
+    default: if (!featureClick(a, v, el) && !cosClick(a, v, el) && !towerClick(a, v, el) && !hmClick(a, v, el)) return;
   }
   render();
-  if (['go', 'continue', 'leave', 'create', 'setdiff', 'tower', 'tnext', 'wbfight', 'rush', 'rnext'].includes(a)) window.scrollTo(0, 0);
+  if (['go', 'continue', 'totitle', 'leave', 'create', 'setdiff', 'tower', 'tnext', 'wbfight', 'rush', 'rnext'].includes(a)) window.scrollTo(0, 0);
 });
 
 render();

@@ -182,7 +182,7 @@ function stagePet(pet) {
   const id = pet ? pet.id : '';
   if (u.dataset.id === id) return;
   u.dataset.id = id;
-  u.innerHTML = pet ? `<div class="ushadow"></div><div class="ubody pet-body" id="pet-body">${petSVG(pet.id, 30)}</div><div class="pet-lv">Lv.${pet.lv}</div>` : '';
+  u.innerHTML = pet ? `<div class="ushadow"></div><div class="ubody pet-body" id="pet-body">${petSVG(pet.id, pet.id.startsWith('m:') ? 52 : 30)}</div><div class="pet-lv">Lv.${pet.lv}</div>` : '';
 }
 
 /* ---------- ตัวช่วยแอนิเมชัน (ปรับตามความเร็วเกม x1/x2/x3) ---------- */

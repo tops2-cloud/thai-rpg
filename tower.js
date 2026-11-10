@@ -228,7 +228,7 @@ function zoneCard(i) {
           <button class="small primary" data-a="hunt" data-v="${i}">⚔️ ล่ามอนสเตอร์</button>
           <button class="small danger" data-a="boss" data-v="${i}" ${bossOpen ? '' : 'disabled'}>👑 ท้าบอส ${bossOpen ? '' : `(${kills}/${BOSS_UNLOCK_KILLS})`}</button>
         </div>`
-      : `<div class="muted">🔒 ต้องโค่นบอส ${ZONES[i - 1].boss[0]} ก่อน</div>`}
+      : `<div class="muted">${S.mode === 'hunter' && !hmZoneRankOk(i) ? hmLockText(i) : `🔒 ต้องโค่นบอส ${ZONES[i - 1].boss[0]} ก่อน`}</div>`}
     </div></div>`;
 }
 
